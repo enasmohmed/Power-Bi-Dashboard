@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+
+{% block content %}
+
+<!-- Container-fluid starts-->
+<div class="container-fluid">
+    <div class="row">
+        {% if user.role == 'employee' %}
+        {% if request.session.dashboard_choice == 'admin_dashboard' %}
+        {% include 'forms-table/forms/form-controls/form-validation/components/add_data_form_admin.html' %}
+        {% elif request.session.dashboard_choice == 'customer_dashboard' %}
+        {% include 'forms-table/forms/form-controls/form-validation/components/add_data_form_customer.html' %}
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+<!-- Container-fluid Ends-->
+
+{% endblock content %}
+
+{% block scriptcontent %}
+
+<script src="{% static 'assets/js/form-validation-custom.js' %}"></script>
+<script src="{% static 'assets/js/height-equal.js' %}"></script>
+
+{% endblock %}

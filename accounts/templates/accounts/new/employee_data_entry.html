@@ -1,0 +1,26 @@
+<!-- templates/employee_data_entry.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Data Entry</title>
+</head>
+<body>
+<h1>Employee Data Entry</h1>
+<form method="post">
+    {% csrf_token %}
+    <h2>Admin Data</h2>
+    {{ admin_form.as_p }}
+    <h2>Inbound Data</h2>
+    {{ inbound_form.as_p }}
+    <h2>Outbound Data</h2>
+    {{ outbound_form.as_p }}
+    <h2>Returns Data</h2>
+    {{ returns_form.as_p }}
+    <h2>Capacity Data</h2>
+    {{ capacity_form.as_p }}
+    <h2>Inventory Data</h2>
+    {{ inventory_form.as_p }}
+    <button type="submit">Save Data</button>
+</form>
+</body>
+</html>

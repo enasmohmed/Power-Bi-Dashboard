@@ -1,0 +1,55 @@
+{% load group_tags %}
+{% load static %}
+{% load sass_tags %}
+
+{% for user in users %}
+<div class="col-xl-4 col-sm-6 col-xxl-3 col-ed-4 box-col-4">
+    <div class="card social-profile">
+        <div class="card-body">
+            <div class="social-img-wrap">
+                <div class="social-img"><img src="{% static 'assets/images/dashboard/profile.png' %}" alt="profile">
+                </div>
+                <div class="edit-icon">
+                    <svg>
+                        <use href="{% static 'assets/svg/icon-sprite.svg' %}#profile-check"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="social-details">
+                <h5 class="mb-1">{{ user.username }}</h5>
+                <span class="f-light">{{ user.email }}</span>
+                <ul class="social-follow">
+                    <li>
+                        <h5 class="mb-0">User Type</h5>
+                        <span class="f-light">
+                            {% if user.is_superuser %}
+                                Super Admin
+                            {% else %}
+                            {{ user.role }}
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <h5 class="mb-0">Date Joined</h5>
+                        <span class="f-light"> {{ user.date_joined|date:"d F Y" }}</span>
+                    </li>
+                    <li>
+                        <h5 class="mb-0">User Group</h5>
+                        <span class="f-light">
+                            {% if user.is_superuser %}
+                                Super Admin
+                            {% else %}
+                                {% for group in user.groups.all %}
+                                    {{ group.name }}
+                                    {% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endfor %}

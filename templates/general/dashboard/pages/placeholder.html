@@ -1,0 +1,1198 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    .page-title { display: none; }
+    .kpi-overview {
+        font-family: Inter, "Segoe UI", Roboto, sans-serif !important;
+        color: #1f2937;
+        padding-bottom: 24px;
+    }
+    .kpi-overview * { font-family: inherit !important; font-style: normal !important; }
+    .kpi-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+    .kpi-title {
+        font-size: 22px;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.02em;
+        color: #111827;
+    }
+    .kpi-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .kpi-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 7px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        line-height: 1;
+    }
+    .kpi-pill:hover { background: #f3f4f6; color: #111827; }
+    .kpi-pill.active {
+        background: #111827;
+        border-color: #111827;
+        color: #fff;
+    }
+    .kpi-pill.is-date { cursor: default; color: #6b7280; }
+    .kpi-section { margin-bottom: 28px; }
+    .kpi-section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    .kpi-section-head h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: #111827;
+    }
+    .kpi-section-head small { color: #6b7280; font-weight: 500; }
+    .kpi-section-meta { color: #6b7280; font-size: 13px; font-weight: 500; }
+    .kpi-card {
+        background: #f4f5f7;
+        border: 0;
+        border-radius: 14px;
+        border-top: 4px solid #d1d5db;
+        box-shadow: none;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .kpi-card.ok { border-top-color: #16a34a; }
+    .kpi-card.bad { border-top-color: #dc2626; }
+    .kpi-card.warn { border-top-color: #f59e0b; }
+    .kpi-card.info { border-top-color: #2563eb; }
+    .kpi-card .card-body { padding: 18px 18px 16px; }
+    .kpi-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 10px;
+        padding-right: 36px;
+    }
+    .kpi-value {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1;
+        margin: 0 0 8px;
+        color: #111827;
+        letter-spacing: -0.03em;
+    }
+    .kpi-value.ok { color: #16a34a; }
+    .kpi-value.bad { color: #dc2626; }
+    .kpi-value.warn { color: #d97706; }
+    .kpi-value.info { color: #2563eb; }
+    .kpi-sub { display: block; font-size: 13px; color: #6b7280; font-weight: 500; }
+    .kpi-icon {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+        opacity: 0.85;
+    }
+    .kpi-summary {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 20px 22px 8px;
+    }
+    .kpi-summary h6 {
+        margin: 0;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        font-weight: 700;
+    }
+    .kpi-summary h5 {
+        margin: 4px 0 16px;
+        font-size: 18px;
+        font-weight: 800;
+    }
+    .kpi-table { margin-bottom: 12px; }
+    .kpi-table thead th {
+        border: 0;
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #9ca3af;
+        font-weight: 700;
+        padding: 10px 12px;
+        background: transparent;
+    }
+    .kpi-table tbody td {
+        border-color: #f3f4f6;
+        vertical-align: middle;
+        padding: 14px 12px;
+        font-weight: 600;
+        color: #111827;
+    }
+    .company-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    .sla-cell { min-width: 140px; }
+    .sla-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .sla-bar {
+        flex: 1;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 99px;
+        overflow: hidden;
+    }
+    .sla-bar span {
+        display: block;
+        height: 100%;
+        border-radius: 99px;
+        background: #22c55e;
+    }
+    .sla-bar span.warn { background: #f59e0b; }
+    .sla-bar span.bad { background: #ef4444; }
+    .sla-pct { width: 52px; text-align: right; font-size: 13px; }
+    .overall-pill {
+        font-weight: 800;
+        font-size: 15px;
+    }
+    .overall-pill.ok { color: #16a34a; }
+    .overall-pill.warn { color: #d97706; }
+    .overall-pill.bad { color: #dc2626; }
+    .ob-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+    .ob-banner .accent {
+        width: 8px;
+        height: 22px;
+        border-radius: 99px;
+        flex-shrink: 0;
+    }
+    .ob-banner span { color: #6b7280; font-weight: 500; }
+    .kpi-card.ob {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+    }
+    .kpi-card.ob .kpi-label { padding-right: 0; }
+    .kpi-summary-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    .sla-note {
+        background: #e8f1ff;
+        color: #2563eb;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .ok-badge, .na-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 58px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .ok-badge { color: #16a34a; background: #ecfdf3; border: 1px solid #86efac; }
+    .na-badge { color: #2563eb; background: #eff6ff; border: 1px solid #93c5fd; }
+    .sla-pct.bad { color: #dc2626; font-weight: 700; }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .status-pill.perfect { background: #ecfdf3; color: #15803d; }
+    .status-pill.watch { background: #fff7ed; color: #c2410c; }
+    .status-pill.hit { background: #f0fdf4; color: #166534; }
+    .kpi-table tfoot td {
+        font-weight: 800;
+        border-top: 1px solid #e5e7eb;
+        background: #fafafa;
+    }
+    .muted-dash { color: #9ca3af; }
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #eff6ff;
+        color: #2563eb;
+    }
+    .status-pill.late { background: #fef2f2; color: #b91c1c; }
+    .hours-cell { min-width: 170px; }
+    .hours-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .hours-row .hours-val { width: 48px; font-size: 13px; font-weight: 700; }
+    .hours-row .hours-val.ok { color: #16a34a; }
+    .hours-row .hours-val.warn { color: #d97706; }
+    .hours-row .hours-val.bad { color: #dc2626; }
+    .kpi-table tfoot.ok td { background: #f0fdf4; }
+    .text-end-cell { text-align: right; }
+    .text-center-cell { text-align: center; }
+    .city-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        border-top: 4px solid #16a34a;
+        height: 100%;
+        padding: 16px 18px 18px;
+        position: relative;
+    }
+    .city-card.warn { border-top-color: #f59e0b; }
+    .city-card.bad { border-top-color: #dc2626; }
+    .city-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .city-card-head h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        color: #111827;
+    }
+    .city-score {
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1;
+        margin: 0 0 8px;
+        letter-spacing: -0.03em;
+        color: #16a34a;
+    }
+    .city-card.warn .city-score { color: #d97706; }
+    .city-card.bad .city-score { color: #dc2626; }
+    .city-meta { color: #6b7280; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+    .city-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: #4b5563;
+        font-weight: 600;
+    }
+    .kpi-card.neutral { border-top-color: #374151; }
+    .kpi-value.neutral { color: #111827; }
+    .inv-note {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .inv-note.info { background: #eff6ff; color: #1e3a8a; }
+    .inv-note.ok { background: #ecfdf3; color: #166534; }
+    .inv-note.warn { background: #fffbeb; color: #92400e; }
+    .inv-note.bad { background: #fef2f2; color: #991b1b; }
+    .inv-note .inv-status { white-space: nowrap; font-weight: 800; }
+    .inv-note.info .inv-status { color: #2563eb; }
+    .inv-note.ok .inv-status { color: #16a34a; }
+    .inv-note.warn .inv-status { color: #d97706; }
+    .inv-note.bad .inv-status { color: #dc2626; }
+    .inv-disclaimer, .inv-footer {
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: 16px;
+    }
+    .sla-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px 20px;
+        height: 100%;
+    }
+    .sla-card h6 {
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #111827;
+    }
+    .sla-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 13px;
+        color: #4b5563;
+        font-weight: 600;
+    }
+    .sla-item:last-child { border-bottom: 0; }
+    .sla-item .sla-target { font-weight: 800; }
+    .sla-item .sla-target.ok { color: #16a34a; }
+    .sla-item .sla-target.warn { color: #d97706; }
+    .status-pill.high { background: #fef2f2; color: #b91c1c; }
+    .status-pill.major { background: #fef2f2; color: #b91c1c; }
+    .status-pill.accepted { background: #fffbeb; color: #b45309; }
+    .status-pill.exception { background: #eff6ff; color: #2563eb; }
+    .status-pill.systemic { background: #fef2f2; color: #b91c1c; }
+    .status-pill.process { background: #fff7ed; color: #c2410c; }
+    .status-pill.recommend { background: #eff6ff; color: #2563eb; }
+    .page-loading { font-family: Inter, sans-serif; }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container-fluid">
+    {% if has_data and page == 'overview' %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="kpi-section-head">
+                <div>
+                    <h5>{{ company.name }} {{ company.subtitle }}</h5>
+                </div>
+                <div class="kpi-section-meta">{{ company.period_note }}</div>
+            </div>
+            <div class="row g-3">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card">
+                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#a16207" stroke-width="1.8">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <path d="M3.3 7 12 12l8.7-5"></path>
+                            <path d="M12 22V12"></path>
+                        </svg>
+                        <div class="card-body">
+                            <span class="kpi-label">Total Outbound</span>
+                            <p class="kpi-value">{{ company.total_outbound|intcomma }}</p>
+                            <span class="kpi-sub">Local: {{ company.local|intcomma }} — Remote: {{ company.remote|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card ok">
+                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="m8 12 3 3 5-6"></path>
+                        </svg>
+                        <div class="card-body">
+                            <span class="kpi-label">Overall SLA</span>
+                            <p class="kpi-value ok">{{ company.overall_sla }}%</p>
+                            <span class="kpi-sub">↑ {{ company.sla_note }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card bad">
+                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="m9 9 6 6M15 9l-6 6"></path>
+                        </svg>
+                        <div class="card-body">
+                            <span class="kpi-label">Total Misses</span>
+                            <p class="kpi-value bad">{{ company.total_misses|intcomma }}</p>
+                            <span class="kpi-sub">{{ company.misses_note }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card {% if company.inbound_kpi >= 90 %}ok{% else %}warn{% endif %}">
+                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="{% if company.inbound_kpi >= 90 %}#16a34a{% else %}#d97706{% endif %}" stroke-width="1.8">
+                            <path d="M3 21V8l9-5 9 5v13"></path>
+                            <path d="M9 21v-8h6v8"></path>
+                        </svg>
+                        <div class="card-body">
+                            <span class="kpi-label">Inbound KPI</span>
+                            <p class="kpi-value {% if company.inbound_kpi >= 90 %}ok{% else %}warn{% endif %}">{{ company.inbound_kpi }}%</p>
+                            <span class="kpi-sub">{{ company.inbound_note }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endfor %}
+
+        <div class="kpi-summary">
+            <h6>Combined KPI Summary</h6>
+            <h5>KPI by Company</h5>
+            <div class="table-responsive">
+                <table class="table kpi-table">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Period</th>
+                            <th>Orders</th>
+                            <th>Local SLA</th>
+                            <th>Remote SLA</th>
+                            <th>Inbound SLA</th>
+                            <th>Overall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for company in companies %}
+                        <tr>
+                            <td>
+                                <span class="company-dot" style="background: {{ company.dot_color }};"></span>
+                                {{ company.name }}
+                            </td>
+                            <td>{{ company.period }}</td>
+                            <td>{{ company.total_outbound|intcomma }}</td>
+                            <td class="sla-cell">
+                                <div class="sla-row">
+                                    <div class="sla-bar"><span style="width: {{ company.local_sla }}%;"></span></div>
+                                    <span class="sla-pct">{{ company.local_sla }}%</span>
+                                </div>
+                            </td>
+                            <td class="sla-cell">
+                                <div class="sla-row">
+                                    <div class="sla-bar"><span style="width: {{ company.remote_sla }}%;"></span></div>
+                                    <span class="sla-pct">{{ company.remote_sla }}%</span>
+                                </div>
+                            </td>
+                            <td class="sla-cell">
+                                <div class="sla-row">
+                                    <div class="sla-bar">
+                                        <span class="{% if company.inbound_sla >= 90 %}{% elif company.inbound_sla >= 80 %}warn{% else %}bad{% endif %}"
+                                              style="width: {{ company.inbound_sla }}%;"></span>
+                                    </div>
+                                    <span class="sla-pct">{{ company.inbound_sla }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="overall-pill {% if company.overall_sla >= 95 %}ok{% elif company.overall_sla >= 90 %}warn{% else %}warn{% endif %}">
+                                    {{ company.overall_sla }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% elif page == 'outbound' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">Outbound</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="ob-banner">
+                <span class="accent" style="background: {{ company.dot_color }};"></span>
+                <div>{{ company.name }} <span>Outbound · {{ company.period }}</span></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                {% for kpi in company.kpis %}
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card ob {{ kpi.tone }}">
+                        <div class="card-body">
+                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <p class="kpi-value {{ kpi.tone }}">{{ kpi.value }}</p>
+                            <span class="kpi-sub">{{ kpi.sub }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="kpi-summary">
+                <div class="kpi-summary-head">
+                    <div>
+                        <h6>Performance</h6>
+                        <h5>{{ company.table_title }}</h5>
+                    </div>
+                    <span class="sla-note">{{ company.sla_note }}</span>
+                </div>
+
+                {% if company.layout == 'warehouse' %}
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>Warehouse</th>
+                                <th>Local Hit</th>
+                                <th>Local Miss</th>
+                                <th>Local %</th>
+                                <th>Remote Hit</th>
+                                <th>Remote Miss</th>
+                                <th>Remote %</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in company.rows %}
+                            <tr>
+                                <td><span class="company-dot" style="background: {{ row.dot }};"></span>{{ row.name }}</td>
+                                <td>{% if row.local_hit is None %}<span class="muted-dash">—</span>{% else %}{{ row.local_hit|intcomma }}{% endif %}</td>
+                                <td>{% if row.local_miss is None %}<span class="muted-dash">—</span>{% else %}{{ row.local_miss|intcomma }}{% endif %}</td>
+                                <td class="sla-cell">
+                                    {% if row.local_pct is None %}
+                                        <span class="na-badge">N/A</span>
+                                    {% elif row.local_pct >= 100 %}
+                                        <span class="ok-badge">100%</span>
+                                    {% else %}
+                                        <div class="sla-row">
+                                            <div class="sla-bar"><span class="{% if row.local_pct < 90 %}bad{% endif %}" style="width: {{ row.local_pct }}%;"></span></div>
+                                            <span class="sla-pct {% if row.local_pct < 90 %}bad{% endif %}">{{ row.local_pct }}%</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{% if row.remote_hit is None %}<span class="muted-dash">—</span>{% else %}{{ row.remote_hit|intcomma }}{% endif %}</td>
+                                <td>{% if row.remote_miss is None %}<span class="muted-dash">—</span>{% else %}{{ row.remote_miss|intcomma }}{% endif %}</td>
+                                <td class="sla-cell">
+                                    {% if row.remote_pct is None %}
+                                        <span class="na-badge">N/A</span>
+                                    {% elif row.remote_pct >= 100 %}
+                                        <span class="ok-badge">100%</span>
+                                    {% else %}
+                                        <div class="sla-row">
+                                            <div class="sla-bar"><span class="{% if row.remote_pct < 90 %}bad{% endif %}" style="width: {{ row.remote_pct }}%;"></span></div>
+                                            <span class="sla-pct {% if row.remote_pct < 90 %}bad{% endif %}">{{ row.remote_pct }}%</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ row.total|intcomma }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Grand Total</td>
+                                <td>{{ company.totals.local_hit|intcomma }}</td>
+                                <td>{{ company.totals.local_miss|intcomma }}</td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ company.totals.local_pct }}%;"></span></div>
+                                        <span class="sla-pct">{{ company.totals.local_pct }}%</span>
+                                    </div>
+                                </td>
+                                <td>{{ company.totals.remote_hit|intcomma }}</td>
+                                <td>{{ company.totals.remote_miss|intcomma }}</td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ company.totals.remote_pct }}%;"></span></div>
+                                        <span class="sla-pct">{{ company.totals.remote_pct }}%</span>
+                                    </div>
+                                </td>
+                                <td>{{ company.totals.total|intcomma }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>City</th>
+                                <th>Orders</th>
+                                <th>Hit</th>
+                                <th>Miss</th>
+                                <th>SLA %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in company.rows %}
+                            <tr>
+                                <td><span class="company-dot" style="background: {{ row.dot }};"></span>{{ row.name }}</td>
+                                <td>{{ row.orders|intcomma }}</td>
+                                <td>{{ row.hit|intcomma }}</td>
+                                <td>{% if row.miss is None %}<span class="muted-dash">—</span>{% else %}{{ row.miss }}{% endif %}</td>
+                                <td class="sla-cell">
+                                    {% if row.sla >= 100 %}
+                                        <span class="ok-badge">100%</span>
+                                    {% else %}
+                                        <div class="sla-row">
+                                            <div class="sla-bar"><span class="{% if row.sla < 90 %}bad{% elif row.sla < 95 %}warn{% endif %}" style="width: {{ row.sla }}%;"></span></div>
+                                            <span class="sla-pct {% if row.sla < 90 %}bad{% endif %}">{{ row.sla }}%</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.status == 'Perfect' %}
+                                        <span class="status-pill perfect">✓ Perfect</span>
+                                    {% elif row.status == 'Watch' %}
+                                        <span class="status-pill watch">⚠ Watch</span>
+                                    {% else %}
+                                        <span class="status-pill hit">✓ Hit</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Grand Total</td>
+                                <td>{{ company.totals.orders|intcomma }}</td>
+                                <td>{{ company.totals.hit|intcomma }}</td>
+                                <td>{{ company.totals.miss }}</td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ company.totals.sla }}%;"></span></div>
+                                        <span class="sla-pct">{{ company.totals.sla }}%</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill perfect">✓ {{ company.totals.status }}</span></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    {% elif page == 'inbound' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">Inbound</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="ob-banner">
+                <span class="accent" style="background: {{ company.dot_color }};"></span>
+                <div>
+                    {{ company.name }} <span>Inbound · {{ company.period }}{% if company.subtitle %} · {{ company.subtitle }}{% endif %}</span>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                {% for kpi in company.kpis %}
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card ob {{ kpi.tone }}">
+                        <div class="card-body">
+                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <p class="kpi-value {{ kpi.tone }}">{{ kpi.value }}</p>
+                            <span class="kpi-sub">{{ kpi.sub }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="kpi-summary">
+                <div class="kpi-summary-head">
+                    <div>
+                        <h6>Performance</h6>
+                        <h5>{{ company.table_title }}</h5>
+                    </div>
+                    <span class="sla-note">{{ company.sla_note }}</span>
+                </div>
+
+                {% if company.layout == 'warehouse' %}
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>Warehouse</th>
+                                <th>System Receiving (24h)</th>
+                                <th>GRN Sharing (24h)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in company.rows %}
+                            <tr>
+                                <td>{{ row.name }}</td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ row.receiving }}%;"></span></div>
+                                        <span class="sla-pct">{{ row.receiving }}%</span>
+                                    </div>
+                                </td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ row.grn }}%;"></span></div>
+                                        <span class="sla-pct">{{ row.grn }}%</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill perfect">✓ {{ row.status }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="ok">
+                            <tr>
+                                <td>Grand Total</td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ company.totals.receiving }}%;"></span></div>
+                                        <span class="sla-pct">{{ company.totals.receiving }}%</span>
+                                    </div>
+                                </td>
+                                <td class="sla-cell">
+                                    <div class="sla-row">
+                                        <div class="sla-bar"><span style="width: {{ company.totals.grn }}%;"></span></div>
+                                        <span class="sla-pct">{{ company.totals.grn }}%</span>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill perfect">✓ {{ company.totals.status }}</span></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>Shipment</th>
+                                <th class="text-center-cell">Type</th>
+                                <th class="text-center-cell">Arrival</th>
+                                <th>Hours to Receive</th>
+                                <th class="text-end-cell">RCV %</th>
+                                <th class="text-end-cell">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in company.rows %}
+                            <tr>
+                                <td>{{ row.shipment }}</td>
+                                <td class="text-center-cell"><span class="type-badge">{{ row.type }}</span></td>
+                                <td class="text-center-cell">{{ row.arrival }}</td>
+                                <td class="hours-cell">
+                                    <div class="hours-row">
+                                        <div class="sla-bar">
+                                            <span class="{{ row.hours_tone }}" style="width: {{ row.hours_width }}%;"></span>
+                                        </div>
+                                        <span class="hours-val {{ row.hours_tone }}">{{ row.hours }}h</span>
+                                    </div>
+                                </td>
+                                <td class="text-end-cell">{{ row.rcv }}%</td>
+                                <td class="text-end-cell">
+                                    {% if row.status == 'On Time' %}
+                                        <span class="status-pill perfect">✓ On Time</span>
+                                    {% else %}
+                                        <span class="status-pill late">✕ Late</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    {% elif page == 'cities' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="kpi-section-head">
+                <h5>{{ company.section_title }}</h5>
+            </div>
+            <div class="row g-3">
+                {% for card in company.cards %}
+                <div class="col-xl-3 col-md-6">
+                    <div class="city-card {{ card.tone }}">
+                        <div class="city-card-head">
+                            <h5>{{ card.name }}</h5>
+                            {% if card.status == 'Excellent' %}
+                                <span class="status-pill perfect">Excellent</span>
+                            {% elif card.status == 'Good' %}
+                                <span class="status-pill hit">Good</span>
+                            {% elif card.status == 'Watch' %}
+                                <span class="status-pill watch">Watch</span>
+                            {% else %}
+                                <span class="status-pill late">Needs Attn</span>
+                            {% endif %}
+                        </div>
+                        <p class="city-score">
+                            {% if card.score == 100 %}100%{% else %}{{ card.score }}%{% endif %}
+                        </p>
+                        <div class="city-meta">
+                            {{ card.orders|intcomma }} orders —
+                            {% if card.misses == 1 %}1 miss{% else %}{{ card.misses }} misses{% endif %}
+                        </div>
+                        {% if company.layout == 'warehouse' %}
+                        <div class="city-metrics">
+                            <span>Despatch Local {{ card.local }}%</span>
+                            <span>Remote {% if card.remote is None %}N/A{% else %}{{ card.remote }}%{% endif %}</span>
+                            <span>Inbound {{ card.inbound }}%</span>
+                        </div>
+                        {% elif card.avg_hours %}
+                        <div class="city-metrics">
+                            <span>{{ card.avg_label }}: avg {{ card.avg_hours }}h</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    {% elif page == 'inventory' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="ob-banner">
+                <span class="accent" style="background: {{ company.dot_color }};"></span>
+                <div>{{ company.section_title }}</div>
+            </div>
+            <div class="row g-3 mb-3">
+                {% for kpi in company.kpis %}
+                <div class="col-md-4">
+                    <div class="card kpi-card ob {{ kpi.tone }}">
+                        <div class="card-body">
+                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <p class="kpi-value {{ kpi.tone }}">{{ kpi.value|intcomma }}</p>
+                            <span class="kpi-sub">{{ kpi.sub }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% for note in company.notes %}
+            <div class="inv-note {{ note.tone }}">
+                <span>{{ note.text }}</span>
+                <span class="inv-status">{{ note.status }}</span>
+            </div>
+            {% endfor %}
+        </section>
+        {% endfor %}
+
+        {% if disclaimer %}
+        <p class="inv-disclaimer">{{ disclaimer }}</p>
+        {% endif %}
+        {% if footer_note %}
+        <p class="inv-footer">{{ footer_note }}</p>
+        {% endif %}
+    </div>
+
+    {% elif page == 'sla' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        <section class="kpi-section">
+            <div class="kpi-section-head">
+                <h5>{{ agreement_title }}</h5>
+            </div>
+            <div class="row g-3">
+                {% for card in agreement %}
+                <div class="col-md-6">
+                    <div class="sla-card">
+                        <h6>{{ card.title }}</h6>
+                        {% for item in card.items %}
+                        <div class="sla-item">
+                            <span>{{ item.label }}</span>
+                            <span class="sla-target {{ item.tone }}">{{ item.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="kpi-section">
+            <div class="kpi-summary">
+                <div class="kpi-summary-head">
+                    <div>
+                        <h6>Performance</h6>
+                        <h5>{{ table_title }}</h5>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>SLA Category</th>
+                                <th>Target</th>
+                                <th>Achievement</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in companies %}
+                            {% for row in company.rows %}
+                            <tr>
+                                <td>{{ company.name }}</td>
+                                <td>{{ row.category }}</td>
+                                <td>{{ row.target }}</td>
+                                <td class="sla-cell">
+                                    {% if row.achievement >= 100 %}
+                                        <span class="ok-badge">100%</span>
+                                    {% else %}
+                                        <div class="sla-row">
+                                            <div class="sla-bar">
+                                                <span class="{% if row.achievement < 90 %}bad{% endif %}"
+                                                      style="width: {{ row.achievement }}%;"></span>
+                                            </div>
+                                            <span class="sla-pct {% if row.achievement < 90 %}bad{% endif %}">{{ row.achievement }}%</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.status == 'Perfect' %}
+                                        <span class="status-pill perfect">✓ Perfect</span>
+                                    {% elif row.status == 'Hit' %}
+                                        <span class="status-pill hit">✓ Hit</span>
+                                    {% else %}
+                                        <span class="status-pill late">✕ Miss</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    {% elif page == 'misses' and has_data %}
+    <div class="kpi-overview">
+        <div class="kpi-topbar">
+            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
+            <div class="kpi-filters">
+                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
+                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
+                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
+                <span class="kpi-pill is-date">{{ year_range }}</span>
+            </div>
+        </div>
+
+        {% for company in companies %}
+        <section class="kpi-section">
+            <div class="ob-banner">
+                <span class="accent" style="background: {{ company.dot_color }};"></span>
+                <div>{{ company.section_title }}</div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                {% for kpi in company.kpis %}
+                <div class="col-xl-3 col-md-6">
+                    <div class="card kpi-card ob {{ kpi.tone }}">
+                        <div class="card-body">
+                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <p class="kpi-value {{ kpi.tone }}">{{ kpi.value }}</p>
+                            <span class="kpi-sub">{{ kpi.sub }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if company.layout == 'warehouse' %}
+            <div class="kpi-summary mb-3">
+                <div class="kpi-summary-head">
+                    <div>
+                        <h6>Performance</h6>
+                        <h5>{{ company.table_title }}</h5>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table kpi-table">
+                        <thead>
+                            <tr>
+                                <th>Warehouse</th>
+                                <th>Orders</th>
+                                <th>Misses</th>
+                                <th>Miss Rate</th>
+                                <th>Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in company.rows %}
+                            <tr>
+                                <td>{{ row.name }}</td>
+                                <td>{{ row.orders|intcomma }}</td>
+                                <td>{{ row.misses }}</td>
+                                <td class="sla-cell">
+                                    {% if row.rate == 0 %}
+                                        <span class="ok-badge">0%</span>
+                                    {% else %}
+                                        <div class="sla-row">
+                                            <div class="sla-bar">
+                                                <span class="{% if row.risk == 'High' %}bad{% elif row.risk == 'Watch' %}warn{% endif %}"
+                                                      style="width: {{ row.rate }}%;"></span>
+                                            </div>
+                                            <span class="sla-pct {% if row.risk == 'High' %}bad{% endif %}">{{ row.rate }}%</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.risk == 'High' %}
+                                        <span class="status-pill high">High</span>
+                                    {% elif row.risk == 'Watch' %}
+                                        <span class="status-pill watch">Watch</span>
+                                    {% else %}
+                                        <span class="status-pill perfect">✓ Perfect</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="kpi-summary">
+                <h5 class="mb-3">{{ company.reasons_title }}</h5>
+                {% for reason in company.reasons %}
+                <div class="inv-note {{ reason.tone }}">
+                    <span>{{ reason.text }}</span>
+                    <span class="inv-status">{{ reason.status }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="kpi-summary h-100">
+                        <h5 class="mb-3">{{ company.outbound_title }}</h5>
+                        {% for item in company.outbound_details %}
+                        <div class="inv-note {{ item.tone }}">
+                            <span>{{ item.text }}</span>
+                            <span class="inv-status">{{ item.status }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="kpi-summary h-100">
+                        <h5 class="mb-3">{{ company.inbound_title }}</h5>
+                        {% for item in company.inbound_causes %}
+                        <div class="inv-note {{ item.tone }}">
+                            <span>{{ item.text }}</span>
+                            <span class="inv-status">{{ item.status }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        {% endfor %}
+    </div>
+
+    {% elif has_data %}
+    <div class="card">
+        <div class="card-header"><h4>{{ page_title }}</h4></div>
+        <div class="card-body"><p>Data will appear here.</p></div>
+    </div>
+
+    {% else %}
+    <div class="card">
+        <div class="card-header"><h4>{{ page_title }}</h4></div>
+        <div class="card-body">
+            <div class="page-loading text-center" style="padding: 80px 0;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 mb-0">Loading {{ page_title }} data...</p>
+                <small class="text-muted">No data available yet</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block css %}
+<style>
+.nav-tabs .nav-link.active {
+  font-weight: bold;
+  background-color: #f8f9fa;
+}
+.table thead th {
+  background: #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #fff !important;
+}
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container mt-4">
+
+
+
+
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == "success" and message.message.main %}
+        <div class="alert alert-success">
+          <strong>{{ message.message.main }}</strong>
+          <ul>
+            {% for d in message.message.details %}
+              <li>{{ d }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+
+
+
+
+  {% if selected_company_id %}
+    <h4 class="mb-3">📊 بيانات الشركة</h4>
+
+    <!-- التابات -->
+    <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+      {% for sheet, data in preview_data.items %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if forloop.first %}active{% endif %}"
+                  id="{{ sheet }}-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#{{ sheet }}"
+                  type="button"
+                  role="tab">
+            {{ sheet|title }}
+          </button>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <div class="tab-content mt-3">
+      {% for sheet, data in preview_data.items %}
+        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+             id="{{ sheet }}"
+             role="tabpanel"
+             style="max-height: 500px; overflow-y: auto; overflow-x: auto; white-space: nowrap;">
+
+          {% if data.rows %}
+            <table class="table table-bordered table-striped text-center align-middle">
+              <thead class="">
+                <tr>
+                  <th>#</th>
+                  {% for h in data.headers %}
+                    {% if h != "id" and h != "company_id" and h != "created_at" and h != "updated_at" %}
+                      <th>{{ h }}</th>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in data.rows %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    {% for h in data.headers %}
+                      {% if h != "id" and h != "company_id" and h != "created_at" and h != "updated_at" %}
+                        <td>{{ row|get_item:h }}</td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                {% if sheet == "capacity" %}
+                  <div class="alert alert-warning mt-2">
+                    ⚠️ برجاء إدخال بيانات السعة (Capacity) بشكل يدوي من النظام.
+                  </div>
+                {% endif %}
+
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>لا توجد بيانات في {{ sheet }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-danger">من فضلك ارفع ملف Excel لعرض البيانات.</p>
+  {% endif %}
+
+
+
+    <!-- زرار لحفظ البيانات في الداتابيز -->
+    <form method="post" action="{% url 'customer:save_uploaded_data' %}">
+      {% csrf_token %}
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">
+          💾 حفظ البيانات في قاعدة البيانات
+        </button>
+      </div>
+    </form>
+
+
+
+</div>
+{% endblock %}

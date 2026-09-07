@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log out</title>
+</head>
+<body>
+<h1>Are you sure you want to log out?</h1>
+<form id="logout-form" method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-link">Log out</button>
+</form>
+
+<a href="{% url 'accounts:login' %}">Back to login</a>
+</body>
+</html>

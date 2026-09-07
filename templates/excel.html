@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load sass_tags %}
+{% load custom_tags %}
+
+
+{% block css %}
+
+{% endblock css %}
+
+{% block content %}
+
+
+{% if user.role == 'employee' %}
+{% if request.session.dashboard_choice == 'admin_dashboard' %}
+{% include 'components/ui-kits/tab-bootstrap/components/tab-bootstrap-admin.html' %}
+{% elif request.session.dashboard_choice == 'customer_dashboard' %}
+{% include 'components/ui-kits/tab-bootstrap/components/tab-bootstrap-customer.html' %}
+{% else %}
+<p>None Data</p>
+{% endif %}
+{% elif user.role == 'customer' or request.session.dashboard_choice == 'customer_dashboard' %}
+{% include 'components/ui-kits/tab-bootstrap/components/tab-bootstrap-customer.html' %}
+{% else %}
+<p>Unknown user type or no dashboard choice</p>
+{% endif %}
+
+{% endblock %}
+
+{% block scriptcontent %}
+
+<script src="{% static 'assets/js/height-equal.js' %}"></script>
+
+{% endblock %}

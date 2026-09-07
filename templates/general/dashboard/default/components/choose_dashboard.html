@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+{% block css %}
+
+<style>
+    .m-aut {
+        text-align: center;
+        margin-top: 50px; /* تعديل المسافة العلوية حسب الحاجة */
+    }
+    .dashboard-card {
+        margin: 20px; /* تعديل المسافة بين الكروت */
+        border: 2px solid #1d505d;
+        border-radius: 5px;
+        transition: box-shadow 0.3s;
+        display: inline-block;
+        width: 400px;
+        border-radius: 5px;
+        box-shadow: 0px 20px 46px 2px #bcc6ff;
+        cursor: n-resize;
+    }
+    .dashboard-card img:hover {
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+        object-position: bottom;
+    }
+    .dashboard-card img {
+        width: 100%;
+        border-radius: 5px 5px 0 0;
+        object-fit: cover;
+        object-position: top;
+        height: 270px;
+        transition: 8s all ease;
+    }
+    .dashboard-card h3 {
+        text-align: center;
+        padding: 10px 0;
+        margin: 0;
+        background-color: #1d505d;
+        color: white;
+        border-radius: 0 0 5px 5px; /* تعديل شكل الزوايا للعنوان */
+    }
+</style>
+
+{% endblock css %}
+
+{% block content %}
+
+<div class="m-aut">
+    <h2 style="text-align: center;">Choose Your Dashboard</h2>
+    <form id="dashboardForm" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="choice" id="dashboardChoice">
+        <div class="dashboard-card" onclick="selectDashboard('admin_dashboard')">
+            <a href="#">
+                <img src="{% static 'assets/images/dashboard/admin_dashboard.png' %}" alt="Admin Dashboard">
+                <h3>Health Care Daily Activity Dashboard</h3>
+            </a>
+        </div>
+        <!-- <div class="dashboard-card" onclick="selectDashboard('customer_dashboard')">
+            <a href="#">
+                <img src="{% static 'assets/images/dashboard/customer_dashboard.png' %}" alt="Customer Dashboard">
+                <h3>Customer Dashboard</h3>
+            </a>
+        </div> -->
+    </form>
+
+
+</div>
+
+<script>
+    function selectDashboard(choice) {
+        document.getElementById('dashboardChoice').value = choice;
+        document.getElementById('dashboardForm').submit();
+    }
+</script>
+{% endblock content %}

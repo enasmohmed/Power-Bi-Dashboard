@@ -1,0 +1,297 @@
+{% load static %}
+{% load sass_tags %}
+{% load crispy_forms_tags %}
+{% load custom_filters %}
+
+
+<div class="col-sm-12 col-md-12 col-lg-12">
+    <div class="card height-equal">
+        <div class="card-header pb-0">
+            <h3>Add Admin Data</h3>
+        </div>
+
+        <div class="card-body custom-input">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- 🟢 زرارين للاختيار -->
+            <div class="mb-4">
+                <button type="button" class="btn btn-success me-2" onclick="showUpload(event)">📂 Upload File</button>
+                <button type="button" class="btn btn-info" onclick="showForm(event)">✍️ Manual Entry</button>
+            </div>
+
+            <!-- 🟢 فورم رفع الملف -->
+            <div id="upload-section" style="display:{% if preview_data %}block{% else %}none{% endif %};">
+                <form method="post" enctype="multipart/form-data" action="{% url 'administration:upload_admin_data' %}">
+                    {% csrf_token %}
+
+                    <!-- Dropdown لاختيار الشركة -->
+                    <div class="form-group mb-3">
+                        <label for="company">Select Company:</label>
+                        <select name="company" id="company" class="form-control" required>
+                            {% for company in companies %}
+                            <option value="{{ company.id }}"
+                                {% if company.id|stringformat:"s" == selected_company_id|stringformat:"s" %}selected{% endif %}>
+                                {{ company.hc_business }}
+                            </option>
+                            {% empty %}
+                            <option disabled>لا توجد شركات متاحة</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- رفع الملف -->
+                    <div class="form-group mb-3">
+                        <label for="excel_file">Select File (Excel):</label>
+                        <input type="file" name="excel_file" accept=".xlsx,.xls" id="excel_file" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-secondary ml-2">Cancel</a>
+                </form>
+
+                <!-- 🟢 عرض بيانات المعاينة -->
+                {% if preview_data %}
+                <div class="mt-4">
+                    <h4 class="mb-3">📊 Preview Uploaded Data</h4>
+                    
+                    <!-- التابات -->
+                    <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                        {% for sheet, data in preview_data.items %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if forloop.first %}active{% endif %}"
+                                    id="{{ sheet }}-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#{{ sheet }}"
+                                    type="button"
+                                    role="tab">
+                                {{ sheet|title }}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        {% for sheet, data in preview_data.items %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                             id="{{ sheet }}"
+                             role="tabpanel"
+                             style="max-height: 500px; overflow-y: auto; overflow-x: auto;">
+                            {% if data.rows %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            {% for header in data.headers %}
+                                            <th>{{ header }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in data.rows|slice:":50" %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            {% for header in data.headers %}
+                                            <td>{{ row|get_item:header|default:"-" }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% if data.rows|length > 50 %}
+                                <p class="text-muted">Showing first 50 rows of {{ data.rows|length }} total rows</p>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No data available</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- زرار يحفظ البيانات - يحفظ مع البيانات القديمة (تراكم) -->
+                    <form method="post" action="{% url 'administration:save_uploaded_admin_data' %}" class="mt-3">
+                        {% csrf_token %}
+                        <div class="alert alert-info">
+                            <strong>⚠️ تنبيه:</strong> سيتم حفظ البيانات مع البيانات القديمة الموجودة (تراكم). لن يتم حذف أي بيانات موجودة.
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg">💾 Save to Database</button>
+                        <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-secondary ml-2">Cancel</a>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 🟢 فورم الإدخال اليدوي - مخفي في البداية -->
+            <div id="manual-form" style="display:none;">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Admin Data Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Admin Data</legend>
+                        {% for field in admin_data_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Admin Inbound Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4">
+                        <legend class="scheduler-border">Admin Inbound</legend>
+                        {% for field in admin_inbound_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+
+                <!-- Admin Outbound Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4">
+                        <legend class="scheduler-border">Admin Outbound</legend>
+                        {% for field in admin_outbound_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Admin Returns Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4">
+                        <legend class="scheduler-border">Admin Returns</legend>
+                        {% for field in admin_returns_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+
+                <!-- Admin Capacity Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Admin Capacity</legend>
+                        {% for field in admin_capacity_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Admin Inventory Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Admin Inventory</legend>
+                        {% for field in admin_inventory_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-secondary ml-2">Cancel</a>
+                </div>
+            </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🟢 إظهار/إخفاء الفورمات عند الضغط على الأزرار
+    function showUpload(event) {
+        event.preventDefault();
+        document.getElementById("upload-section").style.display = "block";
+        document.getElementById("manual-form").style.display = "none";
+        // إضافة active class للزر المحدد
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+    }
+
+    function showForm(event) {
+        event.preventDefault();
+        document.getElementById("manual-form").style.display = "block";
+        document.getElementById("upload-section").style.display = "none";
+        // إضافة active class للزر المحدد
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+    }
+
+    // 🟢 عند تحميل الصفحة، إخفاء الفورم اليدوي إذا لم تكن هناك preview_data
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if not preview_data %}
+        document.getElementById("manual-form").style.display = "none";
+        document.getElementById("upload-section").style.display = "none";
+        {% else %}
+        // إذا كانت هناك preview_data، إظهار قسم رفع الملف فقط
+        document.getElementById("upload-section").style.display = "block";
+        document.getElementById("manual-form").style.display = "none";
+        {% endif %}
+    });
+</script>
+

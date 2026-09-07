@@ -1,0 +1,158 @@
+{% load static %}
+{% load sass_tags %}
+
+<!-- Page Sidebar Start-->
+<div class="sidebar-wrapper" data-layout="fill-svg">
+    <div>
+        <div class="logo-wrapper">
+            <a href="{% url 'accounts:redirect_to_dashboard' %}">
+                <img class="img-fluid" src="{% static 'assets/images/logo-tamer.png' %}" alt="">
+            </a>
+            <div class="toggle-sidebar">
+                <svg class="sidebar-toggle">
+                    <use href="{% static 'assets/svg/icon-sprite.svg' %}#toggle-icon"></use>
+                </svg>
+            </div>
+        </div>
+        <div class="logo-icon-wrapper">
+            <a href="{% url 'accounts:redirect_to_dashboard' %}">
+                <img class="img-fluid" src="{% static 'assets/images/logo/logo-icon.png' %}" alt="">
+            </a>
+        </div>
+        <nav class="sidebar-main">
+            <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
+            <div id="sidebar-menu">
+                <ul class="sidebar-links" id="simple-bar">
+                    <li class="back-btn">
+                        <a href="{% url 'accounts:redirect_to_dashboard' %}">
+                            <img class="img-fluid" src="{% static 'assets/images/logo/logo-icon.png' %}" alt="">
+                        </a>
+                        <div class="mobile-back text-end">
+                            <span>Back</span><i class="fa fa-angle-right ps-2" aria-hidden="true"></i>
+                        </div>
+                    </li>
+                    <li class="pin-title sidebar-main-title">
+                        <div>
+                            <h6>Pinned</h6>
+                        </div>
+                    </li>
+                    <li class="sidebar-main-title" style="margin-top: 15%;">
+                        <div>
+                            <h6 class="lan-1">General</h6>
+                        </div>
+                    </li>
+                    <li class="sidebar-list">
+                        <i class="fa fa-thumb-tack"></i>
+                        <a class="sidebar-link sidebar-title"
+                           href="#">
+                            <svg class="fill-icon">
+                                <use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-home"></use>
+                            </svg>
+                            <span class="lan-3">Dashboard</span></a>
+                        <ul class="sidebar-submenu">
+                            <li>
+                                <a href="{% url 'accounts:redirect_to_dashboard' %}">
+                                    {{ request.session.dashboard_type }}
+                                </a>
+                            </li>
+                            <!-- {% if user.role == 'employee' %}
+                            {% if request.session.dashboard_choice == 'admin_dashboard' %}
+                            <li><a href="{% url 'accounts:choose_dashboard' %}">Choose Dashboard</a></li>
+                            {% elif request.session.dashboard_choice == 'customer_dashboard' %}
+                            <li><a href="{% url 'accounts:choose_dashboard' %}">Choose Dashboard</a></li>
+                            {% endif %}
+                            {% endif %} -->
+                        </ul>
+                    </li>
+
+                    <li class="sidebar-main-title">
+                        <div>
+                            <h6>Daily Activity</h6>
+                        </div>
+                    </li>
+
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'overview' %}active{% endif %}"
+                           href="{% url 'accounts:overview' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-home"></use></svg>
+                            <span>Overview</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'outbound' %}active{% endif %}"
+                           href="{% url 'accounts:outbound' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-file"></use></svg>
+                            <span>Outbound</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'inbound' %}active{% endif %}"
+                           href="{% url 'accounts:inbound' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-file"></use></svg>
+                            <span>Inbound</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'cities' %}active{% endif %}"
+                           href="{% url 'accounts:cities' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-maps"></use></svg>
+                            <span>Cities</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}"
+                           href="{% url 'accounts:inventory' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-to-do"></use></svg>
+                            <span>Inventory</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'sla' %}active{% endif %}"
+                           href="{% url 'accounts:sla' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-calendar"></use></svg>
+                            <span>SLA</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.url_name == 'misses' %}active{% endif %}"
+                           href="{% url 'accounts:misses' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-to-do"></use></svg>
+                            <span>Misses</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-main-title">
+                        <div>
+                            <h6 class="lan-8">Applications</h6>
+                        </div>
+                    </li>
+
+                    <li class="sidebar-list"><i class="fa fa-thumb-tack"></i>
+                        <a class="sidebar-link sidebar-title"
+                           href="#">
+
+                            <svg class="stroke-icon">
+                                <use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-user"></use>
+                            </svg>
+                            <svg class="fill-icon">
+                                <use href="{% static 'assets/svg/icon-sprite.svg' %}#fill-user"></use>
+                            </svg>
+                            <span>Users</span></a>
+                        <ul class="sidebar-submenu">
+                            <li><a href="{% url 'accounts:user_profile' %}">Users Profile</a></li>
+                            {% if request.user.is_superuser %}
+                            <li><a href="{% url 'accounts:user_cards' %}">Users Cards</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+
+                </ul>
+            </div>
+            <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
+        </nav>
+    </div>
+</div>
+
+
+<!-- Page Sidebar Ends-->

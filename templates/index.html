@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+
+{% block css %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/calendar.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/datatables.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/date-picker.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/vector-map.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/fullcalender.css' %}">
+
+
+{% endblock css %}
+
+
+{% block content %}
+
+
+{% if user.is_authenticated %}
+{% if user.role == 'admin' or request.user.is_superuser  or request.session.dashboard_choice == 'admin_dashboard' %}
+{% include 'general/dashboard/default/components/container-fluid-admin.html' %}
+{% elif is_employee %}
+{% if request.session.dashboard_choice == 'admin_dashboard' %}
+{% include 'general/dashboard/default/components/container-fluid-admin.html' %}
+{% elif request.session.dashboard_choice == 'customer_dashboard' %}
+{% include 'general/dashboard/default/components/container-fluid-customer.html' %}
+{% else %}
+{% include 'general/dashboard/default/components/choose_dashboard.html' %}
+{% endif %}
+{% elif user.role == 'customer' or request.session.dashboard_choice == 'customer_dashboard' %}
+{% include 'general/dashboard/default/components/container-fluid-customer.html' %}
+{% else %}
+<p>Unknown user type</p>
+{% endif %}
+{% else %}
+<p>User is not authenticated</p>
+{% endif %}
+
+
+{% endblock content %}
+
+{% block scriptcontent %}
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.0/bootstrap-table.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/editable/bootstrap-table-editable.js"></script>
+<script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
+
+<script src="{% static 'assets/js/clock.js' %}"></script>
+<script src="{% static 'assets/js/calendar/fullcalendar.min.js' %}"></script>
+<script src="{% static 'assets/js/calendar/fullcalendar-custom.js' %}"></script>
+<script src="{% static 'assets/js/calendar/fullcalender.js' %}"></script>
+<script src="{% static 'assets/js/calendar/custom-calendar.js' %}"></script>
+<script src="{% static 'assets/js/chart/apex-chart/apex-chart.js' %}"></script>
+<script src="{% static 'assets/js/chart/apex-chart/stock-prices.js' %}"></script>
+<script src="{% static 'assets/js/chart/apex-chart/moment.min.js' %}"></script>
+<script src="{% static 'assets/js/notify/bootstrap-notify.min.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/jquery-jvectormap-2.0.2.min.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-world-mill-en.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-us-aea-en.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-uk-mill-en.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-au-mill.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-chicago-mill-en.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-in-mill.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map/jquery-jvectormap-asia-mill.js' %}"></script>
+<script src="{% static 'assets/js/dashboard/default.js' %}"></script>
+<script src="{% static 'assets/js/notify/index.js' %}"></script>
+<script src="{% static 'assets/js/datatable/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/js/datatable/datatables/datatable.custom.js' %}"></script>
+<script src="{% static 'assets/js/datatable/datatables/datatable.custom1.js' %}"></script>
+<script src="{% static 'assets/js/datepicker/date-picker/datepicker.js' %}"></script>
+<script src="{% static 'assets/js/datepicker/date-picker/datepicker.en.js' %}"></script>
+<script src="{% static 'assets/js/datepicker/date-picker/datepicker.custom.js' %}"></script>
+<script src="{% static 'assets/js/typeahead/handlebars.js' %}"></script>
+<script src="{% static 'assets/js/typeahead/typeahead.bundle.js' %}"></script>
+<script src="{% static 'assets/js/typeahead/typeahead.custom.js' %}"></script>
+<script src="{% static 'assets/js/typeahead-search/handlebars.js' %}"></script>
+<script src="{% static 'assets/js/typeahead-search/typeahead-custom.js' %}"></script>
+<script src="{% static 'assets/js/vector-map/map-vector.js' %}"></script>
+<!-- Plugins JS Ends-->
+
+
+{% endblock %}

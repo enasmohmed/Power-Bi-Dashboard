@@ -1,0 +1,647 @@
+{% load static %}
+{% load sass_tags %}
+
+<style>
+    /* نمط التبويبات لتكون باللون الأسود */
+    .nav-tabs .nav-link {
+        color: #80CBC4 !important; /* تغيير لون النص إلى الأسود */
+    }
+
+    .border-tab.nav-danger .nav-item .nav-link.active {
+        color: #5C6BC0 !important;
+        border-bottom: 2px solid #5C6BC0;
+    }
+
+    /* إضافة خطوط رمادية بين الصفوف والأعمدة */
+    .table th, .table td {
+        border: 1px solid #ddd; /* تعيين الخط الرمادي */
+        padding: 8px;
+    }
+
+    .table th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    .table{
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 15px;
+    }
+
+    .custom-scrollbar {
+        max-height: 300px; /* يمكنك ضبط الارتفاع المطلوب هنا */
+        overflow-y: auto;
+    }
+     .nav-tabs{
+        overflow-x: auto;
+        white-space: nowrap; /* يضمن عدم الكسر الخط */
+        padding-bottom: 10px; /* توسيع الفراغ السفلي لتجنب تغطية الأسهم */
+    }
+
+    .nav-tabs .nav-item {
+        display: inline-block; /* يجعل العناصر تظهر جنبًا إلى جنب بدلاً من عموديًا */
+        margin-right: 10px; /* تباعد بسيط بين العناصر */
+    }
+
+    .nav-tabs .nav-link {
+        padding: 10px 15px; /* توسيع الرموز لزيادة التوضيح */
+        border-radius: 0; /* إزالة الزوايا لتحقيق تبديل توازن جيد */
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: bold; /* تمييز التبويب النشط بالخط العريض */
+        background-color: #f8f9fa; /* لون خلفية التبويب النشط */
+    }
+    .download-buttons{
+        float: right;
+        margin-top: 20px;
+    }
+    .download-buttons .btn-secondary{
+        background-color: #dddddd !important;
+        border-color: #dddddd !important;
+    }
+    .download-buttons a{
+        font-weight: bold;
+    }
+
+</style>
+
+<!-- Container-fluid starts  -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-xl-12 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs border-tab border-0 mb-0 nav-danger" id="topline-tab" role="tablist">
+                        <!-- Admin Data Tab -->
+                        <li class="nav-item" id="admin-data-tab">
+                            <a class="nav-link nav-border pt-0 txt-danger nav-danger" id="topline-admin-data-tab"
+                               data-bs-toggle="tab" href="#topline-admin-data" role="tab"
+                               aria-controls="topline-admin-data" aria-selected="false">Admin Data</a>
+                        </li>
+
+                        <!-- Admin Inbound Data Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger" id="topline-top-inbound-tab"
+                               data-bs-toggle="tab" href="#topline-top-inbound" role="tab"
+                               aria-controls="topline-top-inbound" aria-selected="false">Inbound</a>
+                        </li>
+
+                        <!-- Admin Outbound Data Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger" id="topline-top-outbound-tab"
+                               data-bs-toggle="tab" href="#topline-top-outbound" role="tab"
+                               aria-controls="topline-top-outbound" aria-selected="false">Outbound</a>
+                        </li>
+
+                        <!-- Admin Returns Data Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger" id="topline-top-returns-tab"
+                               data-bs-toggle="tab" href="#topline-top-returns" role="tab"
+                               aria-controls="topline-top-returns" aria-selected="false">Returns</a>
+                        </li>
+
+                        <!-- Admin Capacity Data Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger" id="topline-top-capacity-tab"
+                               data-bs-toggle="tab" href="#topline-top-capacity" role="tab"
+                               aria-controls="topline-top-capacity" aria-selected="false">Capacity</a>
+                        </li>
+
+                        <!-- Admin Inventory Data Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger" id="topline-top-inventory-tab"
+                               data-bs-toggle="tab" href="#topline-top-inventory" role="tab"
+                               aria-controls="topline-top-inventory" aria-selected="false">Inventory</a>
+                        </li>
+                    </ul>
+
+                    <!-- Admin Data Content -->
+                    <div class="tab-content" id="topline-tabContent">
+
+                        <!-- Admin Data Table -->
+                        <div class="tab-pane fade show active" id="topline-admin-data" role="tabpanel"
+                             aria-labelledby="topline-admin-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Admin Data Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">User</th>
+                                                <th scope="col">Total Quantities</th>
+                                                <th scope="col">Total no of Employees</th>
+                                                <th scope="col">HC Business</th>
+                                                <th scope="col">Employees</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for admin in admin_data %}
+                                            <tr>
+                                                <th scope="row">{{ admin.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminData', {{ admin.id }}, 'user', this.innerText)">
+                                                    {{ admin.user.username }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminData', {{ admin.id }}, 'total_quantities', this.innerText)">
+                                                    {{ admin.total_quantities }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminData', {{ admin.id }}, 'total_no_of_employees', this.innerText)">
+                                                    {{ admin.total_no_of_employees }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminData', {{ admin.id }}, 'hc_business', this.innerText)">
+                                                    {{ admin.company.hc_business }}
+                                                </td>
+                                                <td>
+                                                    <ul>
+                                                        {% for employee in admin.company.employees.all %}
+                                                        <li contenteditable="true"
+                                                            onblur="updateEmployees('AdminData', {{ admin.id }}, 'employees', this.innerText)">
+                                                            {{ employee.username }}
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+                                                <td>
+                                                    {% if user.is_staff or user in admin.employees.all %}
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminData', {{ admin.id }})">Delete
+                                                    </button>
+                                                    {% else %}
+                                                    <button type="button" disabled>Delete</button>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Inbound Data Content -->
+                        <div class="tab-pane fade" id="topline-top-inbound" role="tabpanel"
+                             aria-labelledby="topline-inbound-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Inbound Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Number of vehicles daily</th>
+                                                <th scope="col">Number of pallets</th>
+                                                <th scope="col">Bulk</th>
+                                                <th scope="col">Mix</th>
+                                                <th scope="col">Cold</th>
+                                                <th scope="col">Frozen</th>
+                                                <th scope="col">Ambient</th>
+                                                <th scope="col">Pending Shipments</th>
+                                                <th scope="col">Number of Shipments</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for inbound in admin_inbound_data %}
+                                            <tr>
+                                                <th scope="row">{{ inbound.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'time', this.innerText)">
+                                                    {{ inbound.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'assigned_day', this.innerText)">
+                                                    {{ inbound.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'number_of_vehicles_daily', this.innerText)">
+                                                    {{ inbound.number_of_vehicles_daily }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'number_of_pallets', this.innerText)">
+                                                    {{ inbound.number_of_pallets }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'bulk', this.innerText)">
+                                                    {{ inbound.bulk }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'mix', this.innerText)">
+                                                    {{ inbound.mix }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'cold', this.innerText)">
+                                                    {{ inbound.cold }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'frozen', this.innerText)">
+                                                    {{ inbound.frozen }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'ambient', this.innerText)">
+                                                    {{ inbound.ambient }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'pending_shipments', this.innerText)">
+                                                    {{ inbound.pending_shipments }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInbound', {{ inbound.id }}, 'number_of_shipments', this.innerText)">
+                                                    {{ inbound.number_of_shipments }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminInbound', {{ inbound.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Outbound Data Content -->
+                        <div class="tab-pane fade" id="topline-top-outbound" role="tabpanel"
+                             aria-labelledby="topline-outbound-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Outbound Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Tender</th>
+                                                <th scope="col">Private</th>
+                                                <th scope="col">Lines</th>
+                                                <th scope="col">Total Quantities</th>
+                                                <th scope="col">Bulk</th>
+                                                <th scope="col">Loose</th>
+                                                <th scope="col">Pending Orders</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for outbound in admin_outbound_data %}
+                                            <tr>
+                                                <th scope="row">{{ outbound.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'time', this.innerText)">
+                                                    {{ outbound.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'assigned_day', this.innerText)">
+                                                    {{ outbound.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'tender', this.innerText)">
+                                                    {{ outbound.tender }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'private', this.innerText)">
+                                                    {{ outbound.private }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'lines', this.innerText)">
+                                                    {{ outbound.lines }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'total_quantities', this.innerText)">
+                                                    {{ outbound.total_quantities }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'bulk', this.innerText)">
+                                                    {{ outbound.bulk }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'loose', this.innerText)">
+                                                    {{ outbound.loose }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminOutbound', {{ outbound.id }}, 'pending_orders', this.innerText)">
+                                                    {{ outbound.pending_orders }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminOutbound', {{ outbound.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Returns Data Content -->
+                        <div class="tab-pane fade" id="topline-top-returns" role="tabpanel"
+                             aria-labelledby="topline-returns-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Returns Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Number of Return</th>
+                                                <th scope="col">Number of Lines</th>
+                                                <th scope="col">Total Quantities</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for returns in admin_returns_data %}
+                                            <tr>
+                                                <th scope="row">{{ returns.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminReturns', {{ returns.id }}, 'time', this.innerText)">
+                                                    {{ returns.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminReturns', {{ returns.id }}, 'assigned_day', this.innerText)">
+                                                    {{ returns.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminReturns', {{ returns.id }}, 'number_of_return', this.innerText)">
+                                                    {{ returns.number_of_return }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminReturns', {{ returns.id }}, 'number_of_lines', this.innerText)">
+                                                    {{ returns.number_of_lines }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminReturns', {{ returns.id }}, 'total_quantities', this.innerText)">
+                                                    {{ returns.total_quantities }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminReturns', {{ returns.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Capacity Data Content -->
+                        <div class="tab-pane fade" id="topline-top-capacity" role="tabpanel"
+                             aria-labelledby="topline-capacity-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Capacity Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">WH Storage</th>
+                                                <th scope="col">Occupied Location</th>
+                                                <th scope="col">Available Location</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for capacity in admin_capacity_data %}
+                                            <tr>
+                                                <th scope="row">{{ capacity.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminCapacity', {{ capacity.id }}, 'time', this.innerText)">
+                                                    {{ capacity.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminCapacity', {{ capacity.id }}, 'assigned_day', this.innerText)">
+                                                    {{ capacity.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminCapacity', {{ capacity.id }}, 'WH_storage', this.innerText)">
+                                                    {{ capacity.WH_storage }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminCapacity', {{ capacity.id }}, 'occupied_location', this.innerText)">
+                                                    {{ capacity.occupied_location }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminCapacity', {{ capacity.id }}, 'available_location', this.innerText)">
+                                                    {{ capacity.available_location }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminCapacity', {{ capacity.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Inventory Data Content -->
+                        <div class="tab-pane fade" id="topline-top-inventory" role="tabpanel"
+                             aria-labelledby="topline-inventory-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Inventory Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Last Movement</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for inventory in admin_inventory_data %}
+                                            <tr>
+                                                <th scope="row">{{ inventory.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInventory', {{ inventory.id }}, 'time', this.innerText)">
+                                                    {{ inventory.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInventory', {{ inventory.id }}, 'assigned_day', this.innerText)">
+                                                    {{ inventory.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('AdminInventory', {{ inventory.id }}, 'last_movement', this.innerText)">
+                                                    {{ inventory.last_movement }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('AdminInventory', {{ inventory.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="download-buttons">
+                        <button type="button" class="btn btn-secondary">
+                            <a href="{% url 'administration:admin_edit' %}?download=true&format=excel">Download Excel</a>
+                        </button>
+                        <button type="button" class="btn btn-secondary">
+                            <a href="{% url 'administration:admin_edit' %}?download=true&format=pdf">Download PDF</a>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // دالة للتحقق من نوع المستخدم وإظهار التبويبات المناسبة
+    function toggleTabs(isAdmin) {
+        if (isAdmin) {
+            // إظهار تبويب الإدارة وإخفاء تبويب العميل
+            document.getElementById('topline-admin-data-tab').classList.add('active');
+            document.getElementById('topline-admin-data').classList.add('show', 'active');
+        } else {
+            // إخفاء تبويب الإدارة
+            document.getElementById('topline-admin-data-tab').style.display = 'none';
+        }
+    }
+
+    // استدعاء الدالة بناءً على نوع المستخدم
+    document.addEventListener('DOMContentLoaded', function() {
+        const isAdmin = {{ is_admin|lower }}; // تحويل قيمة is_admin إلى lowercase لتصبح قيمة Boolean في جافاسكريبت
+        toggleTabs(isAdmin);
+    });
+
+ function addData(model, fields) {
+    fetch("", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            add: {
+                model: model,
+                fields: fields
+            }
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.error);
+        } else {
+            // Handle success as needed (e.g., reload page or update UI)
+            location.reload(); // Example: Reload page after successful addition
+        }
+    });
+}
+
+  function updateData(model, id, field, value) {
+    fetch("{% url 'administration:data_entry' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ update: { model: model, id: id, field: field, value: value } })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.success) {
+            alert("Failed to update data: " + data.error);
+        } else {
+            // Optional: Handle success if needed
+        }
+    })
+    .catch(error => {
+        console.error("Error updating data:", error);
+    });
+}
+
+function deleteData(model, id) {
+    fetch("{% url 'administration:data_entry' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ delete: { model: model, id: id } })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Reload the page on successful delete
+        } else {
+            alert("Failed to delete row: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error deleting row:", error);
+    });
+}
+
+</script>
+<!-- Container-fluid Ends-->

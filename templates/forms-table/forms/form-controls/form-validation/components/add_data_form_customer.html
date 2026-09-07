@@ -1,0 +1,313 @@
+{% load static %}
+{% load sass_tags %}
+{% load crispy_forms_tags %}
+
+
+<div class="col-sm-12 col-md-12 col-lg-12">
+    <div class="card height-equal">
+        <div class="card-header pb-0">
+            <h3>Add Customer Data</h3>
+        </div>
+        <div class="card-body custom-input">
+
+            <!-- زرارين للاختيار -->
+            <div class="mb-4">
+                <button type="button" class="btn btn-success me-2" onclick="showUpload()">📂 Upload File</button>
+                <button type="button" class="btn btn-info" onclick="showForm()">✍️ Manual Entry</button>
+            </div>
+
+
+
+            <!-- Display messages -->
+<!--            {% if messages %}-->
+<!--            <div class="alert alert-dismissible fade show" role="alert">-->
+<!--                {% for message in messages %}-->
+<!--                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">-->
+<!--                    {{ message }}-->
+<!--                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>-->
+<!--                </div>-->
+<!--                {% endfor %}-->
+<!--            </div>-->
+<!--            {% endif %}-->
+
+
+
+             <!-- فورم رفع الملف -->
+            <div id="upload-section" style="display:none;">
+                <form method="post" enctype="multipart/form-data" action="{% url 'customer:upload_customer_data' %}">
+                    {% csrf_token %}
+
+                    <!-- Dropdown لاختيار الشركة -->
+                   <div class="form-group mb-3">
+                      <label for="company">Select Company:</label>
+                      <select name="company" id="company" class="form-control" required>
+                        {% for company in companies %}
+                          <option value="{{ company.id }}"
+                            {% if company.id|stringformat:"s" == selected_company_id|stringformat:"s" %}selected{% endif %}>
+                            {{ company.name_company }}
+                          </option>
+                        {% empty %}
+                          <option disabled>لا توجد شركات متاحة</option>
+                        {% endfor %}
+                      </select>
+
+                   </div>
+
+
+
+
+
+                    <!-- رفع الملف -->
+                    <div class="form-group mb-3">
+                        <label for="file">Select File (CSV/Excel):</label>
+                        <input type="file" name="excel_file" accept=".xlsx,.xls" id="file" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <a href="{% url 'accounts:customer_dashboard' %}" class="btn btn-secondary ml-2">Cancel</a>
+                </form>
+
+
+
+            </div>
+
+
+
+
+
+           {% if preview_data %}
+            <!-- هنا جدول الـ preview -->
+                <h4 class="mt-4">📊 Preview Uploaded Data</h4>
+                <div class="table-responsive">
+
+
+                </div>
+
+                <!-- زرار يحفظ البيانات -->
+                <form method="post" action="{% url 'accounts:save_uploaded_data' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success mt-3">💾 Save to Database</button>
+                </form>
+          {% else %}
+            <!-- هنا manual entry form -->
+            <div id="manual-form" style="display:none;">
+                <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Customer Form -->
+                <fieldset class="scheduler-border">
+                    <legend class="scheduler-border">Customer Data</legend>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="username">User:</label>
+                                <input type="text" id="username" value="{{ current_user }}" class="form-control"
+                                       readonly>
+                            </div>
+                        </div>
+                        {% for field in customer_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <!-- Customer Inbound Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Inbound</legend>
+                        {% for field in customer_inbound_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer Transportation Outbound Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col d-none">
+                        <legend class="scheduler-border">Customer Transportation Outbound</legend>
+                        {% for field in customer_transportation_outbound_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer WH Outbound Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer WH Outbound</legend>
+                        {% for field in customer_wh_outbound_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer Returns Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Returns</legend>
+                        {% for field in customer_returns_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer Expiry Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Expiry</legend>
+                        {% for field in customer_expiry_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer Damage Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Damage</legend>
+                        {% for field in customer_damage_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+
+                <!-- Customer Inventory Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Inventory</legend>
+                        {% for field in customer_inventory_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <!-- Customer Pallet Location Availability Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer Pallet Location Availability</legend>
+                        {% for field in customer_pallet_location_availability_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+
+                <!-- Customer HSE Form -->
+                <div class="row">
+                    <fieldset class="scheduler-border mt-4 col">
+                        <legend class="scheduler-border">Customer HSE</legend>
+                        {% for field in customer_hse_form %}
+                        {% if forloop.counter0|divisibleby:2 %}
+                        <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                {{ field|as_crispy_field }}
+                            </div>
+                            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{% url 'accounts:customer_dashboard' %}" class="btn btn-secondary ml-2">Cancel</a>
+                </div>
+            </form>
+            </div>
+
+
+          {% endif %}
+
+
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function showUpload() {
+        document.getElementById("upload-section").style.display = "block";
+        document.getElementById("manual-form").style.display = "none";
+    }
+
+    function showForm() {
+        document.getElementById("manual-form").style.display = "block";
+        document.getElementById("upload-section").style.display = "none";
+    }
+</script>

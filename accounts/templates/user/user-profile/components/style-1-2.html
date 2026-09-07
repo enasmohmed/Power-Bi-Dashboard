@@ -1,0 +1,51 @@
+{% load static %}
+{% load sass_tags %}
+
+<!-- user profile first-style start-->
+<div class="col-sm-12 col-md-12 col-lg-12">
+    <div class="card social-profile">
+        <div class="card-body">
+            <div class="social-img-wrap">
+                <div class="social-img">
+                    <img src="{% static 'assets/images/dashboard/profile.png' %}" alt="profile">
+                </div>
+                <div class="edit-icon">
+                    <svg>
+                        <use href="{% static 'assets/svg/icon-sprite.svg' %}#profile-check"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="social-details">
+                <h5 class="mb-1"><a href="#">{{ user.username }}</a></h5>
+                <span class="f-light">{{ user.email }}</span>
+                <ul class="social-follow">
+                    <li>
+                        <h5 class="mb-0">{{ user.date_joined }}</h5><span class="f-light">Date Joined</span>
+                    </li>
+                    <li>
+                        <h5 class="mb-0">{{ user_type }}</h5><span class="f-light">User Type</span>
+                    </li>
+                    <li>
+                        <h5 class="mb-0">
+                            {% for group in user_groups %}
+                            {{ group }}{% if not forloop.last %}<br>{% endif %}
+                            {% endfor %}
+                        </h5>
+                        <span class="f-light">User Groups</span>
+                    </li>
+                </ul>
+
+            </div>
+            <hr>
+            <div class="col-12 col-lg-3">
+                <a href="{% url 'password_change' %}">
+                    <button type="button" class="btn btn-outline-primary">
+                        <span class="fa fa-key"></span> Change Password
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- user profile first-style end-->

@@ -1,0 +1,937 @@
+{% load static %}
+{% load sass_tags %}
+
+<style>
+    /* نمط التبويبات لتكون باللون الأسود */
+    .nav-tabs .nav-link {
+        color: #80CBC4 !important; /* تغيير لون النص إلى الأسود */
+    }
+
+    .border-tab.nav-danger .nav-item .nav-link.active {
+        color: #5C6BC0 !important;
+        border-bottom: 2px solid #5C6BC0;
+    }
+
+    /* إضافة خطوط رمادية بين الصفوف والأعمدة */
+    .table th, .table td {
+        border: 1px solid #ddd; /* تعيين الخط الرمادي */
+        padding: 8px;
+    }
+
+    .table th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    .table{
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 15px;
+    }
+
+    .custom-scrollbar {
+        max-height: 300px; /* يمكنك ضبط الارتفاع المطلوب هنا */
+        overflow-y: auto;
+    }
+     .nav-tabs{
+        overflow-x: auto;
+        white-space: nowrap; /* يضمن عدم الكسر الخط */
+        padding-bottom: 10px; /* توسيع الفراغ السفلي لتجنب تغطية الأسهم */
+    }
+
+    .nav-tabs .nav-item {
+        display: inline-block; /* يجعل العناصر تظهر جنبًا إلى جنب بدلاً من عموديًا */
+        margin-right: 10px; /* تباعد بسيط بين العناصر */
+    }
+
+    .nav-tabs .nav-link {
+        padding: 10px 15px; /* توسيع الرموز لزيادة التوضيح */
+        border-radius: 0; /* إزالة الزوايا لتحقيق تبديل توازن جيد */
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: bold; /* تمييز التبويب النشط بالخط العريض */
+        background-color: #f8f9fa; /* لون خلفية التبويب النشط */
+    }
+    .download-buttons{
+        float: right;
+        margin-top: 20px;
+    }
+    .download-buttons .btn-secondary{
+        background-color: #dddddd !important;
+        border-color: #dddddd !important;
+    }
+    .download-buttons a{
+        font-weight: bold;
+    }
+
+</style>
+
+<!-- Container-fluid starts  -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-xl-12 col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs border-tab border-0 mb-0 nav-danger" id="topline-tab" role="tablist">
+                        <!--  Company Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link active nav-border pt-0 txt-danger nav-danger"
+                               id="topline-top-companies-tab" data-bs-toggle="tab" href="#topline-top-companies"
+                               role="tab" aria-controls="topline-top-companies" aria-selected="true">Customer</a>
+                        </li>
+                        <!--  Inbound Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-inbound-tab"
+                               data-bs-toggle="tab" href="#topline-top-inbound"
+                               role="tab" aria-controls="topline-top-inbound" aria-selected="false">Inbound
+                            </a>
+                        </li>
+                        <!--  Transportation Outbound Tab  -->
+                        <li class="nav-item d-none">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-transportation_outbound-tab"
+                               data-bs-toggle="tab" href="#topline-top-transportation_outbound"
+                               role="tab" aria-controls="topline-top-transportation_outbound" aria-selected="false">Transportation Outbound
+                            </a>
+                        </li>
+                        <!--  WH Outbound Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-wh_outbound-tab"
+                               data-bs-toggle="tab" href="#topline-top-wh_outbound"
+                               role="tab" aria-controls="topline-top-wh_outbound" aria-selected="false">WH Outbound
+                            </a>
+                        </li>
+                        <!--  Return Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-return-tab"
+                               data-bs-toggle="tab" href="#topline-top-return"
+                               role="tab" aria-controls="topline-top-return" aria-selected="false">Return
+                            </a>
+                        </li>
+                        <!--  Expiry Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-expiries-tab"
+                               data-bs-toggle="tab" href="#topline-top-expiries"
+                               role="tab" aria-controls="topline-top-expiries" aria-selected="false">Expiry
+                            </a>
+                        </li>
+                        <!--  Damage Tab  -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-damages-tab"
+                               data-bs-toggle="tab" href="#topline-top-damages"
+                               role="tab" aria-controls="topline-top-damages" aria-selected="false">Damage
+                            </a>
+                        </li>
+
+                        <!--  Inventories Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-inventories-tab"
+                               data-bs-toggle="tab" href="#topline-top-inventories"
+                               role="tab" aria-controls="topline-top-inventories" aria-selected="false">Inventories
+                            </a>
+                        </li>
+                        <!--  Pallet Location Availabilities Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-pallet_location_availabilities-tab"
+                               data-bs-toggle="tab" href="#topline-top-pallet_location_availabilities"
+                               role="tab" aria-controls="topline-top-pallet_location_availabilities"
+                               aria-selected="false">Pallet Location Availabilities
+                            </a>
+                        </li>
+                        <!--  HSE Tab -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-border txt-danger nav-danger"
+                               id="topline-top-hses-tab"
+                               data-bs-toggle="tab" href="#topline-top-hses"
+                               role="tab" aria-controls="topline-top-hses" aria-selected="false">HSE
+                            </a>
+                        </li>
+
+                    </ul>
+
+                    <div class="tab-content" id="topline-tabContent">
+                        {% if is_customer or is_employee %}
+                        <!-- Table Company  -->
+                        <div class="tab-pane fade show active" id="topline-top-companies" role="tabpanel"
+                             aria-labelledby="topline-top-companies-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Company Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">User</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for company in companies %}
+                                            <tr>
+                                                <th scope="row">{{ company.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('Customer', {{ company.id }}, 'name_company', this.innerText)">
+                                                    {{ company.name_company }}
+                                                </td>
+                                                <td>
+                                                    <ul>
+                                                        {% for employee in company.employees.all %}
+                                                        <li contenteditable="true"
+                                                            onblur="updateData('EmployeeProfile', {{ employee.id }}, 'user.username', this.innerText)">
+                                                            {{ employee.user.username }}
+                                                        </li>
+                                                        <hr>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+
+                                                <td>
+                                                    <ul>
+                                                        {% for employee in company.employees.all %}
+                                                        <li>
+                                                            <button onclick="deleteData('EmployeeProfile', {{ employee.id }})">
+                                                                Delete
+                                                            </button>
+                                                        </li>
+                                                        <hr>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table Inbound -->
+                         <div class="tab-pane fade" id="topline-top-inbound" role="tabpanel"
+                             aria-labelledby="topline-inbound-data-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Inbound Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Number of vehicles daily</th>
+                                                <th scope="col">Number of pallets</th>
+                                                <th scope="col">Bulk</th>
+                                                <th scope="col">Mix</th>
+                                                <th scope="col">Cold</th>
+                                                <th scope="col">Frozen</th>
+                                                <th scope="col">Ambient</th>
+                                                <th scope="col">Pending Shipments</th>
+                                                <th scope="col">Number of Shipments</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for inbound in inbounds %}
+                                            <tr>
+                                                <th scope="row">{{ inbound.id }}</th>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'time', this.innerText)">
+                                                    {{ inbound.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'assigned_day', this.innerText)">
+                                                    {{ inbound.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'number_of_vehicles_daily', this.innerText)">
+                                                    {{ inbound.number_of_vehicles_daily }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'number_of_pallets', this.innerText)">
+                                                    {{ inbound.number_of_pallets }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'bulk', this.innerText)">
+                                                    {{ inbound.bulk }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'mix', this.innerText)">
+                                                    {{ inbound.mix }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'cold', this.innerText)">
+                                                    {{ inbound.cold }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'frozen', this.innerText)">
+                                                    {{ inbound.frozen }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'ambient', this.innerText)">
+                                                    {{ inbound.ambient }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'pending_shipments', this.innerText)">
+                                                    {{ inbound.pending_shipments }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInbound', {{ inbound.id }}, 'number_of_shipments', this.innerText)">
+                                                    {{ inbound.number_of_shipments }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerInbound', {{ inbound.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Transportation Outbound   -->
+                        <div class="tab-pane fade" id="topline-top-transportation_outbound d-none" role="tabpanel"
+                             aria-labelledby="topline-top-transportation_outbound-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Transportation Outbound Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Released Order</th>
+                                                <th scope="col">Pending Pick Orders</th>
+                                                <th scope="col">Piked Order</th>
+                                                <th scope="col">Number of PODs Collected on Time</th>
+                                                <th scope="col">Number of PODs Collected Late</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for outbound in transportation_outbounds %}
+                                                <tr>
+                                                    <td>{{ outbound.id }}</td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'time', this.innerText)">
+                                                        {{ outbound.time }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'assigned_day', this.innerText)">
+                                                        {{ outbound.assigned_day }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'released_order', this.innerText)">
+                                                        {{ outbound.released_order }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'pending_pick_orders', this.innerText)">
+                                                        {{ outbound.pending_pick_orders }}
+                                                    </td>
+
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'piked_order', this.innerText)">
+                                                        {{ outbound.piked_order }}
+                                                    </td>
+
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'number_of_PODs_collected_on_time', this.innerText)">
+                                                        {{ outbound.number_of_PODs_collected_on_time }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerTransportationOutbound', {{ outbound.id }}, 'number_of_PODs_collected_Late', this.innerText)">
+                                                        {{ outbound.number_of_PODs_collected_Late }}
+                                                    </td>
+                                                    <td>
+                                                        <button type="button"
+                                                                onclick="deleteData('CustomerTransportationOutbound', {{ outbound.id }})">
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table WH Outbound   -->
+                        <div class="tab-pane fade" id="topline-top-wh_outbound" role="tabpanel"
+                             aria-labelledby="topline-top-wh_outbound-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">WH Outbound Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Released Order</th>
+                                                <th scope="col">Pending Pick Orders</th>
+                                                <th scope="col">Piked Order</th>
+                                                <th scope="col">Number of PODs Collected on Time</th>
+                                                <th scope="col">Number of PODs Collected Late</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for outbound in wh_outbounds %}
+                                                <tr>
+                                                    <td>{{ outbound.id }}</td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'time', this.innerText)">
+                                                        {{ outbound.time }}
+                                                   </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'assigned_day', this.innerText)">
+                                                        {{ outbound.assigned_day }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'released_order', this.innerText)">
+                                                        {{ outbound.released_order }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'pending_pick_orders', this.innerText)">
+                                                        {{ outbound.pending_pick_orders }}
+                                                    </td>
+
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'piked_order', this.innerText)">
+                                                        {{ outbound.piked_order }}
+                                                    </td>
+
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'number_of_PODs_collected_on_time', this.innerText)">
+                                                        {{ outbound.number_of_PODs_collected_on_time }}
+                                                    </td>
+                                                    <td contenteditable="true"
+                                                        onblur="updateData('CustomerWHOutbound', {{ outbound.id }}, 'number_of_PODs_collected_Late', this.innerText)">
+                                                        {{ outbound.number_of_PODs_collected_Late }}
+                                                    </td>
+                                                    <td>
+                                                        <button type="button"
+                                                                onclick="deleteData('CustomerWHOutbound', {{ outbound.id }})">
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Return  -->
+                        <div class="tab-pane fade" id="topline-top-return" role="tabpanel"
+                             aria-labelledby="topline-top-return-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Return Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Return Items Orders updated Late</th>
+                                                <th scope="col">Return Items Orders updated on Time</th>
+                                                <th scope="col">Total Orders Items Returned</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for return in returns %}
+                                            <tr>
+                                                <td>{{ return.id }}</td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerReturns',{{ return.id }}, 'time', this.innerText)">
+                                                    {{ return.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerReturns',{{ return.id }}, 'assigned_day', this.innerText)">
+                                                    {{ return.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerReturns',{{ return.id }}, 'total_orders_items_returned', this.innerText)">
+                                                    {{ return.total_orders_items_returned }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerReturns',{{ return.id }}, 'number_of_return_items_orders_updated_on_time', this.innerText)">
+                                                    {{ return.number_of_return_items_orders_updated_on_time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerReturns',{{ return.id }}, 'number_of_return_items_orders_updated_late', this.innerText)">
+                                                    {{ return.number_of_return_items_orders_updated_late }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerReturns', {{ return.id }})">
+
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Expiry  -->
+                        <div class="tab-pane fade" id="topline-top-expiries" role="tabpanel"
+                             aria-labelledby="topline-top-expiries-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Expiry Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Total SKUS</th>
+                                                <th scope="col">Total Expired SKUS Disposed</th>
+                                                <th scope="col">Nearly Expired: 1-3 months</th>
+                                                <th scope="col">Nearly Expired: 3-6 months</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for expiry in expiries %}
+                                            <tr>
+                                                <td>{{ expiry.id }}</td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'time', this.innerText)">
+                                                    {{ expiry.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'assigned_day', this.innerText)">
+                                                    {{ expiry.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'total_SKUs_expired', this.innerText)">
+                                                    {{ expiry.total_SKUs_expired }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'total_expired_SKUS_disposed', this.innerText)">
+                                                    {{ expiry.total_expired_SKUS_disposed }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'nearly_expired_1_to_3_months', this.innerText)">
+                                                    {{ expiry.nearly_expired_1_to_3_months }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerExpiry', {{ expiry.id }}, 'nearly_expired_3_to_6_months', this.innerText)">
+                                                    {{ expiry.nearly_expired_3_to_6_months }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerExpiry', {{ expiry.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Damage  -->
+                        <div class="tab-pane fade" id="topline-top-damages" role="tabpanel"
+                             aria-labelledby="topline-top-damages-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Damage Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Total QTYS Damaged by WH</th>
+                                                <th scope="col">Naraber of Damaged during receiving</th>
+                                                <th scope="col">Total Araive Damaged</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for damage in damages %}
+                                            <tr>
+                                                <td>{{ damage.id }}</td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerDamage', {{ damage.id }}, 'time', this.innerText)">
+                                                    {{ damage.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerDamage', {{ damage.id }}, 'assigned_day', this.innerText)">
+                                                    {{ damage.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerDamage', {{ damage.id }}, 'Total_QTYs_Damaged_by_WH', this.innerText)">
+                                                    {{ damage.Total_QTYs_Damaged_by_WH }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerDamage', {{ damage.id }}, 'Number_of_Damaged_during_receiving', this.innerText)">
+                                                    {{ damage.Number_of_Damaged_during_receiving }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerDamage', {{ damage.id }}, 'Total_Araive_Damaged', this.innerText)">
+                                                    {{ damage.Total_Araive_Damaged }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerDamage', {{ damage.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Inventories  -->
+                        <div class="tab-pane fade" id="topline-top-inventories" role="tabpanel"
+                             aria-labelledby="topline-top-inventories-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Inventories Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Total Locations Match</th>
+                                                <th scope="col">Total Locations Not Match</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for inventory in inventories %}
+                                            <tr>
+                                                <td>{{ inventory.id }}</td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInventory', {{ inventory.id }}, 'time', this.innerText)">
+                                                    {{ inventory.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInventory', {{ inventory.id }}, 'assigned_day', this.innerText)">
+                                                    {{ inventory.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInventory', {{ inventory.id }}, 'Total_Locations_match', this.innerText)">
+                                                    {{ inventory.Total_Locations_match }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerInventory', {{ inventory.id }}, 'Total_Locations_not_match', this.innerText)">
+                                                    {{ inventory.Total_Locations_not_match }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerInventory', {{ inventory.id }})">
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table Pallet Location Availabilities  -->
+                        <div class="tab-pane fade" id="topline-top-pallet_location_availabilities" role="tabpanel"
+                             aria-labelledby="topline-top-pallet_location_availabilities-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">Pallet Location Availabilities Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Time</th>
+                                                    <th>Day</th>
+                                                    <th>Total Storage Pallet</th>
+                                                    <th>Total Storage Bin</th>
+                                                    <th>Total Storage Pallet Empty</th>
+                                                    <th>Total Storage Bin Empty</th>
+                                                    <th>Total Occupied Pallet Location</th>
+                                                    <th>Total Occupied Bin Location</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if shipments %}
+                                                    {% for shipment in shipments %}
+                                                        <tr>
+                                                            <td>{{ shipment.id }}</td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'time', this.innerText)">
+                                                                {{ shipment.time }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'assigned_day', this.innerText)">
+                                                                {{ shipment.assigned_day }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_Storage_Pallet', this.innerText)">
+                                                                {{ shipment.Total_Storage_Pallet }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_Storage_Bin', this.innerText)">
+                                                                {{ shipment.Total_Storage_Bin }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_Storage_pallet_empty', this.innerText)">
+                                                                {{ shipment.Total_Storage_pallet_empty }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_Storage_Bin_empty', this.innerText)">
+                                                                {{ shipment.Total_Storage_Bin_empty }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_occupied_pallet_location', this.innerText)">
+                                                                {{ shipment.Total_occupied_pallet_location }}
+                                                            </td>
+                                                            <td contenteditable="true"
+                                                                onblur="updateData('CustomerPalletLocationAvailability', {{ shipment.id }}, 'Total_occupied_Bin_location', this.innerText)">
+                                                                {{ shipment.Total_occupied_Bin_location }}
+                                                            </td>
+                                                            <td>
+                                                                <button type="button"
+                                                                    onclick="deleteData('CustomerPalletLocationAvailability', {{ shipment.id }})">
+                                                                    Delete
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr>
+                                                        <td colspan="10">⚠️ لا يوجد شحنات حتى الآن</td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--  Table HSE  -->
+                        <div class="tab-pane fade" id="topline-top-hses" role="tabpanel"
+                             aria-labelledby="topline-top-hses-tab">
+                            <div class="card-body px-0 pb-0">
+                                <div class="user-header pb-2">
+                                    <h6 class="fw-bold">HSE Details:</h6>
+                                </div>
+                                <div class="user-content">
+                                    <div class="table-responsive custom-scrollbar">
+                                        <table class="table mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Time</th>
+                                                <th scope="col">Day</th>
+                                                <th scope="col">Total Incidents on the side</th>
+                                                <th scope="col">Actions</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for hse in hses %}
+                                            <tr>
+                                                <td>{{ hse.id }}</td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerHSE', {{ hse.id }}, 'time', this.innerText)">
+                                                    {{ hse.time }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerHSE', {{ hse.id }}, 'assigned_day', this.innerText)">
+                                                    {{ hse.assigned_day }}
+                                                </td>
+                                                <td contenteditable="true"
+                                                    onblur="updateData('CustomerHSE', {{ hse.id }}, 'Total_Incidents_on_the_side', this.innerText)">
+                                                    {{ hse.Total_Incidents_on_the_side }}
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            onclick="deleteData('CustomerHSE', {{ hse.id }})">Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="download-buttons">
+                        <button type="button" class="btn btn-secondary">
+                            <a href="?download=true">Download Excel</a>
+                        </button>
+                        <button type="button" class="btn btn-secondary">
+                            <a href="?download=true&format=pdf">Download PDF</a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // دالة للتحقق من نوع المستخدم وإظهار التبويبات المناسبة
+    function toggleTabs(isCustomer) {
+        if (isCustomer) {
+            // إظهار تبويب العميل وإخفاء تبويب الإدارة
+            document.getElementById('customer-data-tab').classList.add('active');
+            document.getElementById('topline-customer-data').classList.add('show', 'active');
+        } else {
+            // إخفاء تبويب العميل
+            document.getElementById('customer-data-tab').style.display = 'none';
+        }
+    }
+
+    // استدعاء الدالة بناءً على نوع المستخدم
+    document.addEventListener('DOMContentLoaded', function() {
+        const isCustomer = {{ is_customer|lower }}; // تحويل قيمة is_customer إلى lowercase لتصبح قيمة Boolean في جافاسكريبت
+        toggleTabs(isCustomer);
+    });
+  function addData(model, fields) {
+    fetch("", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+            add: {
+                model: model,
+                fields: fields
+            }
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert(data.error);
+        } else {
+            // Handle success as needed (e.g., reload page or update UI)
+            location.reload(); // Example: Reload page after successful addition
+        }
+    });
+}
+
+
+   function updateData(model, id, field, value) {
+        fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                update: {
+                    model: model,
+                    id: id,
+                    field: field,
+                    value: value
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error);
+            }
+        });
+    }
+
+    function deleteData(model, id) {
+        fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                delete: {
+                    model: model,
+                    id: id
+                }
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+</script>
+
+<!-- Container-fluid Ends-->

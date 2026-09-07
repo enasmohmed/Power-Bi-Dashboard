@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    <ul class="list-group">
+        {% for user in users %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {{ user.username }} - ({{ user.email }}) -
+                <span class="f-light">
+                     {% for group in user_groups %}
+                            {{ group }}{% if not forloop.last %}<br>{% endif %}
+                     {% endfor %}
+               </span>
+                - {{ user.role }}
+            </div>
+            <button type="submit" class="btn btn-primary" name="user_id" value="{{ user.id }}">Approve</button>
+        </li>
+        {% endfor %}
+    </ul>
+</form>
+
+{% endblock %}
