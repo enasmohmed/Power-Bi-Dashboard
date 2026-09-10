@@ -47,6 +47,9 @@ from .models import (
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "index.html"
 
+    def get(self, request, *args, **kwargs):
+        return redirect("accounts:overview")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 

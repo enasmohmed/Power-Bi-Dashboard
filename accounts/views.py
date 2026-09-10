@@ -23,7 +23,9 @@ from customer.models import CustomerInbound, CustomerReturns, CustomerExpiry, Cu
 from .forms import CustomUserCreationForm, ProfileForm
 from .models import CustomUser
 
-from .dummy_data import OVERVIEW, OUTBOUND, INBOUND, CITIES, INVENTORY, SLA, MISSES
+from .dummy_data import OVERVIEW, OUTBOUND, INBOUND, CITIES, INVENTORY, SLA, MISSES, DASHBOARD
+from . import kpi_excel
+from . import sla_settings
 
 User = get_user_model()
 
@@ -56,7 +58,7 @@ class CustomLoginView(AuthLoginView):
 
         if user.is_superuser or user.groups.filter(name='Admin').exists():
             print("Redirecting to admin dashboard")
-            return redirect(reverse('accounts:admin_dashboard'))
+            return redirect(reverse('accounts:overview'))
         elif user.role == 'customer' and user.groups.filter(name='Customer').exists():
             print("Redirecting to customer dashboard")
             return redirect('accounts:customer_dashboard')
@@ -66,7 +68,7 @@ class CustomLoginView(AuthLoginView):
         elif user.role == 'employee' and user.groups.filter(name='Employee').exists():
             self.request.session['dashboard_choice'] = 'admin_dashboard'
             self.request.session['dashboard_type'] = 'Admin Dashboard'
-            return redirect('accounts:admin_dashboard')
+            return redirect('accounts:overview')
         else:
             print("Redirecting to home page")
             return redirect('/')
@@ -124,6 +126,7 @@ class ApproveUsersView(TemplateView):
                 'groups': ', '.join([group.name for group in user.groups.all()])
             })
         context['users'] = user_data
+        context['page'] = 'users'
         context['breadcrumb'] = {
             "title": "Approve Users",
             "parent": "Super User",
@@ -187,6 +190,7 @@ def profile_view(request):
 @login_required(login_url="/login")
 def user_profile(request):
     context = {
+        "page": "users",
         "breadcrumb": {
             "title": "User Profile",
             "parent": "Users",
@@ -234,11 +238,11 @@ def redirect_to_dashboard(request):
 
     if user.is_superuser or user.role == 'admin':
         request.session['dashboard_type'] = 'Admin Dashboard'
-        return redirect('accounts:admin_dashboard')
+        return redirect('accounts:overview')
     elif user.role == 'employee':
         if dashboard_choice == 'admin_dashboard':
             request.session['dashboard_type'] = 'Admin Dashboard'
-            return redirect('accounts:admin_dashboard')
+            return redirect('accounts:overview')
         elif dashboard_choice == 'customer_dashboard':
             request.session['dashboard_type'] = 'Customer Dashboard'
             return redirect('accounts:customer_dashboard')
@@ -282,6 +286,7 @@ def user_cards(request):
         user_group = "Customer"
 
     context = {
+        "page": "users",
         "breadcrumb": {
             "title": "User Cards",
             "parent": "Users",
@@ -555,7 +560,7 @@ class ChooseDashboardView(View):
     def get(self, request, *args, **kwargs):
         request.session['dashboard_choice'] = 'admin_dashboard'
         request.session['dashboard_type'] = 'Admin Dashboard'
-        return redirect('accounts:admin_dashboard')
+        return redirect('accounts:overview')
 
     # def get(self, request, *args, **kwargs):
     #     context = self.get_context_data(**kwargs)
@@ -567,12 +572,12 @@ class ChooseDashboardView(View):
             if request.user.is_superuser or request.user.groups.filter(name='Admin').exists():
                 request.session['dashboard_choice'] = 'admin_dashboard'
                 request.session['dashboard_type'] = 'Admin Dashboard'
-                return redirect('accounts:admin_dashboard')
+                return redirect('accounts:overview')
 
             elif request.user.groups.filter(name='Employee').exists():
                 request.session['dashboard_choice'] = 'admin_dashboard'
                 request.session['dashboard_type'] = 'Admin Dashboard'
-                return redirect('accounts:admin_dashboard')
+                return redirect('accounts:overview')
 
         elif choice == 'customer_dashboard':
             request.session['dashboard_choice'] = 'customer_dashboard'
@@ -591,8 +596,11 @@ class DashboardPageView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         page = self.request.resolver_match.url_name
+        if page == 'admin_dashboard':
+            page = 'overview'
 
         titles = {
+            'dashboard': 'Dashboard',
             'overview': 'Overview',
             'outbound': 'Outbound',
             'inbound': 'Inbound',
@@ -601,41 +609,150 @@ class DashboardPageView(LoginRequiredMixin, TemplateView):
             'sla': 'SLA',
             'misses': 'Misses',
         }
-        page_data = {
-            'overview': OVERVIEW,
-            'outbound': OUTBOUND,
-            'inbound': INBOUND,
-            'cities': CITIES,
-            'inventory': INVENTORY,
-            'sla': SLA,
-            'misses': MISSES,
-        }
+
+        live_pages, source = kpi_excel.load_dashboard(
+            company=self.request.GET.get('company', 'all'),
+            warehouse=self.request.GET.get('wh', 'all'),
+            page=page,
+        )
+        if source == 'excel' and live_pages:
+            page_data = live_pages
+        else:
+            page_data = {
+                'overview': OVERVIEW,
+                'outbound': OUTBOUND,
+                'inbound': INBOUND,
+                'cities': CITIES,
+                'inventory': INVENTORY,
+                'sla': SLA,
+                'misses': MISSES,
+                'dashboard': DASHBOARD,
+            }
+            if source == 'error':
+                source = 'sample'
 
         context['page'] = page
         context['page_title'] = titles.get(page, page)
         context['has_data'] = False
         context['user_type'] = 'Employee'
+        context['selected_company'] = self.request.GET.get('company', 'all')
+        context['selected_warehouse'] = self.request.GET.get('wh', 'all')
+        context['year_range'] = '2025 - 2026'
+        context['kpi_footer'] = (
+            'Tamer Logistics — 3PL KPI Dashboard — IFFCO (Mar 2025) & Aramco (Aug 2026) — KSA Operations'
+        )
+        context['data_source'] = source
+        context['excel_name'] = kpi_excel.EXCEL_NAME
         context['breadcrumb'] = {
             'title': titles.get(page, page),
             'parent': 'Dashboard',
             'child': titles.get(page, page),
         }
 
+        selected = context['selected_company']
+        selected_wh = context['selected_warehouse']
+        qs = []
+        if selected and selected != 'all':
+            qs.append(f'company={selected}')
+        if selected_wh and selected_wh != 'all':
+            qs.append(f'wh={selected_wh}')
+        context['company_query'] = f'?{"&".join(qs)}' if qs else ''
+        context['filter_companies'] = [
+            {'key': 'iffco', 'name': 'IFFCO'},
+            {'key': 'aramco', 'name': 'Aramco'},
+        ]
+        context['filter_warehouses'] = []
+
         data = page_data.get(page)
+        if isinstance(page_data, dict) and page_data.get('filter_companies'):
+            context['filter_companies'] = page_data['filter_companies']
+        if isinstance(page_data, dict) and page_data.get('filter_warehouses'):
+            context['filter_warehouses'] = page_data['filter_warehouses']
+        if not context['filter_warehouses']:
+            dummy_wh = []
+            for block in OUTBOUND['companies']:
+                if selected != 'all' and block['key'] != selected:
+                    continue
+                dummy_wh.extend(row['name'] for row in block.get('rows', []) if block.get('layout') == 'warehouse')
+            context['filter_warehouses'] = sorted(set(dummy_wh))
         if data:
-            selected = self.request.GET.get('company', 'all')
             companies = data['companies']
             if selected != 'all':
                 companies = [c for c in companies if c['key'] == selected]
 
-            context['has_data'] = True
-            context['year_range'] = data.get('year_range', '')
+            context['has_data'] = bool(companies) or page in {'sla', 'inventory'}
+            context['year_range'] = data.get('year_range', context['year_range'])
             context['companies'] = companies
-            context['selected_company'] = selected
+            if page == 'dashboard':
+                combined_src = [c for c in companies if c.get('key') in ('iffco', 'aramco')] or companies
+                context['hc'] = kpi_excel.combine_dashboard(combined_src)
+                context['has_data'] = bool(combined_src)
             context['disclaimer'] = data.get('disclaimer', '')
             context['footer_note'] = data.get('footer', '')
             context['agreement'] = data.get('agreement', [])
             context['agreement_title'] = data.get('agreement_title', '')
             context['table_title'] = data.get('table_title', '')
+            if page == 'sla':
+                cfg = data.get('sla_cfg') or sla_settings.get(selected)
+                context['agreement'] = sla_settings.agreement_cards(cfg)
+                context['agreement_title'] = data.get('agreement_title') or SLA['agreement_title']
+                context['table_title'] = data.get('table_title') or SLA['table_title']
+                context['sla_cfg'] = cfg
+                context['sla_presets'] = sla_settings.HOUR_PRESETS
+                context['sla_editable'] = bool(selected and selected != 'all')
+                context['has_data'] = True
+                for company in companies:
+                    company_cfg = sla_settings.get(company.get('key'))
+                    labels = {
+                        'Outbound Local Despatch': sla_settings.fmt_hours(company_cfg['local_h']),
+                        'Outbound Remote Despatch': sla_settings.fmt_hours(company_cfg['remote_h']),
+                        'Outbound CRD': sla_settings.fmt_hours(company_cfg['crd_h']),
+                        'Branch Transfers': sla_settings.fmt_hours(company_cfg['transfer_h']),
+                        'Inbound Receiving': sla_settings.fmt_hours(company_cfg['inbound_h']),
+                        'Inbound GRN': sla_settings.fmt_hours(company_cfg['grn_h']),
+                    }
+                    for row in company.get('rows', []):
+                        if row.get('category') in labels:
+                            row['target'] = labels[row['category']]
+                context['companies'] = companies
+            if data.get('footer'):
+                context['kpi_footer'] = data['footer']
 
         return context
+
+
+class UploadKpiExcelView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        uploaded = request.FILES.get('excel_file')
+        if not uploaded:
+            messages.error(request, 'Please choose Data_Power_Bi.xlsx first.')
+            return redirect(request.META.get('HTTP_REFERER') or reverse('accounts:overview'))
+
+        name = uploaded.name.lower()
+        if not name.endswith('.xlsx'):
+            messages.error(request, 'Upload an .xlsx file named Data_Power_Bi.xlsx.')
+            return redirect(request.META.get('HTTP_REFERER') or reverse('accounts:overview'))
+
+        dest = kpi_excel.storage_path()
+        with dest.open('wb') as handle:
+            for chunk in uploaded.chunks():
+                handle.write(chunk)
+
+        kpi_excel.clear_cache()
+        if not kpi_excel.workbook_has_kpi_sheets(dest):
+            messages.error(request, 'File saved, but KPI sheets were not found. Check OrderHeader / IBShipments / OBLPN / IBLPN.')
+        else:
+            messages.success(request, 'Data_Power_Bi.xlsx uploaded. Dashboard now reads live Excel data.')
+        return redirect(request.META.get('HTTP_REFERER') or reverse('accounts:overview'))
+
+
+class SaveSlaTargetsView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        company = (request.POST.get('company') or 'all').strip()
+        if company in ('all', ''):
+            messages.error(request, 'Choose a company first to edit SLA targets.')
+            return redirect(reverse('accounts:sla'))
+        sla_settings.save(company, request.POST)
+        kpi_excel.clear_cache()
+        messages.success(request, 'SLA targets saved. Achievement vs Target now uses the new hours.')
+        return redirect(f"{reverse('accounts:sla')}?company={company}")

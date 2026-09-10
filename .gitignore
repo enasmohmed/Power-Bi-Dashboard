@@ -7,6 +7,8 @@ __pycache__/
 db.sqlite3
 staticfiles/
 media/
+Data_Power_Bi.xlsx
+data/*.xlsx
 .env
 .env.*
 *.log

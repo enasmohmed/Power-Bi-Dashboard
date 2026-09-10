@@ -1,34 +1,36 @@
-{% extends 'base.html' %}
+{% extends 'base-kpi.html' %}
 {% load static %}
-{% load sass_tags %}
-
-
-{% block css %}
-<link rel="stylesheet" type="text/css" href="{% static 'assets/css/vendors/photoswipe.css' %}">
-{% endblock css %}
 
 {% block content %}
-
-<!-- Container-fluid starts-->
-<div class="container-fluid">
-    <div class="user-profile">
-        <div class="row">
-            {% include 'user/user-profile/components/style-1-2.html' %}
+<div class="kpi-overview">
+    <div class="kpi-section-head">
+        <h5>Users Profile</h5>
+    </div>
+    <div class="kpi-user-card" style="max-width: 480px; text-align: left;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+            <img src="{% static 'assets/images/dashboard/profile.png' %}" alt="{{ user.username }}" style="margin:0;">
+            <div>
+                <h5>{{ user.username }}</h5>
+                <span class="kpi-user-email" style="margin:0;">{{ user.email }}</span>
+            </div>
         </div>
+        <div class="kpi-user-meta" style="margin-bottom:18px;">
+            <div>
+                <span>User Type</span>
+                <strong>{{ user_type }}</strong>
+            </div>
+            <div>
+                <span>Date Joined</span>
+                <strong>{{ user.date_joined|date:"d M Y" }}</strong>
+            </div>
+            <div>
+                <span>User Groups</span>
+                <strong>
+                    {% for group in user_groups %}{{ group }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                </strong>
+            </div>
+        </div>
+        <a class="kpi-btn outline" href="{% url 'accounts:password_change' %}">Change Password</a>
     </div>
 </div>
-<!-- Container-fluid Ends-->
-
 {% endblock %}
-
-{% block scriptcontent %}
-
-<script src="{% static 'assets/js/counter/jquery.waypoints.min.js' %}"></script>
-<script src="{% static 'assets/js/counter/jquery.counterup.min.js' %}"></script>
-<script src="{% static 'assets/js/counter/counter-custom.js' %}"></script>
-<script src="{% static 'assets/js/photoswipe/photoswipe.min.js' %}"></script>
-<script src="{% static 'assets/js/photoswipe/photoswipe-ui-default.min.js' %}"></script>
-<script src="{% static 'assets/js/photoswipe/photoswipe.js' %}"></script>
-
-{% endblock %}
-    

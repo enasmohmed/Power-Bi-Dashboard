@@ -1,25 +1,23 @@
-{% extends "base.html" %}
+{% extends 'base-kpi.html' %}
 
 {% block content %}
-
-<form method="post">
-    {% csrf_token %}
-    <ul class="list-group">
-        {% for user in users %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
+<div class="kpi-overview">
+    <div class="kpi-section-head">
+        <h5>Approve Users</h5>
+    </div>
+    <form method="post" class="kpi-approve-list">
+        {% csrf_token %}
+        {% for item in users %}
+        <div class="kpi-approve-item">
             <div>
-                {{ user.username }} - ({{ user.email }}) -
-                <span class="f-light">
-                     {% for group in user_groups %}
-                            {{ group }}{% if not forloop.last %}<br>{% endif %}
-                     {% endfor %}
-               </span>
-                - {{ user.role }}
+                <strong>{{ item.username }}</strong>
+                <div class="kpi-user-email">{{ item.email }} — {{ item.role }}</div>
             </div>
-            <button type="submit" class="btn btn-primary" name="user_id" value="{{ user.id }}">Approve</button>
-        </li>
+            <button type="submit" class="kpi-btn" name="user_id" value="{{ item.id }}">Approve</button>
+        </div>
+        {% empty %}
+        <div class="kpi-approve-item">No pending users.</div>
         {% endfor %}
-    </ul>
-</form>
-
+    </form>
+</div>
 {% endblock %}

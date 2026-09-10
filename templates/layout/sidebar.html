@@ -5,7 +5,7 @@
 <div class="sidebar-wrapper" data-layout="fill-svg">
     <div>
         <div class="logo-wrapper">
-            <a href="{% url 'accounts:redirect_to_dashboard' %}">
+            <a href="{% url 'accounts:overview' %}">
                 <img class="img-fluid" src="{% static 'assets/images/logo-tamer.png' %}" alt="">
             </a>
             <div class="toggle-sidebar">
@@ -51,7 +51,7 @@
                             <span class="lan-3">Dashboard</span></a>
                         <ul class="sidebar-submenu">
                             <li>
-                                <a href="{% url 'accounts:redirect_to_dashboard' %}">
+                                <a href="{% url 'accounts:overview' %}">
                                     {{ request.session.dashboard_type }}
                                 </a>
                             </li>

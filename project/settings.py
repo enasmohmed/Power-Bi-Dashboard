@@ -141,6 +141,7 @@ USE_TZ = True
 # ]
 
 SASS_PROCESSOR_ROOT = BASE_DIR / 'static'
+SASS_PROCESSOR_ENABLED = False
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -162,6 +163,11 @@ STATICFILES_FINDERS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL: str = 'accounts.CustomUser'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+KPI_EXCEL_NAME = 'Data_Power_Bi.xlsx'
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'

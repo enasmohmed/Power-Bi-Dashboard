@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAMER Logistics — 3PL KPI Dashboard</title>
+    <link rel="icon" href="{% static 'assets/images/tamer_logistics_logo.png' %}" type="image/png">
+    <link rel="shortcut icon" href="{% static 'assets/images/tamer_logistics_logo.png' %}" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'assets/css/vendors/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/kpi-dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="kpi-app">
+{% with company_qs=company_query|default:'' %}
+<div class="kpi-shell">
+    <header class="kpi-app-header">
+        <div class="kpi-app-header-inner">
+            <a class="kpi-brand" href="{% url 'accounts:overview' %}{{ company_qs }}">
+                <img class="kpi-brand-logo" src="{% static 'assets/images/tamer_logistics_logo.png' %}" alt="TAMER Logistics">
+                <span class="kpi-brand-sub">Logistics — 3PL KPI Dashboard</span>
+            </a>
+            <div class="kpi-header-actions">
+                <div class="kpi-filters" {% if page == 'users' %}hidden{% endif %}>
+                    <div class="kpi-select" data-kpi-select>
+                        <button class="kpi-select-btn" type="button">
+                            <span>
+                                {% if selected_company == 'all' or not selected_company %}All Companies
+                                {% else %}
+                                    {% for company in filter_companies %}{% if selected_company == company.key %}{{ company.name }}{% endif %}{% endfor %}
+                                {% endif %}
+                            </span>
+                            <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                        </button>
+                        <div class="kpi-select-menu">
+                            <a class="{% if selected_company == 'all' or not selected_company %}active{% endif %}" href="?company=all">All Companies</a>
+                            {% for company in filter_companies %}
+                            <a class="{% if selected_company == company.key %}active{% endif %}" href="?company={{ company.key }}">{{ company.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if page == 'outbound' and filter_warehouses %}
+                    <div class="kpi-select" data-kpi-select>
+                        <button class="kpi-select-btn" type="button">
+                            <span>
+                                {% if selected_warehouse == 'all' or not selected_warehouse %}All Warehouses
+                                {% else %}{{ selected_warehouse }}{% endif %}
+                            </span>
+                            <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                        </button>
+                        <div class="kpi-select-menu">
+                            <a class="{% if selected_warehouse == 'all' or not selected_warehouse %}active{% endif %}" href="?company={{ selected_company|default:'all' }}">All Warehouses</a>
+                            {% for warehouse in filter_warehouses %}
+                            <a class="{% if selected_warehouse == warehouse %}active{% endif %}" href="?company={{ selected_company|default:'all' }}&wh={{ warehouse|urlencode }}">{{ warehouse }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <span class="kpi-pill is-date">{{ year_range|default:"2025 - 2026" }}</span>
+                    <span class="kpi-source {% if data_source == 'excel' %}live{% endif %}">
+                        {% if data_source == 'excel' %}Live Excel{% else %}Sample data{% endif %}
+                    </span>
+                    <form class="kpi-upload" method="post" action="{% url 'accounts:upload_kpi_excel' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label class="kpi-pill kpi-upload-btn">
+                            Upload Excel
+                            <input type="file" name="excel_file" accept=".xlsx" onchange="this.form.submit()">
+                        </label>
+                    </form>
+                </div>
+                <div class="kpi-user" id="kpiUser">
+                    <button class="kpi-user-btn" type="button" aria-label="Account">
+                        {{ user.username|default:"U"|slice:":1"|upper }}
+                    </button>
+                    <div class="kpi-user-menu">
+                        <a href="{% url 'accounts:user_profile' %}">Account</a>
+                        <form id="kpi-logout-form" method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                        </form>
+                        <button type="button" onclick="document.getElementById('kpi-logout-form').submit();">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="kpi-tabs" aria-label="Dashboard pages">
+            <a class="kpi-tab {% if page == 'dashboard' %}active{% endif %}" href="{% url 'accounts:dashboard' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
+                Dashboard
+            </a>
+            <a class="kpi-tab {% if page == 'overview' %}active{% endif %}" href="{% url 'accounts:overview' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M22 19H2"></path></svg>
+                Overview
+            </a>
+            <a class="kpi-tab {% if page == 'outbound' %}active{% endif %}" href="{% url 'accounts:outbound' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><path d="M3.3 7 12 12l8.7-5M12 22V12"></path></svg>
+                Outbound
+            </a>
+            <a class="kpi-tab {% if page == 'inbound' %}active{% endif %}" href="{% url 'accounts:inbound' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13"></path><path d="M9 21v-8h6v8"></path></svg>
+                Inbound
+            </a>
+            <a class="kpi-tab {% if page == 'cities' %}active{% endif %}" href="{% url 'accounts:cities' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M12 21s7-5.33 7-11a7 7 0 1 0-14 0c0 5.67 7 11 7 11z"></path><circle cx="12" cy="10" r="2.2"></circle></svg>
+                Cities
+            </a>
+            <a class="kpi-tab {% if page == 'inventory' %}active{% endif %}" href="{% url 'accounts:inventory' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M8 7h8M8 11h8M8 15h5"></path><rect x="4" y="3" width="16" height="18" rx="2"></rect></svg>
+                Inventory
+            </a>
+            <a class="kpi-tab {% if page == 'sla' %}active{% endif %}" href="{% url 'accounts:sla' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M7 3h8l5 5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M15 3v6h6"></path></svg>
+                SLA
+            </a>
+            <a class="kpi-tab {% if page == 'misses' %}active{% endif %}" href="{% url 'accounts:misses' %}{{ company_qs }}">
+                <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0z"></path></svg>
+                Misses
+            </a>
+            <div class="kpi-tab-drop {% if page == 'users' %}open-active{% endif %}" id="kpiUsersTab">
+                <a class="kpi-tab {% if page == 'users' %}active{% endif %}"
+                   href="{% if user.is_superuser %}{% url 'accounts:user_cards' %}{% else %}{% url 'accounts:user_profile' %}{% endif %}">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Users
+                </a>
+                <div class="kpi-tab-menu">
+                    <a href="{% url 'accounts:user_profile' %}">Users Profile</a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'accounts:user_cards' %}">Users Cards</a>
+                    <a href="{% url 'accounts:approve_users' %}">Approve Users</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="kpi-main">
+        <div class="kpi-container">
+            {% if messages %}
+            <div class="kpi-messages">
+                {% for message in messages %}
+                <div class="kpi-flash {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="kpi-app-footer">
+        <div class="kpi-app-footer-inner">
+            {{ kpi_footer|default:"Tamer Logistics — 3PL KPI Dashboard — IFFCO (Mar 2025) & Aramco (Aug 2026) — KSA Operations" }}
+        </div>
+    </footer>
+</div>
+{% endwith %}
+
+<script>
+    (function () {
+        var wrap = document.getElementById('kpiUser');
+        if (!wrap) return;
+        var btn = wrap.querySelector('.kpi-user-btn');
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            wrap.classList.toggle('open');
+        });
+        document.addEventListener('click', function () {
+            wrap.classList.remove('open');
+        });
+    })();
+    (function () {
+        var selects = document.querySelectorAll('[data-kpi-select]');
+        if (!selects.length) return;
+        selects.forEach(function (wrap) {
+            wrap.querySelector('.kpi-select-btn').addEventListener('click', function (e) {
+                e.stopPropagation();
+                selects.forEach(function (other) {
+                    if (other !== wrap) other.classList.remove('open');
+                });
+                wrap.classList.toggle('open');
+            });
+        });
+        document.addEventListener('click', function () {
+            selects.forEach(function (wrap) { wrap.classList.remove('open'); });
+        });
+    })();
+    (function () {
+        var drop = document.getElementById('kpiUsersTab');
+        if (!drop) return;
+        drop.addEventListener('mouseenter', function () { drop.classList.add('open'); });
+        drop.addEventListener('mouseleave', function () { drop.classList.remove('open'); });
+    })();
+    (function () {
+        document.querySelectorAll('.sla-chip input').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                var wrap = this.closest('.sla-edit');
+                if (!wrap) return;
+                var custom = wrap.querySelector('.sla-custom');
+                if (custom) custom.value = '';
+            });
+        });
+        document.querySelectorAll('.sla-custom').forEach(function (input) {
+            input.addEventListener('input', function () {
+                if (!this.value) return;
+                var wrap = this.closest('.sla-edit');
+                if (!wrap) return;
+                wrap.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+                    radio.checked = false;
+                });
+            });
+        });
+    })();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

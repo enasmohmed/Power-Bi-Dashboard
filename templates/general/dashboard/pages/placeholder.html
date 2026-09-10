@@ -1,414 +1,14 @@
-{% extends 'base.html' %}
+{% extends 'base-kpi.html' %}
 {% load static %}
 {% load humanize %}
 
-{% block css %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-    .page-title { display: none; }
-    .kpi-overview {
-        font-family: Inter, "Segoe UI", Roboto, sans-serif !important;
-        color: #1f2937;
-        padding-bottom: 24px;
-    }
-    .kpi-overview * { font-family: inherit !important; font-style: normal !important; }
-    .kpi-topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-    }
-    .kpi-title {
-        font-size: 22px;
-        font-weight: 800;
-        margin: 0;
-        letter-spacing: -0.02em;
-        color: #111827;
-    }
-    .kpi-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-    .kpi-pill {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 7px 14px;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        border: 1px solid #d1d5db;
-        background: #fff;
-        color: #374151;
-        line-height: 1;
-    }
-    .kpi-pill:hover { background: #f3f4f6; color: #111827; }
-    .kpi-pill.active {
-        background: #111827;
-        border-color: #111827;
-        color: #fff;
-    }
-    .kpi-pill.is-date { cursor: default; color: #6b7280; }
-    .kpi-section { margin-bottom: 28px; }
-    .kpi-section-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 12px;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-    }
-    .kpi-section-head h5 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 800;
-        color: #111827;
-    }
-    .kpi-section-head small { color: #6b7280; font-weight: 500; }
-    .kpi-section-meta { color: #6b7280; font-size: 13px; font-weight: 500; }
-    .kpi-card {
-        background: #f4f5f7;
-        border: 0;
-        border-radius: 14px;
-        border-top: 4px solid #d1d5db;
-        box-shadow: none;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-    .kpi-card.ok { border-top-color: #16a34a; }
-    .kpi-card.bad { border-top-color: #dc2626; }
-    .kpi-card.warn { border-top-color: #f59e0b; }
-    .kpi-card.info { border-top-color: #2563eb; }
-    .kpi-card .card-body { padding: 18px 18px 16px; }
-    .kpi-label {
-        display: block;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: 10px;
-        padding-right: 36px;
-    }
-    .kpi-value {
-        font-size: 34px;
-        font-weight: 800;
-        line-height: 1;
-        margin: 0 0 8px;
-        color: #111827;
-        letter-spacing: -0.03em;
-    }
-    .kpi-value.ok { color: #16a34a; }
-    .kpi-value.bad { color: #dc2626; }
-    .kpi-value.warn { color: #d97706; }
-    .kpi-value.info { color: #2563eb; }
-    .kpi-sub { display: block; font-size: 13px; color: #6b7280; font-weight: 500; }
-    .kpi-icon {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 28px;
-        height: 28px;
-        opacity: 0.85;
-    }
-    .kpi-summary {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 20px 22px 8px;
-    }
-    .kpi-summary h6 {
-        margin: 0;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #6b7280;
-        font-weight: 700;
-    }
-    .kpi-summary h5 {
-        margin: 4px 0 16px;
-        font-size: 18px;
-        font-weight: 800;
-    }
-    .kpi-table { margin-bottom: 12px; }
-    .kpi-table thead th {
-        border: 0;
-        font-size: 11px;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        color: #9ca3af;
-        font-weight: 700;
-        padding: 10px 12px;
-        background: transparent;
-    }
-    .kpi-table tbody td {
-        border-color: #f3f4f6;
-        vertical-align: middle;
-        padding: 14px 12px;
-        font-weight: 600;
-        color: #111827;
-    }
-    .company-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 8px;
-    }
-    .sla-cell { min-width: 140px; }
-    .sla-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .sla-bar {
-        flex: 1;
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 99px;
-        overflow: hidden;
-    }
-    .sla-bar span {
-        display: block;
-        height: 100%;
-        border-radius: 99px;
-        background: #22c55e;
-    }
-    .sla-bar span.warn { background: #f59e0b; }
-    .sla-bar span.bad { background: #ef4444; }
-    .sla-pct { width: 52px; text-align: right; font-size: 13px; }
-    .overall-pill {
-        font-weight: 800;
-        font-size: 15px;
-    }
-    .overall-pill.ok { color: #16a34a; }
-    .overall-pill.warn { color: #d97706; }
-    .overall-pill.bad { color: #dc2626; }
-    .ob-banner {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 12px 16px;
-        margin-bottom: 14px;
-        font-weight: 700;
-        color: #111827;
-    }
-    .ob-banner .accent {
-        width: 8px;
-        height: 22px;
-        border-radius: 99px;
-        flex-shrink: 0;
-    }
-    .ob-banner span { color: #6b7280; font-weight: 500; }
-    .kpi-card.ob {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-    }
-    .kpi-card.ob .kpi-label { padding-right: 0; }
-    .kpi-summary-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 8px;
-        flex-wrap: wrap;
-    }
-    .sla-note {
-        background: #e8f1ff;
-        color: #2563eb;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 12px;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-    .ok-badge, .na-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 58px;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-    .ok-badge { color: #16a34a; background: #ecfdf3; border: 1px solid #86efac; }
-    .na-badge { color: #2563eb; background: #eff6ff; border: 1px solid #93c5fd; }
-    .sla-pct.bad { color: #dc2626; font-weight: 700; }
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-    .status-pill.perfect { background: #ecfdf3; color: #15803d; }
-    .status-pill.watch { background: #fff7ed; color: #c2410c; }
-    .status-pill.hit { background: #f0fdf4; color: #166534; }
-    .kpi-table tfoot td {
-        font-weight: 800;
-        border-top: 1px solid #e5e7eb;
-        background: #fafafa;
-    }
-    .muted-dash { color: #9ca3af; }
-    .type-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-        background: #eff6ff;
-        color: #2563eb;
-    }
-    .status-pill.late { background: #fef2f2; color: #b91c1c; }
-    .hours-cell { min-width: 170px; }
-    .hours-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .hours-row .hours-val { width: 48px; font-size: 13px; font-weight: 700; }
-    .hours-row .hours-val.ok { color: #16a34a; }
-    .hours-row .hours-val.warn { color: #d97706; }
-    .hours-row .hours-val.bad { color: #dc2626; }
-    .kpi-table tfoot.ok td { background: #f0fdf4; }
-    .text-end-cell { text-align: right; }
-    .text-center-cell { text-align: center; }
-    .city-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        border-top: 4px solid #16a34a;
-        height: 100%;
-        padding: 16px 18px 18px;
-        position: relative;
-    }
-    .city-card.warn { border-top-color: #f59e0b; }
-    .city-card.bad { border-top-color: #dc2626; }
-    .city-card-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-    .city-card-head h5 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 800;
-        color: #111827;
-    }
-    .city-score {
-        font-size: 32px;
-        font-weight: 800;
-        line-height: 1;
-        margin: 0 0 8px;
-        letter-spacing: -0.03em;
-        color: #16a34a;
-    }
-    .city-card.warn .city-score { color: #d97706; }
-    .city-card.bad .city-score { color: #dc2626; }
-    .city-meta { color: #6b7280; font-size: 13px; font-weight: 500; margin-bottom: 12px; }
-    .city-metrics {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        font-size: 12px;
-        color: #4b5563;
-        font-weight: 600;
-    }
-    .kpi-card.neutral { border-top-color: #374151; }
-    .kpi-value.neutral { color: #111827; }
-    .inv-note {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        border-radius: 12px;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-    .inv-note.info { background: #eff6ff; color: #1e3a8a; }
-    .inv-note.ok { background: #ecfdf3; color: #166534; }
-    .inv-note.warn { background: #fffbeb; color: #92400e; }
-    .inv-note.bad { background: #fef2f2; color: #991b1b; }
-    .inv-note .inv-status { white-space: nowrap; font-weight: 800; }
-    .inv-note.info .inv-status { color: #2563eb; }
-    .inv-note.ok .inv-status { color: #16a34a; }
-    .inv-note.warn .inv-status { color: #d97706; }
-    .inv-note.bad .inv-status { color: #dc2626; }
-    .inv-disclaimer, .inv-footer {
-        color: #9ca3af;
-        font-size: 12px;
-        font-weight: 500;
-        margin-top: 16px;
-    }
-    .sla-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 18px 20px;
-        height: 100%;
-    }
-    .sla-card h6 {
-        margin: 0 0 14px;
-        font-size: 13px;
-        font-weight: 800;
-        color: #111827;
-    }
-    .sla-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 0;
-        border-bottom: 1px solid #f3f4f6;
-        font-size: 13px;
-        color: #4b5563;
-        font-weight: 600;
-    }
-    .sla-item:last-child { border-bottom: 0; }
-    .sla-item .sla-target { font-weight: 800; }
-    .sla-item .sla-target.ok { color: #16a34a; }
-    .sla-item .sla-target.warn { color: #d97706; }
-    .status-pill.high { background: #fef2f2; color: #b91c1c; }
-    .status-pill.major { background: #fef2f2; color: #b91c1c; }
-    .status-pill.accepted { background: #fffbeb; color: #b45309; }
-    .status-pill.exception { background: #eff6ff; color: #2563eb; }
-    .status-pill.systemic { background: #fef2f2; color: #b91c1c; }
-    .status-pill.process { background: #fff7ed; color: #c2410c; }
-    .status-pill.recommend { background: #eff6ff; color: #2563eb; }
-    .page-loading { font-family: Inter, sans-serif; }
-</style>
-{% endblock css %}
-
 {% block content %}
-<div class="container-fluid">
-    {% if has_data and page == 'overview' %}
+{% if has_data and page == 'overview' %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="kpi-section-head">
-                <div>
-                    <h5>{{ company.name }} {{ company.subtitle }}</h5>
-                </div>
+                <h5><span class="company-dot" style="background: {{ company.dot_color }};"></span>{{ company.name }} {{ company.subtitle }}</h5>
                 <div class="kpi-section-meta">{{ company.period_note }}</div>
             </div>
             <div class="row g-3">
@@ -530,16 +130,6 @@
 
     {% elif page == 'outbound' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">Outbound</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="ob-banner">
@@ -712,16 +302,6 @@
 
     {% elif page == 'inbound' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">Inbound</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="ob-banner">
@@ -853,16 +433,6 @@
 
     {% elif page == 'cities' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="kpi-section-head">
@@ -912,16 +482,6 @@
 
     {% elif page == 'inventory' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="ob-banner">
@@ -960,35 +520,76 @@
 
     {% elif page == 'sla' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         <section class="kpi-section">
-            <div class="kpi-section-head">
-                <h5>{{ agreement_title }}</h5>
-            </div>
-            <div class="row g-3">
-                {% for card in agreement %}
-                <div class="col-md-6">
-                    <div class="sla-card">
-                        <h6>{{ card.title }}</h6>
-                        {% for item in card.items %}
-                        <div class="sla-item">
-                            <span>{{ item.label }}</span>
-                            <span class="sla-target {{ item.tone }}">{{ item.value }}</span>
+            <div class="kpi-section-head sla-head">
+                <div class="sla-head-title">
+                    <h5>{{ agreement_title }}</h5>
+                    <div class="kpi-select sla-page-filter" data-kpi-select>
+                        <button class="kpi-select-btn" type="button">
+                            <span>
+                                {% if selected_company == 'all' or not selected_company %}All Companies
+                                {% else %}
+                                    {% for company in filter_companies %}{% if selected_company == company.key %}{{ company.name }}{% endif %}{% endfor %}
+                                {% endif %}
+                            </span>
+                            <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                        </button>
+                        <div class="kpi-select-menu">
+                            <a class="{% if selected_company == 'all' or not selected_company %}active{% endif %}" href="?company=all">All Companies</a>
+                            {% for company in filter_companies %}
+                            <a class="{% if selected_company == company.key %}active{% endif %}" href="?company={{ company.key }}">{{ company.name }}</a>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
+                {% if sla_editable %}
+                <div class="kpi-section-meta">Editing and saving targets for this company only.</div>
+                {% else %}
+                <div class="kpi-section-meta">Choose a company to edit hours and refresh Achievement vs Target.</div>
+                {% endif %}
             </div>
+            <form method="post" action="{% url 'accounts:save_sla_targets' %}" class="sla-form">
+                {% csrf_token %}
+                <input type="hidden" name="company" value="{{ selected_company|default:'all' }}">
+                <div class="row g-3">
+                    {% for card in agreement %}
+                    <div class="col-md-6">
+                        <div class="sla-card">
+                            <h6>{{ card.title }}</h6>
+                            {% for item in card.items %}
+                            <div class="sla-item">
+                                <span>{{ item.label }}</span>
+                                {% if sla_editable %}
+                                    {% if item.kind == 'time' %}
+                                    <input class="sla-time" type="time" name="{{ item.key }}" value="{{ item.value }}">
+                                    {% else %}
+                                    <div class="sla-edit">
+                                        {% for hours in sla_presets %}
+                                        <label class="sla-chip">
+                                            <input type="radio" name="{{ item.key }}" value="{{ hours }}" {% if item.value == hours %}checked{% endif %}>
+                                            {{ hours }}h
+                                        </label>
+                                        {% endfor %}
+                                        <input class="sla-custom" type="number" min="1" max="720" name="{{ item.key }}_custom"
+                                               placeholder="Custom"
+                                               value="{% if item.value not in sla_presets %}{{ item.value }}{% endif %}">
+                                    </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="sla-target {% if item.kind == 'time' %}warn{% else %}ok{% endif %}">{{ item.display }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if sla_editable %}
+                <div class="sla-save-row">
+                    <button class="kpi-pill kpi-pill-save" type="submit">Save SLA targets</button>
+                </div>
+                {% endif %}
+            </form>
         </section>
 
         <section class="kpi-section">
@@ -1018,7 +619,9 @@
                                 <td>{{ row.category }}</td>
                                 <td>{{ row.target }}</td>
                                 <td class="sla-cell">
-                                    {% if row.achievement >= 100 %}
+                                    {% if row.achievement is None %}
+                                        <span class="muted-dash">—</span>
+                                    {% elif row.achievement >= 100 %}
                                         <span class="ok-badge">100%</span>
                                     {% else %}
                                         <div class="sla-row">
@@ -1035,6 +638,8 @@
                                         <span class="status-pill perfect">✓ Perfect</span>
                                     {% elif row.status == 'Hit' %}
                                         <span class="status-pill hit">✓ Hit</span>
+                                    {% elif row.status == '—' %}
+                                        <span class="muted-dash">—</span>
                                     {% else %}
                                         <span class="status-pill late">✕ Miss</span>
                                     {% endif %}
@@ -1051,16 +656,6 @@
 
     {% elif page == 'misses' and has_data %}
     <div class="kpi-overview">
-        <div class="kpi-topbar">
-            <h2 class="kpi-title">TAMER Logistics — 3PL KPI Dashboard</h2>
-            <div class="kpi-filters">
-                <a class="kpi-pill {% if selected_company == 'all' %}active{% endif %}" href="?company=all">All Companies</a>
-                <a class="kpi-pill {% if selected_company == 'iffco' %}active{% endif %}" href="?company=iffco">IFFCO</a>
-                <a class="kpi-pill {% if selected_company == 'aramco' %}active{% endif %}" href="?company=aramco">Aramco</a>
-                <span class="kpi-pill is-date">{{ year_range }}</span>
-            </div>
-        </div>
-
         {% for company in companies %}
         <section class="kpi-section">
             <div class="ob-banner">
@@ -1083,66 +678,72 @@
             </div>
 
             {% if company.layout == 'warehouse' %}
-            <div class="kpi-summary mb-3">
-                <div class="kpi-summary-head">
-                    <div>
-                        <h6>Performance</h6>
-                        <h5>{{ company.table_title }}</h5>
+            <div class="row g-3">
+                <div class="col-xl-7">
+                    <div class="kpi-summary h-100">
+                        <div class="kpi-summary-head">
+                            <div>
+                                <h6>Performance</h6>
+                                <h5>{{ company.table_title }}</h5>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table kpi-table">
+                                <thead>
+                                    <tr>
+                                        <th>Warehouse</th>
+                                        <th>Orders</th>
+                                        <th>Misses</th>
+                                        <th>Miss Rate</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in company.rows %}
+                                    <tr>
+                                        <td>{{ row.name }}</td>
+                                        <td>{{ row.orders|intcomma }}</td>
+                                        <td>{{ row.misses }}</td>
+                                        <td class="sla-cell">
+                                            {% if row.rate == 0 %}
+                                                <span class="ok-badge">0%</span>
+                                            {% else %}
+                                                <div class="sla-row">
+                                                    <div class="sla-bar">
+                                                        <span class="{% if row.risk == 'High' %}bad{% elif row.risk == 'Watch' %}warn{% endif %}"
+                                                              style="width: {{ row.rate }}%;"></span>
+                                                    </div>
+                                                    <span class="sla-pct {% if row.risk == 'High' %}bad{% endif %}">{{ row.rate }}%</span>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if row.risk == 'High' %}
+                                                <span class="status-pill high">High</span>
+                                            {% elif row.risk == 'Watch' %}
+                                                <span class="status-pill watch">Watch</span>
+                                            {% else %}
+                                                <span class="status-pill perfect">✓ Perfect</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table kpi-table">
-                        <thead>
-                            <tr>
-                                <th>Warehouse</th>
-                                <th>Orders</th>
-                                <th>Misses</th>
-                                <th>Miss Rate</th>
-                                <th>Risk Level</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in company.rows %}
-                            <tr>
-                                <td>{{ row.name }}</td>
-                                <td>{{ row.orders|intcomma }}</td>
-                                <td>{{ row.misses }}</td>
-                                <td class="sla-cell">
-                                    {% if row.rate == 0 %}
-                                        <span class="ok-badge">0%</span>
-                                    {% else %}
-                                        <div class="sla-row">
-                                            <div class="sla-bar">
-                                                <span class="{% if row.risk == 'High' %}bad{% elif row.risk == 'Watch' %}warn{% endif %}"
-                                                      style="width: {{ row.rate }}%;"></span>
-                                            </div>
-                                            <span class="sla-pct {% if row.risk == 'High' %}bad{% endif %}">{{ row.rate }}%</span>
-                                        </div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if row.risk == 'High' %}
-                                        <span class="status-pill high">High</span>
-                                    {% elif row.risk == 'Watch' %}
-                                        <span class="status-pill watch">Watch</span>
-                                    {% else %}
-                                        <span class="status-pill perfect">✓ Perfect</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="col-xl-5">
+                    <div class="kpi-summary h-100">
+                        <h5 class="mb-3">{{ company.reasons_title }}</h5>
+                        {% for reason in company.reasons %}
+                        <div class="inv-note {{ reason.tone }}">
+                            <span>{{ reason.text }}</span>
+                            <span class="inv-status">{{ reason.status }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-            <div class="kpi-summary">
-                <h5 class="mb-3">{{ company.reasons_title }}</h5>
-                {% for reason in company.reasons %}
-                <div class="inv-note {{ reason.tone }}">
-                    <span>{{ reason.text }}</span>
-                    <span class="inv-status">{{ reason.status }}</span>
-                </div>
-                {% endfor %}
             </div>
             {% else %}
             <div class="row g-3">
@@ -1174,6 +775,182 @@
         {% endfor %}
     </div>
 
+    {% elif page == 'dashboard' and has_data %}
+    <div class="hc-page">
+        <div class="hc-page-head">
+            <h4>Healthcare Dashboard</h4>
+            {% if selected_company and selected_company != 'all' %}
+            <span>{{ selected_company|upper }}</span>
+            {% else %}
+            <span>All Companies</span>
+            {% endif %}
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <section class="hc-card hc-card-fill">
+                    <div class="hc-card-head">Inbounds</div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M3 13.5 2.25 12H7.5l-.6-1.5H2L1.25 9h7.8l-.6-1.5H1.11L.25 6H4a2 2 0 0 1 2-2h12v4h3l3 4v5h-2a3 3 0 0 1-3 3 3 3 0 0 1-3-3h-4a3 3 0 0 1-3 3 3 3 0 0 1-3-3H4v-3.5zm16 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M9 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"></path></svg>
+                                </span>
+                                <span>Number of vehicles daily</span>
+                                <b>{{ hc.inbound.vehicles|intcomma }}</b>
+                            </div>
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4m10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4M5 7h11l3 5v6h-2m-10 0H7V9H5z"></path></svg>
+                                </span>
+                                <span>Number Of pallets</span>
+                                <b>{{ hc.inbound.pallets|intcomma }}</b>
+                            </div>
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M3 4a2 2 0 0 0-2 2v11h2a3 3 0 0 0 3 3 3 3 0 0 0 3-3h6a3 3 0 0 0 3 3 3 3 0 0 0 3-3h2v-5l-3-4h-3V4M8 6l4 4-4 4"></path></svg>
+                                </span>
+                                <span>Number of shipments</span>
+                                <b>{{ hc.inbound.shipments|intcomma }}</b>
+                            </div>
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0z"></path></svg>
+                                </span>
+                                <span>Pending shipments</span>
+                                <b>{{ hc.inbound.pending|intcomma }}</b>
+                            </div>
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                                </span>
+                                <span>Total quantity</span>
+                                <b>{{ hc.inbound.quantity|intcomma }}</b>
+                            </div>
+                            <div class="hc-metric">
+                                <span class="hc-metric-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M8 7h13M8 12h13M8 17h13M3 7h.01M3 12h.01M3 17h.01"></path></svg>
+                                </span>
+                                <span>Number of line</span>
+                                <b>{{ hc.inbound.lines|intcomma }}</b>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="hc-charts">
+                                <div class="hc-chart-pane">
+                                    <h6>Shipment type</h6>
+                                    <div class="hc-bars">
+                                        {% for bar in hc.inbound.types %}
+                                        <div class="hc-bar-col">
+                                            <span class="hc-bar-value">{{ bar.value|intcomma }}</span>
+                                            <div class="hc-bar-track">
+                                                <span class="hc-bar type-{{ forloop.counter }}" style="height: {% widthratio bar.value hc.type_max 100 %}%;"></span>
+                                            </div>
+                                            <span class="hc-bar-label">{{ bar.label }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="hc-chart-split"></div>
+                                <div class="hc-chart-pane">
+                                    <h6>Shipment temperature</h6>
+                                    <div class="hc-bars">
+                                        {% for bar in hc.inbound.temps %}
+                                        <div class="hc-bar-col">
+                                            <span class="hc-bar-value">{{ bar.value|intcomma }}</span>
+                                            <div class="hc-bar-track">
+                                                <span class="hc-bar temp-{{ forloop.counter }}" style="height: {% widthratio bar.value hc.temp_max 100 %}%;"></span>
+                                            </div>
+                                            <span class="hc-bar-label">{{ bar.label }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-xl-6">
+                <section class="hc-card hc-card-fill">
+                    <div class="hc-card-head">Outbound</div>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-7">
+                            <div class="hc-donut-row">
+                                <div class="hc-donut-item">
+                                    <div class="hc-donut hc-donut-tender" style="--p: {{ hc.tender_pct }};">
+                                        <div class="hc-donut-inner">{{ hc.outbound.tender|intcomma }}</div>
+                                    </div>
+                                    <span>Tender</span>
+                                </div>
+                                <div class="hc-donut-item">
+                                    <div class="hc-donut hc-donut-private" style="--p: {{ hc.private_pct }};">
+                                        <div class="hc-donut-inner">{{ hc.outbound.private|intcomma }}</div>
+                                    </div>
+                                    <span>Private</span>
+                                </div>
+                            </div>
+                            <p class="hc-donut-caption">Number. of Orders</p>
+                            <hr>
+                            <div class="hc-donut-row">
+                                <div class="hc-donut-item">
+                                    <div class="hc-donut hc-donut-bulk" style="--p: {{ hc.bulk_pct }};">
+                                        <div class="hc-donut-inner">{{ hc.outbound.bulk|intcomma }}</div>
+                                    </div>
+                                    <span>Bulk</span>
+                                </div>
+                                <div class="hc-donut-item">
+                                    <div class="hc-donut hc-donut-loose" style="--p: {{ hc.loose_pct }};">
+                                        <div class="hc-donut-inner">{{ hc.outbound.loose|intcomma }}</div>
+                                    </div>
+                                    <span>Loose</span>
+                                </div>
+                            </div>
+                            <p class="hc-donut-caption">Order type</p>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="hc-stat">
+                                <h6>Number. of Lines</h6>
+                                <b>{{ hc.outbound.lines|intcomma }}</b>
+                            </div>
+                            <div class="hc-stat">
+                                <h6>Total quantities</h6>
+                                <b>{{ hc.outbound.quantity|intcomma }}</b>
+                            </div>
+                            <div class="hc-stat">
+                                <h6>Pending Orders</h6>
+                                <b>{{ hc.outbound.pending|intcomma }}</b>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="hc-stack">
+                    <section class="hc-card hc-card-fill">
+                        <div class="hc-card-head">Capacity</div>
+                        <div class="hc-capacity">
+                            <div><span>WH Storage</span><b>{{ hc.capacity.wh_storage|intcomma }}</b></div>
+                            <div><span>Occupied Location</span><b>{{ hc.capacity.occupied|intcomma }}</b></div>
+                            <div><span>Available Location</span><b>{{ hc.capacity.available|intcomma }}</b></div>
+                        </div>
+                    </section>
+                    <section class="hc-card hc-card-compact">
+                        <div class="hc-card-head">Inventory</div>
+                        <div class="hc-capacity hc-inventory">
+                            <div>
+                                <span>Last movement</span>
+                                <b>{{ hc.inventory.last_movement|intcomma }}</b>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% elif has_data %}
     <div class="card">
         <div class="card-header"><h4>{{ page_title }}</h4></div>
@@ -1181,18 +958,9 @@
     </div>
 
     {% else %}
-    <div class="card">
-        <div class="card-header"><h4>{{ page_title }}</h4></div>
-        <div class="card-body">
-            <div class="page-loading text-center" style="padding: 80px 0;">
-                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3 mb-0">Loading {{ page_title }} data...</p>
-                <small class="text-muted">No data available yet</small>
-            </div>
-        </div>
+    <div class="kpi-empty">
+        <h5>Upload Data_Power_Bi.xlsx</h5>
+        <p class="mb-0">Use Upload Excel in the header. Sheets needed: OrderHeader, IBShipments, OBLPN, IBLPN.</p>
     </div>
     {% endif %}
-</div>
 {% endblock %}

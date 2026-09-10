@@ -1,8 +1,6 @@
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from administration.views import DashboardView
 from customer.views import CustomerDashboardView
 from . import views
 from .views import RegisterView, CustomLogoutView, CustomLoginView, EmployeeDashboardView, \
@@ -16,7 +14,7 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
 
-    path('admin_dashboard/', staff_member_required(DashboardView.as_view()), name='admin_dashboard'),
+    path('admin_dashboard/', views.DashboardPageView.as_view(), name='admin_dashboard'),
     path('customer_dashboard/', CustomerDashboardView.as_view(), name='customer_dashboard'),
     path('home/', redirect_to_dashboard, name='redirect_to_dashboard'),
     path('choose_dashboard/', ChooseDashboardView.as_view(), name='choose_dashboard'),
@@ -38,11 +36,14 @@ urlpatterns = [
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
 
+    path('upload-kpi-excel/', views.UploadKpiExcelView.as_view(), name='upload_kpi_excel'),
+    path('dashboard/', views.DashboardPageView.as_view(), {'page': 'dashboard'}, name='dashboard'),
     path('overview/', views.DashboardPageView.as_view(), {'page': 'overview'}, name='overview'),
     path('outbound/', views.DashboardPageView.as_view(), {'page': 'outbound'}, name='outbound'),
     path('inbound/', views.DashboardPageView.as_view(), {'page': 'inbound'}, name='inbound'),
     path('cities/', views.DashboardPageView.as_view(), {'page': 'cities'}, name='cities'),
     path('inventory/', views.DashboardPageView.as_view(), {'page': 'inventory'}, name='inventory'),
     path('sla/', views.DashboardPageView.as_view(), {'page': 'sla'}, name='sla'),
+    path('sla/save/', views.SaveSlaTargetsView.as_view(), name='save_sla_targets'),
     path('misses/', views.DashboardPageView.as_view(), {'page': 'misses'}, name='misses'),
 ]
