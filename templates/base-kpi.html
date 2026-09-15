@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/kpi-dashboard.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="kpi-app">
+<body class="kpi-app{% if page == 'productivity' %} kpi-productivity{% endif %}">
 {% with company_qs=company_query|default:'' %}
 <div class="kpi-shell">
     <header class="kpi-app-header">
@@ -25,7 +25,7 @@
                 <span class="kpi-brand-sub">Logistics — 3PL KPI Dashboard</span>
             </a>
             <div class="kpi-header-actions">
-                <div class="kpi-filters" {% if page == 'users' %}hidden{% endif %}>
+                <div class="kpi-filters" {% if page == 'users' or page == 'productivity' %}hidden{% endif %}>
                     <div class="kpi-select" data-kpi-select>
                         <button class="kpi-select-btn" type="button">
                             <span>
@@ -118,6 +118,10 @@
             <a class="kpi-tab {% if page == 'misses' %}active{% endif %}" href="{% url 'accounts:misses' %}{{ company_qs }}">
                 <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0z"></path></svg>
                 Misses
+            </a>
+            <a class="kpi-tab {% if page == 'productivity' %}active{% endif %}" href="{% url 'dashboard:home' %}">
+                <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"></path><path d="M4 13l3-3 3 2 4-5 3 3"></path></svg>
+                Productivity
             </a>
             <div class="kpi-tab-drop {% if page == 'users' %}open-active{% endif %}" id="kpiUsersTab">
                 <a class="kpi-tab {% if page == 'users' %}active{% endif %}"

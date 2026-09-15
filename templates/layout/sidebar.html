@@ -120,6 +120,13 @@
                             <span>Misses</span>
                         </a>
                     </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}"
+                           href="{% url 'dashboard:home' %}">
+                            <svg class="stroke-icon"><use href="{% static 'assets/svg/icon-sprite.svg' %}#stroke-charts"></use></svg>
+                            <span>Productivity</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-main-title">
                         <div>

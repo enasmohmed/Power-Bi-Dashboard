@@ -28,6 +28,7 @@ urlpatterns = [
     path('', RegisterView.as_view(), name='register'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('productivity/', include('dashboard.urls')),
 ]
 
 if settings.DEBUG:

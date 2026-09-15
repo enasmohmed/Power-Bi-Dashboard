@@ -1,0 +1,35 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block form_top %}
+{% if picker_import_excel_url %}
+<div class="module" style="margin-bottom:1rem;padding:0.85rem 1rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;">
+  <strong>{% translate "Excel import" %}:</strong>
+  {% if change and original.pk %}
+  <a class="button default" style="margin-inline-start:0.5rem;padding:0.45rem 1rem;" href="{{ picker_import_excel_url }}?program={{ original.pk }}">{% translate "Upload .xlsx (this program)" %}</a>
+  <span class="help" style="display:inline-block;margin-inline-start:0.5rem;">{% translate "Opens the import page with this program selected. Replaces all shift rows." %}</span>
+  {% else %}
+  <a class="button default" style="margin-inline-start:0.5rem;padding:0.45rem 1rem;" href="{{ picker_import_excel_url }}">{% translate "Upload .xlsx…" %}</a>
+  <p class="help" style="margin:0.6rem 0 0;padding:0;max-width:65ch;">
+    {% blocktranslate trimmed %}
+      Pick the program on the next page, or save this program first then use “Upload .xlsx (this program)” when editing. Import replaces all shift rows for the program you choose.
+    {% endblocktranslate %}
+    <span dir="rtl" style="display:block;margin-top:0.4rem;color:#334155;">
+      الرابط يفتح صفحة الاستيراد واختيار ملف الـ Excel من الجهاز. لو لسه بتضيف برنامج جديد، احفظه الأول أو اختَر برنامجًا موجودًا من القائمة في صفحة الاستيراد.
+    </span>
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}
+
+{% block after_field_sets %}
+{{ block.super }}
+{% if picker_import_excel_url %}
+<p style="margin:0.75rem 0 0;padding:0.65rem 0.85rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:0.85rem;">
+  <strong>{% translate "Excel" %}:</strong>
+  <a href="{{ picker_import_excel_url }}{% if original.pk %}?program={{ original.pk }}{% endif %}">{% translate "Open import page" %}</a>
+  <span class="help"> — {% translate "choose .xlsx file on the next screen" %}</span>
+</p>
+{% endif %}
+{% endblock %}

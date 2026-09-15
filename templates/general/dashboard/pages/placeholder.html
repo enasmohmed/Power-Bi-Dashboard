@@ -140,12 +140,61 @@
             <div class="row g-3 mb-3">
                 {% for kpi in company.kpis %}
                 <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card ob {{ kpi.tone }}">
+                    <div class="card kpi-card ob {{ kpi.tone }}{% if kpi.hover %} has-hover{% endif %}">
                         <div class="card-body">
-                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <span class="kpi-label">
+                                {{ kpi.label }}
+                                {% if kpi.hover %}
+                                <span class="kpi-hover-hint" title="Daily trend">
+                                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                                        <rect x="1" y="9" width="3.2" height="6" rx="1" fill="currentColor"/>
+                                        <rect x="6.4" y="3.5" width="3.2" height="11.5" rx="1" fill="currentColor"/>
+                                        <rect x="11.8" y="6.5" width="3.2" height="8.5" rx="1" fill="currentColor"/>
+                                    </svg>
+                                </span>
+                                {% endif %}
+                            </span>
                             <p class="kpi-value {{ kpi.tone }}">{{ kpi.value }}</p>
                             <span class="kpi-sub">{{ kpi.sub }}</span>
                         </div>
+                        {% if kpi.hover %}
+                        <div class="kpi-hover-pop">
+                            <div class="kpi-hover-inner">
+                                <div class="kpi-hover-head">
+                                    <span>Last 3 days</span>
+                                    <em>{{ kpi.hover.unit }}</em>
+                                </div>
+                                {% if kpi.hover.days %}
+                                <div class="kpi-hover-bars">
+                                    {% for day in kpi.hover.days %}
+                                    <div class="kpi-hover-col">
+                                        <strong>{{ day.pct_label }}</strong>
+                                        <div class="kpi-hover-track" aria-hidden="true">
+                                            <span class="kpi-hover-fill {{ day.tone }}" style="height: {{ day.bar }}%;"></span>
+                                        </div>
+                                        <span>{{ day.label }}</span>
+                                        <em>{{ day.date }}</em>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="kpi-hover-empty">No daily data in this period.</p>
+                                {% endif %}
+                                {% if kpi.hover.companies|length > 1 %}
+                                <div class="kpi-hover-rank-head">Companies</div>
+                                <ul class="kpi-hover-rank">
+                                    {% for row in kpi.hover.companies %}
+                                    <li class="{{ row.flag }}">
+                                        <span class="kpi-hover-dot" style="background: {{ row.dot }};"></span>
+                                        <span class="kpi-hover-name"><span>{{ row.name }}</span>{% if row.flag == 'best' %}<i>Best</i>{% elif row.flag == 'worst' %}<i>Worst</i>{% endif %}</span>
+                                        <b>{{ row.pct_label }}</b>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -314,12 +363,61 @@
             <div class="row g-3 mb-3">
                 {% for kpi in company.kpis %}
                 <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card ob {{ kpi.tone }}">
+                    <div class="card kpi-card ob {{ kpi.tone }}{% if kpi.hover %} has-hover{% endif %}">
                         <div class="card-body">
-                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <span class="kpi-label">
+                                {{ kpi.label }}
+                                {% if kpi.hover %}
+                                <span class="kpi-hover-hint" title="Daily trend">
+                                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                                        <rect x="1" y="9" width="3.2" height="6" rx="1" fill="currentColor"/>
+                                        <rect x="6.4" y="3.5" width="3.2" height="11.5" rx="1" fill="currentColor"/>
+                                        <rect x="11.8" y="6.5" width="3.2" height="8.5" rx="1" fill="currentColor"/>
+                                    </svg>
+                                </span>
+                                {% endif %}
+                            </span>
                             <p class="kpi-value {{ kpi.tone }}">{{ kpi.value }}</p>
                             <span class="kpi-sub">{{ kpi.sub }}</span>
                         </div>
+                        {% if kpi.hover %}
+                        <div class="kpi-hover-pop">
+                            <div class="kpi-hover-inner">
+                                <div class="kpi-hover-head">
+                                    <span>Last 3 days</span>
+                                    <em>{{ kpi.hover.unit }}</em>
+                                </div>
+                                {% if kpi.hover.days %}
+                                <div class="kpi-hover-bars">
+                                    {% for day in kpi.hover.days %}
+                                    <div class="kpi-hover-col">
+                                        <strong>{{ day.pct_label }}</strong>
+                                        <div class="kpi-hover-track" aria-hidden="true">
+                                            <span class="kpi-hover-fill {{ day.tone }}" style="height: {{ day.bar }}%;"></span>
+                                        </div>
+                                        <span>{{ day.label }}</span>
+                                        <em>{{ day.date }}</em>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="kpi-hover-empty">No daily data in this period.</p>
+                                {% endif %}
+                                {% if kpi.hover.companies|length > 1 %}
+                                <div class="kpi-hover-rank-head">Companies</div>
+                                <ul class="kpi-hover-rank">
+                                    {% for row in kpi.hover.companies %}
+                                    <li class="{{ row.flag }}">
+                                        <span class="kpi-hover-dot" style="background: {{ row.dot }};"></span>
+                                        <span class="kpi-hover-name"><span>{{ row.name }}</span>{% if row.flag == 'best' %}<i>Best</i>{% elif row.flag == 'worst' %}<i>Worst</i>{% endif %}</span>
+                                        <b>{{ row.pct_label }}</b>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -441,18 +539,29 @@
             <div class="row g-3">
                 {% for card in company.cards %}
                 <div class="col-xl-3 col-md-6">
-                    <div class="city-card {{ card.tone }}">
+                    <div class="city-card {{ card.tone }}{% if card.hover %} has-hover{% endif %}">
                         <div class="city-card-head">
                             <h5>{{ card.name }}</h5>
-                            {% if card.status == 'Excellent' %}
-                                <span class="status-pill perfect">Excellent</span>
-                            {% elif card.status == 'Good' %}
-                                <span class="status-pill hit">Good</span>
-                            {% elif card.status == 'Watch' %}
-                                <span class="status-pill watch">Watch</span>
-                            {% else %}
-                                <span class="status-pill late">Needs Attn</span>
-                            {% endif %}
+                            <div class="city-card-tools">
+                                {% if card.hover %}
+                                <span class="kpi-hover-hint" title="Daily trend">
+                                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                                        <rect x="1" y="9" width="3.2" height="6" rx="1" fill="currentColor"/>
+                                        <rect x="6.4" y="3.5" width="3.2" height="11.5" rx="1" fill="currentColor"/>
+                                        <rect x="11.8" y="6.5" width="3.2" height="8.5" rx="1" fill="currentColor"/>
+                                    </svg>
+                                </span>
+                                {% endif %}
+                                {% if card.status == 'Excellent' %}
+                                    <span class="status-pill perfect">Excellent</span>
+                                {% elif card.status == 'Good' %}
+                                    <span class="status-pill hit">Good</span>
+                                {% elif card.status == 'Watch' %}
+                                    <span class="status-pill watch">Watch</span>
+                                {% else %}
+                                    <span class="status-pill late">Needs Attn</span>
+                                {% endif %}
+                            </div>
                         </div>
                         <p class="city-score">
                             {% if card.score == 100 %}100%{% else %}{{ card.score }}%{% endif %}
@@ -470,6 +579,44 @@
                         {% elif card.avg_hours %}
                         <div class="city-metrics">
                             <span>{{ card.avg_label }}: avg {{ card.avg_hours }}h</span>
+                        </div>
+                        {% endif %}
+                        {% if card.hover %}
+                        <div class="kpi-hover-pop">
+                            <div class="kpi-hover-inner">
+                                <div class="kpi-hover-head">
+                                    <span>Last 3 days</span>
+                                    <em>{{ card.hover.unit }}</em>
+                                </div>
+                                {% if card.hover.days %}
+                                <div class="kpi-hover-bars">
+                                    {% for day in card.hover.days %}
+                                    <div class="kpi-hover-col">
+                                        <strong>{{ day.pct_label }}</strong>
+                                        <div class="kpi-hover-track" aria-hidden="true">
+                                            <span class="kpi-hover-fill {{ day.tone }}" style="height: {{ day.bar }}%;"></span>
+                                        </div>
+                                        <span>{{ day.label }}</span>
+                                        <em>{{ day.date }}</em>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="kpi-hover-empty">No daily data in this period.</p>
+                                {% endif %}
+                                {% if card.hover.companies|length > 1 %}
+                                <div class="kpi-hover-rank-head">{{ card.hover.rank_title|default:"Companies" }}</div>
+                                <ul class="kpi-hover-rank">
+                                    {% for row in card.hover.companies %}
+                                    <li class="{{ row.flag }}">
+                                        <span class="kpi-hover-dot" style="background: {{ row.dot }};"></span>
+                                        <span class="kpi-hover-name"><span>{{ row.name }}</span>{% if row.flag == 'best' %}<i>Best</i>{% elif row.flag == 'worst' %}<i>Worst</i>{% endif %}</span>
+                                        <b>{{ row.pct_label }}</b>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -491,12 +638,61 @@
             <div class="row g-3 mb-3">
                 {% for kpi in company.kpis %}
                 <div class="col-md-4">
-                    <div class="card kpi-card ob {{ kpi.tone }}">
+                    <div class="card kpi-card ob {{ kpi.tone }}{% if kpi.hover %} has-hover{% endif %}">
                         <div class="card-body">
-                            <span class="kpi-label">{{ kpi.label }}</span>
+                            <span class="kpi-label">
+                                {{ kpi.label }}
+                                {% if kpi.hover %}
+                                <span class="kpi-hover-hint" title="Daily trend">
+                                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                                        <rect x="1" y="9" width="3.2" height="6" rx="1" fill="currentColor"/>
+                                        <rect x="6.4" y="3.5" width="3.2" height="11.5" rx="1" fill="currentColor"/>
+                                        <rect x="11.8" y="6.5" width="3.2" height="8.5" rx="1" fill="currentColor"/>
+                                    </svg>
+                                </span>
+                                {% endif %}
+                            </span>
                             <p class="kpi-value {{ kpi.tone }}">{{ kpi.value|intcomma }}</p>
                             <span class="kpi-sub">{{ kpi.sub }}</span>
                         </div>
+                        {% if kpi.hover %}
+                        <div class="kpi-hover-pop">
+                            <div class="kpi-hover-inner">
+                                <div class="kpi-hover-head">
+                                    <span>Last 3 days</span>
+                                    <em>{{ kpi.hover.unit }}</em>
+                                </div>
+                                {% if kpi.hover.days %}
+                                <div class="kpi-hover-bars">
+                                    {% for day in kpi.hover.days %}
+                                    <div class="kpi-hover-col">
+                                        <strong>{{ day.pct_label }}</strong>
+                                        <div class="kpi-hover-track" aria-hidden="true">
+                                            <span class="kpi-hover-fill {{ day.tone }}" style="height: {{ day.bar }}%;"></span>
+                                        </div>
+                                        <span>{{ day.label }}</span>
+                                        <em>{{ day.date }}</em>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="kpi-hover-empty">No daily data in this period.</p>
+                                {% endif %}
+                                {% if kpi.hover.companies|length > 1 %}
+                                <div class="kpi-hover-rank-head">{{ kpi.hover.rank_title|default:"Companies" }}</div>
+                                <ul class="kpi-hover-rank">
+                                    {% for row in kpi.hover.companies %}
+                                    <li class="{{ row.flag }}">
+                                        <span class="kpi-hover-dot" style="background: {{ row.dot }};"></span>
+                                        <span class="kpi-hover-name"><span>{{ row.name }}</span>{% if row.flag == 'best' %}<i>Best</i>{% elif row.flag == 'worst' %}<i>Worst</i>{% endif %}</span>
+                                        <b>{{ row.pct_label }}</b>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -963,4 +1159,29 @@
         <p class="mb-0">Use Upload Excel in the header. Sheets needed: OrderHeader, IBShipments, OBLPN, IBLPN.</p>
     </div>
     {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if page == 'outbound' or page == 'inbound' or page == 'cities' or page == 'inventory' %}
+<script>
+(function () {
+    document.querySelectorAll('.kpi-card.has-hover, .city-card.has-hover').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+            if (window.matchMedia('(hover: hover)').matches) return;
+            e.stopPropagation();
+            var open = card.classList.contains('is-open');
+            document.querySelectorAll('.kpi-card.has-hover.is-open, .city-card.has-hover.is-open').forEach(function (other) {
+                other.classList.remove('is-open');
+            });
+            if (!open) card.classList.add('is-open');
+        });
+    });
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.kpi-card.has-hover.is-open, .city-card.has-hover.is-open').forEach(function (card) {
+            card.classList.remove('is-open');
+        });
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

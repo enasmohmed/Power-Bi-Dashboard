@@ -1,0 +1,87 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_label }}</a>
+  &rsaquo; <a href="{% url 'admin:dashboard_pickerperformanceprogram_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {% translate 'Import Excel' %}
+</div>
+{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+
+{% if not programs %}
+{# No program rows yet — still allow Excel upload: create program + import in one step #}
+<p class="help" style="max-width:70ch;margin-bottom:1rem;">
+  {% blocktranslate trimmed %}
+    There is no saved program yet. Enter a title below, choose OCT 30.xlsx, and submit — a program will be created and shift rows will be loaded from Sheet1 (default sheet name below).
+  {% endblocktranslate %}
+  <span dir="rtl" style="display:block;margin-top:0.5rem;color:#94a3b8;">
+    مفيش برنامج محفوظ في قاعدة البيانات؛ اكتب اسم البرنامج، اختَر ملف Excel، واضغط الزر — هيتعمل برنامج جديد ويتستورد من الشيت.
+  </span>
+</p>
+<form method="post" enctype="multipart/form-data" class="module" id="picker-excel-create-import-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <div class="form-row">
+      <label for="id_new_program_title" class="required">{% translate "Program title" %}:</label>
+      <input type="text" name="new_program_title" id="id_new_program_title" value="{{ new_program_title|default:'' }}" maxlength="255" required class="vTextField" style="max-width:32rem;">
+    </div>
+    <div class="form-row">
+      <label for="id_excel_sheet_name">{% translate "Excel sheet name" %}:</label>
+      <input type="text" name="excel_sheet_name" id="id_excel_sheet_name" value="{{ excel_sheet_name|default:'Sheet1' }}" maxlength="64" class="vTextField" style="max-width:16rem;">
+      <p class="help">{% translate "Use Sheet1 (OCT 30.xlsx has a single sheet with that name)." %}</p>
+    </div>
+    <div class="form-row">
+      <label for="{{ form.excel_file.id_for_label }}" class="required">{{ form.excel_file.label }}</label>
+      {{ form.excel_file.errors }}
+      {{ form.excel_file }}
+      <p class="help" style="margin-top:0.5rem;">{% translate "Browse / Choose file, then click the button below." %}</p>
+    </div>
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" value="{% translate 'Create program & import' %}" class="default">
+    <a href="{% url 'admin:dashboard_pickerperformanceprogram_add' %}" class="button">{% translate "Add program manually" %}</a>
+    <a href="{% url 'admin:dashboard_pickerperformanceprogram_changelist' %}" class="button cancel-link">{% translate 'Cancel' %}</a>
+  </div>
+</form>
+<p class="help">
+  {% blocktranslate %}Workbook: <strong>OCT 30.xlsx</strong> with sheet <strong>Sheet1</strong>. Expected columns: PICKER NAME, Lines, Date optional, SHIFT (Day Shift / Night Shift or 1 / 2).{% endblocktranslate %}
+</p>
+
+{% else %}
+<form method="post" enctype="multipart/form-data" class="module" id="picker-excel-import-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <div class="form-row">
+      <label for="id_program">{% translate "Program" %}:</label>
+      <select name="program" id="id_program" required>
+        {% for p in programs %}
+        <option value="{{ p.pk }}"{% if initial_program_id == p.pk %} selected{% endif %}>{{ p }} — {{ p.shifts.count }} {% translate "shifts" %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="id_import_sheet_name">{% translate "Excel sheet name (optional)" %}:</label>
+      <input type="text" name="import_sheet_name" id="id_import_sheet_name" value="{{ import_sheet_name|default:'' }}" maxlength="64" class="vTextField" style="max-width:16rem;" placeholder="{% translate 'e.g. Sheet1' %}">
+      <p class="help">{% translate "Leave blank to use the program’s saved sheet name. If that tab is missing, the importer will try Sheet1 when possible (same workbook)." %}</p>
+    </div>
+    <div class="form-row">
+      <label for="{{ form.excel_file.id_for_label }}" class="required">{{ form.excel_file.label }}</label>
+      {{ form.excel_file.errors }}
+      {{ form.excel_file }}
+      <p class="help" style="margin-top:0.5rem;">{% translate "Use Browse / Choose file, pick a .xlsx file, then click Import below." %}</p>
+    </div>
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" value="{% translate 'Import' %}" class="default">
+    <a href="{% url 'admin:dashboard_pickerperformanceprogram_changelist' %}" class="button cancel-link">{% translate 'Cancel' %}</a>
+  </div>
+</form>
+<p class="help">
+  {% blocktranslate %}Use <strong>OCT 30.xlsx</strong> and sheet <strong>Sheet1</strong> (single-sheet file). Optional sheet field: leave blank to use the program’s saved name; single-sheet workbooks always import that tab. Columns: PICKER NAME, Lines, Date optional, SHIFT (Day Shift / Night Shift, or 1 / 2). Import replaces all shift rows for the selected program.{% endblocktranslate %}
+</p>
+{% endif %}
+{% endblock %}

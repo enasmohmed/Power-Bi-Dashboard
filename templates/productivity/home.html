@@ -1,0 +1,6004 @@
+{% extends "base-kpi.html" %}
+{% load static %}
+
+{% block extra_css %}
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+      --bg-deep: #f1f5f9;
+      --bg-panel: #ffffff;
+      --bg-tab: #e8edf3;
+      --border: rgba(15, 23, 42, 0.1);
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.12);
+      --accent-glow: rgba(22, 163, 74, 0.28);
+      --header-bg: #14532d;
+      --header-bg-mid: #166534;
+      --header-bg-end: #15803d;
+      --header-grad: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 48%, #bbf7d0 100%);
+      --header-fg: #14532d;
+      --header-fg-muted: #166534;
+      --header-border: rgba(22, 101, 52, 0.12);
+      --radius: 12px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --font-display: "Outfit", "DM Sans", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    .productivity-page {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .productivity-page {
+        scroll-behavior: auto;
+      }
+    }
+
+    .productivity-page {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      line-height: 1.5;
+      background-image:
+        radial-gradient(ellipse 100% 70% at 50% -25%, rgba(134, 239, 172, 0.45), transparent 52%),
+        radial-gradient(ellipse 70% 45% at 100% 20%, rgba(59, 130, 246, 0.1), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 0% 80%, rgba(148, 163, 184, 0.12), transparent 45%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 38%, #eef2f6 100%);
+    }
+
+    .shell {
+      max-width: min(1480px, calc(100vw - 2rem));
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+    }
+
+    header.top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 0;
+      padding: 1rem 1.25rem;
+      background: var(--header-grad);
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-bottom: none;
+      box-shadow: 0 4px 20px rgba(22, 101, 52, 0.12);
+      border: 1px solid var(--header-border);
+      border-bottom: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      height: 40px;
+      width: auto;
+      max-width: 9.5rem;
+      border-radius: 10px;
+      display: block;
+      flex-shrink: 0;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.82);
+      padding: 0.2rem 0.45rem;
+      box-shadow: 0 1px 4px rgba(22, 101, 52, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--header-fg);
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--header-fg-muted);
+      opacity: 0.78;
+      margin-top: 0.1rem;
+    }
+
+    .top a.admin {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--header-fg);
+      text-decoration: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      border: 1px solid rgba(22, 101, 52, 0.22);
+      background: rgba(255, 255, 255, 0.55);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .top a.admin:hover {
+      color: var(--header-fg);
+      border-color: rgba(22, 101, 52, 0.35);
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    /* Tab strip */
+    .tab-wrap {
+      background: var(--header-grad);
+      border: 1px solid var(--header-border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 0.35rem 0.5rem 0.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 6px 18px rgba(22, 101, 52, 0.1);
+    }
+
+    [role="tablist"] {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    [role="tab"] {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: var(--header-fg-muted);
+      background: transparent;
+      border: none;
+      border-radius: 9px;
+      padding: 0.85rem 0.5rem;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.25;
+      hyphens: auto;
+    }
+
+    [role="tab"]:hover:not([aria-selected="true"]) {
+      color: var(--header-fg);
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    [role="tab"][aria-selected="true"] {
+      color: var(--header-fg);
+      background: #ffffff;
+      box-shadow:
+        0 0 0 1px rgba(22, 101, 52, 0.08) inset,
+        0 2px 10px rgba(22, 101, 52, 0.1),
+        0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    [role="tab"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Panels */
+    .panels {
+      margin-top: 1.25rem;
+    }
+
+    [role="tabpanel"] {
+      display: none;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.25rem;
+      min-height: 280px;
+      animation: fadeIn 0.25s ease;
+      box-shadow: 0 2px 16px rgba(15, 23, 42, 0.05);
+    }
+
+    [role="tabpanel"][data-visible="true"] {
+      display: block;
+    }
+
+    [role="tabpanel"]#panel-0[data-visible="true"] {
+      padding: 1.65rem 1.2rem 1.85rem;
+      background:
+        radial-gradient(100% 65% at 50% -10%, rgba(134, 239, 172, 0.38) 0%, transparent 52%),
+        radial-gradient(90% 50% at 100% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 48%),
+        radial-gradient(70% 45% at 0% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 42%),
+        linear-gradient(168deg, #ffffff 0%, #f8fafc 40%, #f1f5f9 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-head p {
+      margin: 0.35rem 0 0;
+      font-size: 0.875rem;
+      color: var(--muted);
+      max-width: 52ch;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 0.35rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid rgba(22, 163, 74, 0.22);
+    }
+
+    .placeholder-grid {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .ph-card {
+      background: #f8fafc;
+      border: 1px dashed rgba(15, 23, 42, 0.12);
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .ph-card strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    @media (min-width: 640px) {
+      [role="tab"] {
+        font-size: 0.85rem;
+        padding: 0.95rem 0.65rem;
+      }
+    }
+
+    @media (min-width: 900px) {
+      [role="tab"] {
+        font-size: 0.88rem;
+      }
+    }
+
+    /* —— Picker zone plan: hero + timeline stack (tab 1) —— */
+    .plan-canvas {
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .plan-canvas::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0.5;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='1' cy='1' r='1' fill='%230f172a' fill-opacity='0.06'/%3E%3C/svg%3E");
+      background-size: 80px 80px;
+      -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, black 20%, transparent 75%);
+      mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, black 20%, transparent 75%);
+    }
+
+    @keyframes planReveal {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes planHeroShine {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .plan-hero {
+      position: relative;
+      overflow: visible;
+      margin: 0 0 1.5rem;
+      padding: 0;
+      border-radius: 20px;
+      background:
+        radial-gradient(120% 100% at 10% 0%, rgba(134, 239, 172, 0.55) 0%, transparent 52%),
+        radial-gradient(90% 85% at 100% 100%, rgba(74, 222, 128, 0.22) 0%, transparent 50%),
+        linear-gradient(155deg, #ffffff 0%, #f0fdf4 48%, #dcfce7 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+        0 14px 40px rgba(15, 23, 42, 0.08),
+        0 0 72px rgba(74, 222, 128, 0.22);
+    }
+
+    .plan-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.55) 46%,
+        transparent 54%
+      );
+      background-size: 200% 100%;
+      animation: planHeroShine 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .plan-hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1.25rem;
+      padding: 1.35rem 1.15rem 1.45rem;
+      align-items: start;
+    }
+
+    @media (min-width: 720px) {
+      .plan-hero-inner {
+        grid-template-columns: minmax(0, 1fr) minmax(0, min(46%, 26rem));
+        gap: 1.5rem;
+        padding: 1.5rem 1.35rem 1.55rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .plan-hero-inner {
+        grid-template-columns: minmax(0, 1fr) minmax(0, min(44%, 28rem));
+      }
+    }
+
+    .plan-hero-main {
+      text-align: center;
+      min-width: 0;
+    }
+
+    @media (min-width: 720px) {
+      .plan-hero-main {
+        text-align: left;
+      }
+    }
+
+    .plan-hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #14532d;
+      margin-bottom: 0.5rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(220, 252, 231, 0.95);
+      border: 1px solid rgba(22, 163, 74, 0.28);
+    }
+
+    .plan-hero-title {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: clamp(1.45rem, 4vw, 2.05rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      background: linear-gradient(118deg, #0f172a 0%, #334155 45%, #15803d 92%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.12;
+    }
+
+    .plan-hero-sub {
+      margin: 0 auto;
+      max-width: 46rem;
+      font-size: 0.84rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    @media (min-width: 720px) {
+      .plan-hero-sub {
+        margin: 0;
+      }
+    }
+
+    .plan-hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem 0.65rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 720px) {
+      .plan-hero-meta {
+        justify-content: flex-start;
+      }
+    }
+
+    .plan-hero-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #334155;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+    }
+
+    .plan-hero-pulse .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
+      animation: planPulse 2s ease-out infinite;
+    }
+
+    @keyframes planPulse {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+      70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .plan-hero-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #15803d;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      border: 1px dashed rgba(22, 163, 74, 0.45);
+      background: rgba(245, 243, 255, 0.85);
+    }
+
+    .plan-rail {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0.25rem;
+      min-width: 0;
+      width: 100%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(22, 163, 74, 0.4) transparent;
+    }
+
+    .plan-rail::-webkit-scrollbar {
+      height: 5px;
+    }
+
+    .plan-rail::-webkit-scrollbar-thumb {
+      background: rgba(22, 163, 74, 0.45);
+      border-radius: 99px;
+    }
+
+    @media (min-width: 720px) {
+      .plan-rail {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding-bottom: 0.2rem;
+        scroll-snap-type: x mandatory;
+        overscroll-behavior-x: contain;
+      }
+
+      .plan-rail > li {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+    }
+
+    .plan-rail > li {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
+
+    a.plan-rail-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.2rem;
+      padding: 0.5rem 0.25rem 0.55rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+      flex: 0 0 auto;
+      min-width: 5.35rem;
+      width: 100%;
+      max-width: 100%;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    @media (min-width: 720px) {
+      a.plan-rail-item {
+        min-width: 0;
+      }
+    }
+
+    @media (hover: hover) {
+      a.plan-rail-item:hover {
+        background: #f0fdf4;
+        border-color: rgba(22, 163, 74, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+      }
+    }
+
+    a.plan-rail-item:focus-visible {
+      outline: 2px solid rgba(22, 163, 74, 0.75);
+      outline-offset: 2px;
+    }
+
+    a.plan-rail-item:active {
+      transform: translateY(0);
+    }
+
+    .plan-rail-item .n {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      line-height: 1;
+    }
+
+    .plan-rail-item .t {
+      font-size: 0.54rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #64748b;
+      line-height: 1.3;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+
+    @media (min-width: 900px) {
+      .plan-rail-item .t {
+        font-size: 0.56rem;
+        letter-spacing: 0.05em;
+      }
+    }
+
+    .plan-rail-item[data-accent="amber"] .n { color: #16a34a; }
+    .plan-rail-item[data-accent="blue"] .n { color: #93c5fd; }
+    .plan-rail-item[data-accent="rose"] .n { color: #fda4af; }
+    .plan-rail-item[data-accent="emerald"] .n { color: #6ee7b7; }
+    .plan-rail-item[data-accent="violet"] .n { color: #86efac; }
+
+    .plan-stack {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    @media (min-width: 640px) {
+      .plan-stack {
+        padding-left: 2.35rem;
+      }
+
+      .plan-stack::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 0.5rem;
+        bottom: 0.5rem;
+        width: 4px;
+        border-radius: 99px;
+        background: linear-gradient(
+          180deg,
+          #86efac 0%,
+          #4ade80 18%,
+          #3b82f6 42%,
+          #10b981 68%,
+          #22c55e 100%
+        );
+        opacity: 0.65;
+        box-shadow:
+          0 0 24px rgba(74, 222, 128, 0.35),
+          0 0 24px rgba(59, 130, 246, 0.15);
+      }
+    }
+
+    .plan-block {
+      position: relative;
+      animation: planReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+
+    .plan-stack > .prod-surface.plan-block {
+      animation-delay: 0.04s;
+    }
+
+    .plan-stack > .pvm-surface.plan-block {
+      animation-delay: 0.08s;
+    }
+
+    .plan-stack > .bar-surface.plan-block {
+      animation-delay: 0.12s;
+    }
+
+    .plan-stack > .rol-surface.plan-block {
+      animation-delay: 0.16s;
+    }
+
+    .plan-stack > .pip-surface.plan-block {
+      animation-delay: 0.2s;
+    }
+
+    @media (min-width: 640px) {
+      .plan-stack .plan-block::after {
+        content: "";
+        position: absolute;
+        left: -2.35rem;
+        top: 1.5rem;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #fff 0%, #e2e8f0 55%, #cbd5e1 100%);
+        border: 3px solid #ffffff;
+        box-shadow:
+          0 0 0 3px rgba(74, 222, 128, 0.45),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+        z-index: 1;
+      }
+
+      .plan-stack > .prod-surface.plan-block::after {
+        box-shadow:
+          0 0 0 3px rgba(22, 163, 74, 0.45),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+      }
+
+      .plan-stack > .pvm-surface.plan-block::after {
+        box-shadow:
+          0 0 0 3px rgba(59, 130, 246, 0.4),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+      }
+
+      .plan-stack > .bar-surface.plan-block::after {
+        box-shadow:
+          0 0 0 3px rgba(244, 63, 94, 0.35),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+      }
+
+      .plan-stack > .rol-surface.plan-block::after {
+        box-shadow:
+          0 0 0 3px rgba(16, 185, 129, 0.4),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+      }
+
+      .plan-stack > .pip-surface.plan-block::after {
+        box-shadow:
+          0 0 0 3px rgba(34, 197, 94, 0.4),
+          0 4px 14px rgba(15, 23, 42, 0.12);
+      }
+    }
+
+    .plan-canvas .plan-block {
+      border-radius: 20px;
+      margin-bottom: 1.1rem;
+      box-shadow:
+        0 8px 28px rgba(15, 23, 42, 0.08),
+        0 0 0 1px rgba(15, 23, 42, 0.06) inset;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease;
+      scroll-margin-top: 7.5rem;
+    }
+
+    .plan-canvas .plan-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .plan-stack > .prod-surface.plan-block {
+      border-top: 4px solid #16a34a;
+    }
+
+    .plan-stack > .pvm-surface.plan-block {
+      border-top: 4px solid #3b82f6;
+    }
+
+    .plan-stack > .bar-surface.plan-block {
+      border-top: 4px solid #f43f5e;
+    }
+
+    .plan-stack > .rol-surface.plan-block {
+      border-top: 4px solid #10b981;
+    }
+
+    .plan-stack > .pip-surface.plan-block {
+      border-top: 4px solid #22c55e;
+    }
+
+    @media (hover: hover) {
+      .plan-canvas .plan-block:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 18px 48px rgba(15, 23, 42, 0.12),
+          0 0 0 1px rgba(74, 222, 128, 0.45) inset,
+          0 0 40px rgba(74, 222, 128, 0.18);
+      }
+    }
+
+    .plan-canvas .prod-card,
+    .plan-canvas .pvm-phase,
+    .plan-canvas .bar-card,
+    .plan-canvas .rol-card,
+    .plan-canvas .pip-item {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    @media (hover: hover) {
+      .plan-canvas .prod-card:hover,
+      .plan-canvas .pvm-phase:hover,
+      .plan-canvas .bar-card:hover,
+      .plan-canvas .rol-card:hover,
+      .plan-canvas .pip-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+      }
+    }
+
+    .plan-canvas .pvm-surface,
+    .plan-canvas .bar-surface,
+    .plan-canvas .rol-surface,
+    .plan-canvas .pip-surface {
+      margin-top: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .plan-block,
+      .plan-hero::after,
+      .plan-hero-pulse .dot {
+        animation: none !important;
+      }
+
+      .plan-block {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* —— Productivity dashboard (light wireframe block inside tab 1) —— */
+
+    .prod-empty {
+      margin: 0;
+      padding: 1rem;
+      border: 1px dashed rgba(15, 23, 42, 0.15);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .plan-canvas .prod-empty {
+      margin-top: 0.5rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px dashed rgba(22, 163, 74, 0.4);
+      color: #475569;
+    }
+
+    .prod-surface {
+      --prod-fg: #111827;
+      --prod-muted: #6b7280;
+      --prod-line: #e5e7eb;
+      color: var(--prod-fg);
+      background-color: #f0f2f5;
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .prod-mod-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--prod-fg);
+    }
+
+    .prod-mod-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d1d5db;
+      line-height: 1;
+    }
+
+    .prod-mod-word {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--prod-muted);
+    }
+
+    .prod-mod-title {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 560px) {
+      .prod-mod-title {
+        flex: 1 1 auto;
+      }
+      .prod-mod-head {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+      .prod-mod-num {
+        font-size: 2.25rem;
+      }
+    }
+
+    .prod-desc {
+      margin: 0 0 1rem;
+      font-size: 0.875rem;
+      color: var(--prod-muted);
+      max-width: 70ch;
+      line-height: 1.55;
+    }
+
+    .prod-highlight {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: #111827;
+      color: #fff;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .prod-highlight h3 {
+      margin: 0 0 0.2rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .prod-highlight p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.82);
+      max-width: 48ch;
+      line-height: 1.45;
+    }
+
+    .prod-highlight-val {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #16a34a;
+      white-space: nowrap;
+    }
+
+    .prod-cards {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 640px) {
+      .prod-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .prod-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    /* —— Shared metric cards (energy-dashboard style) —— */
+    .dash-metric-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem 1rem 0.9rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+      border-top: 5px solid #94a3b8;
+    }
+
+    .dash-metric-card[data-accent="rose"] { border-top-color: #fb7185; }
+    .dash-metric-card[data-accent="emerald"] { border-top-color: #34d399; }
+    .dash-metric-card[data-accent="amber"] { border-top-color: #fbbf24; }
+    .dash-metric-card[data-accent="sky"] { border-top-color: #38bdf8; }
+    .dash-metric-card[data-accent="violet"] { border-top-color: #a78bfa; }
+    .dash-metric-card[data-accent="blue"] { border-top-color: #60a5fa; }
+    .dash-metric-card[data-accent="lime"] { border-top-color: #a3e635; }
+    .dash-metric-card[data-accent="orange"] { border-top-color: #fb923c; }
+    .dash-metric-card[data-accent="slate"] { border-top-color: #94a3b8; }
+    .dash-metric-card[data-accent="teal"] { border-top-color: #2dd4bf; }
+
+    .dash-metric-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .dash-metric-val {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      color: #111827;
+      line-height: 1.15;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    .dash-metric-icon {
+      flex-shrink: 0;
+      width: 1.4rem;
+      height: 1.4rem;
+      line-height: 1;
+    }
+
+    .dash-metric-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .dash-metric-card[data-accent="rose"] .dash-metric-icon { color: #fb7185; }
+    .dash-metric-card[data-accent="emerald"] .dash-metric-icon { color: #34d399; }
+    .dash-metric-card[data-accent="amber"] .dash-metric-icon { color: #fbbf24; }
+    .dash-metric-card[data-accent="sky"] .dash-metric-icon { color: #38bdf8; }
+    .dash-metric-card[data-accent="violet"] .dash-metric-icon { color: #a78bfa; }
+    .dash-metric-card[data-accent="blue"] .dash-metric-icon { color: #60a5fa; }
+    .dash-metric-card[data-accent="lime"] .dash-metric-icon { color: #84cc16; }
+    .dash-metric-card[data-accent="orange"] .dash-metric-icon { color: #fb923c; }
+    .dash-metric-card[data-accent="slate"] .dash-metric-icon { color: #94a3b8; }
+    .dash-metric-card[data-accent="teal"] .dash-metric-icon { color: #2dd4bf; }
+
+    .dash-metric-label {
+      margin: 0 0 0.35rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6b7280;
+      line-height: 1.35;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    .dash-metric-sub {
+      margin: 0;
+      font-size: 0.72rem;
+      color: #6b7280;
+      line-height: 1.45;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+
+    .prod-card-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      min-height: auto;
+      margin: 0;
+    }
+
+    .prod-card-img {
+      max-height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .prod-ic-arrow {
+      font-size: 1.25rem;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .prod-ic-arrow.down {
+      color: #dc2626;
+    }
+
+    .prod-ic-arrow.up {
+      color: #16a34a;
+    }
+
+    .prod-ic-acr {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .prod-ic-acr.red {
+      color: #dc2626;
+    }
+
+    .prod-ic-acr.green {
+      color: #16a34a;
+    }
+
+    .prod-ic-bell {
+      font-size: 1.6rem;
+      line-height: 1;
+      filter: hue-rotate(220deg) saturate(1.1) brightness(0.92);
+    }
+
+    .prod-ic-stop {
+      width: 8px;
+      height: 28px;
+      background: linear-gradient(180deg, #4ade80, #15803d);
+      border-radius: 2px;
+    }
+
+    .prod-card h4,
+    .prod-card .dash-metric-label {
+      margin: 0 0 0.35rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--prod-muted);
+    }
+
+    .prod-card p,
+    .prod-card .dash-metric-sub {
+      margin: 0;
+      font-size: 0.72rem;
+      font-family: var(--font);
+      font-weight: 400;
+      color: var(--prod-muted);
+      line-height: 1.45;
+    }
+
+    /* —— Picking method program (phase 02 wireframe) —— */
+    .pvm-surface {
+      --pvm-fg: #111827;
+      --pvm-muted: #6b7280;
+      --pvm-line: #e5e7eb;
+      margin-top: 1.25rem;
+      color: var(--pvm-fg);
+      background-color: #f0f2f5;
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .pvm-mod-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--pvm-fg);
+    }
+
+    .pvm-mod-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d1d5db;
+      line-height: 1;
+    }
+
+    .pvm-mod-word {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pvm-muted);
+    }
+
+    .pvm-mod-title {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 560px) {
+      .pvm-mod-title {
+        flex: 1 1 auto;
+      }
+      .pvm-mod-head {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+    }
+
+    .pvm-intro {
+      margin: 0 0 1.25rem;
+      font-size: 0.875rem;
+      color: var(--pvm-muted);
+      max-width: 72ch;
+      line-height: 1.55;
+    }
+
+    .pvm-phase {
+      position: relative;
+      padding: 0.85rem 0 0.85rem 1.1rem;
+      margin-bottom: 0.75rem;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid var(--pvm-line);
+    }
+
+    .pvm-phase::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      border-radius: 6px 0 0 6px;
+      background: var(--pvm-accent, #64748b);
+    }
+
+    .pvm-phase[data-accent="red"] {
+      --pvm-accent: #ef4444;
+    }
+
+    .pvm-phase[data-accent="orange"] {
+      --pvm-accent: #f97316;
+    }
+
+    .pvm-phase[data-accent="amber"] {
+      --pvm-accent: #22c55e;
+    }
+
+    .pvm-phase[data-accent="yellow"] {
+      --pvm-accent: #4ade80;
+    }
+
+    .pvm-phase[data-accent="lime"] {
+      --pvm-accent: #84cc16;
+    }
+
+    .pvm-phase[data-accent="green"] {
+      --pvm-accent: #22c55e;
+    }
+
+    .pvm-phase[data-accent="emerald"] {
+      --pvm-accent: #10b981;
+    }
+
+    .pvm-phase[data-accent="teal"] {
+      --pvm-accent: #14b8a6;
+    }
+
+    .pvm-phase[data-accent="cyan"] {
+      --pvm-accent: #06b6d4;
+    }
+
+    .pvm-phase[data-accent="sky"] {
+      --pvm-accent: #0ea5e9;
+    }
+
+    .pvm-phase[data-accent="blue"] {
+      --pvm-accent: #3b82f6;
+    }
+
+    .pvm-phase[data-accent="indigo"] {
+      --pvm-accent: #6366f1;
+    }
+
+    .pvm-phase[data-accent="violet"] {
+      --pvm-accent: #22c55e;
+    }
+
+    .pvm-phase[data-accent="purple"] {
+      --pvm-accent: #22c55e;
+    }
+
+    .pvm-phase[data-accent="fuchsia"] {
+      --pvm-accent: #d946ef;
+    }
+
+    .pvm-phase[data-accent="pink"] {
+      --pvm-accent: #ec4899;
+    }
+
+    .pvm-phase[data-accent="rose"] {
+      --pvm-accent: #f43f5e;
+    }
+
+    .pvm-phase[data-accent="slate"] {
+      --pvm-accent: #64748b;
+    }
+
+    .pvm-phase[data-accent="stone"] {
+      --pvm-accent: #78716c;
+    }
+
+    .pvm-phase[data-accent="zinc"] {
+      --pvm-accent: #71717a;
+    }
+
+    .pvm-phase[data-accent="neutral"] {
+      --pvm-accent: #737373;
+    }
+
+    .pvm-phase-top {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .pvm-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--pvm-accent, #64748b);
+    }
+
+    .pvm-week {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--pvm-muted);
+    }
+
+    .pvm-phase-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.65rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .pvm-phase-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pvm-test-badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--pvm-line);
+      border-radius: 4px;
+      color: var(--pvm-muted);
+    }
+
+    .pvm-phase-desc {
+      margin: 0 0 0.65rem;
+      font-size: 0.82rem;
+      color: var(--pvm-fg);
+      line-height: 1.5;
+      max-width: 68ch;
+    }
+
+    .pvm-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .pvm-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      color: var(--pvm-muted);
+      background: #fafafa;
+    }
+
+    .pvm-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 720px) {
+      .pvm-summary {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    .pvm-sum-card {
+      text-align: left;
+    }
+
+    .pvm-sum-val,
+    .pvm-sum-card .dash-metric-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #111827;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    .pvm-sum-lbl,
+    .pvm-sum-card .dash-metric-label {
+      margin-top: 0;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--pvm-muted);
+    }
+
+    /* —— Barriers / identified challenges (cream module) —— */
+    .bar-surface {
+      --bar-fg: #1c1917;
+      --bar-muted: #57534e;
+      --bar-line: #e7e5e4;
+      margin-top: 1.25rem;
+      color: var(--bar-fg);
+      background-color: #faf8f3;
+      background-image:
+        linear-gradient(rgba(28, 25, 23, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28, 25, 23, 0.06) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .bar-mod-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--bar-fg);
+    }
+
+    .bar-mod-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d6d3d1;
+      line-height: 1;
+    }
+
+    .bar-mod-word {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bar-muted);
+    }
+
+    .bar-mod-title {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 560px) {
+      .bar-mod-title {
+        flex: 1 1 auto;
+      }
+      .bar-mod-head {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+    }
+
+    .bar-intro {
+      margin: 0 0 1rem;
+      font-size: 0.875rem;
+      color: var(--bar-muted);
+      max-width: 72ch;
+      line-height: 1.55;
+    }
+
+    .bar-card {
+      position: relative;
+      background: #fffefb;
+      border: 1px solid var(--bar-line);
+      border-radius: 8px;
+      padding: 1rem 1rem 1.1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .bar-card-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .bar-title {
+      margin: 0;
+      flex: 1 1 auto;
+      min-width: 12rem;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.35;
+    }
+
+    .bar-warn {
+      margin-right: 0.25rem;
+      font-weight: 900;
+    }
+
+    .bar-impact {
+      flex-shrink: 0;
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+
+    .bar-impact-high {
+      color: #b91c1c;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .bar-impact-medium {
+      color: #15803d;
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+
+    .bar-impact-low {
+      color: #15803d;
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+
+    .bar-problem {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--bar-muted);
+      line-height: 1.55;
+      max-width: 72ch;
+    }
+
+    .bar-sep {
+      margin: 0.85rem 0;
+      border: none;
+      border-top: 1px solid var(--bar-line);
+    }
+
+    .bar-mit-head {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #15803d;
+      margin-bottom: 0.4rem;
+    }
+
+    .bar-mit-body {
+      font-size: 0.84rem;
+      color: var(--bar-muted);
+      line-height: 1.55;
+      max-width: 72ch;
+    }
+
+    .bar-mit-body p {
+      margin: 0;
+    }
+
+    .bar-mit-pending {
+      margin: 0;
+      font-style: italic;
+      color: #78716c;
+    }
+
+    /* —— Rollout / implementation plan (beige grid + cards) —— */
+    .rol-surface {
+      --rol-fg: #1c1917;
+      --rol-muted: #57534e;
+      --rol-line: #e7e5e4;
+      margin-top: 1.25rem;
+      color: var(--rol-fg);
+      background-color: #f7f5f0;
+      background-image:
+        linear-gradient(rgba(28, 25, 23, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28, 25, 23, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .rol-mod-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--rol-fg);
+    }
+
+    .rol-mod-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d6d3d1;
+      line-height: 1;
+    }
+
+    .rol-mod-word {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rol-muted);
+    }
+
+    .rol-mod-title {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 560px) {
+      .rol-mod-title {
+        flex: 1 1 auto;
+      }
+      .rol-mod-head {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+    }
+
+    .rol-intro {
+      margin: 0 0 1.1rem;
+      font-size: 0.875rem;
+      color: var(--rol-muted);
+      max-width: 78ch;
+      line-height: 1.55;
+    }
+
+    .rol-cards {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 720px) {
+      .rol-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 520px) and (max-width: 719px) {
+      .rol-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .rol-card {
+      --rol-accent: #3b82f6;
+      background: #fffefb;
+      border: 1px solid var(--rol-line);
+      border-radius: 8px;
+      padding: 1rem 0.9rem 1.1rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      border-top: 3px solid var(--rol-accent);
+    }
+
+    .rol-card[data-accent="red"] {
+      --rol-accent: #ef4444;
+    }
+
+    .rol-card[data-accent="orange"] {
+      --rol-accent: #f97316;
+    }
+
+    .rol-card[data-accent="amber"] {
+      --rol-accent: #22c55e;
+    }
+
+    .rol-card[data-accent="yellow"] {
+      --rol-accent: #4ade80;
+    }
+
+    .rol-card[data-accent="lime"] {
+      --rol-accent: #84cc16;
+    }
+
+    .rol-card[data-accent="green"] {
+      --rol-accent: #22c55e;
+    }
+
+    .rol-card[data-accent="emerald"] {
+      --rol-accent: #10b981;
+    }
+
+    .rol-card[data-accent="teal"] {
+      --rol-accent: #14b8a6;
+    }
+
+    .rol-card[data-accent="cyan"] {
+      --rol-accent: #06b6d4;
+    }
+
+    .rol-card[data-accent="sky"] {
+      --rol-accent: #0ea5e9;
+    }
+
+    .rol-card[data-accent="blue"] {
+      --rol-accent: #3b82f6;
+    }
+
+    .rol-card[data-accent="indigo"] {
+      --rol-accent: #6366f1;
+    }
+
+    .rol-card[data-accent="violet"] {
+      --rol-accent: #22c55e;
+    }
+
+    .rol-card[data-accent="purple"] {
+      --rol-accent: #22c55e;
+    }
+
+    .rol-card[data-accent="fuchsia"] {
+      --rol-accent: #d946ef;
+    }
+
+    .rol-card[data-accent="pink"] {
+      --rol-accent: #ec4899;
+    }
+
+    .rol-card[data-accent="rose"] {
+      --rol-accent: #f43f5e;
+    }
+
+    .rol-card[data-accent="slate"] {
+      --rol-accent: #64748b;
+    }
+
+    .rol-card[data-accent="stone"] {
+      --rol-accent: #78716c;
+    }
+
+    .rol-card[data-accent="zinc"] {
+      --rol-accent: #71717a;
+    }
+
+    .rol-card[data-accent="neutral"] {
+      --rol-accent: #737373;
+    }
+
+    .rol-ic-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.65rem;
+      min-height: 2.5rem;
+      align-items: center;
+    }
+
+    .rol-ic-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      width: 40px;
+      height: 40px;
+      padding: 3px;
+      background: #2563eb;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .rol-ic-grid span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 2px;
+    }
+
+    .rol-ic-emoji {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .rol-ic-img {
+      max-height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .rol-card-title {
+      margin: 0 0 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .rol-card-desc {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--rol-muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* —— Process improvements (module 05, stacked cards) —— */
+    .pip-surface {
+      --pip-head-fg: #1c1917;
+      --pip-head-muted: #78716c;
+      margin-top: 1.25rem;
+      color: var(--pip-head-fg);
+      background-color: #f7f6f2;
+      background-image:
+        linear-gradient(rgba(28, 25, 23, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28, 25, 23, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 1.5rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .pip-mod-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--pip-head-fg);
+    }
+
+    .pip-mod-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d6d3d1;
+      line-height: 1;
+    }
+
+    .pip-mod-word {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pip-head-muted);
+    }
+
+    .pip-mod-title {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: 560px) {
+      .pip-mod-title {
+        flex: 1 1 auto;
+      }
+      .pip-mod-head {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+    }
+
+    .pip-intro {
+      margin: 0 0 1rem;
+      font-size: 0.875rem;
+      color: var(--pip-head-muted);
+      max-width: 78ch;
+      line-height: 1.55;
+    }
+
+    .pip-item {
+      --pip-bg: #0a0a0a;
+      --pip-meta: #a3a3a3;
+      --pip-title: #ffffff;
+      --pip-body: #d4d4d4;
+      background: var(--pip-bg);
+      color: var(--pip-body);
+      border-radius: 8px;
+      padding: 1.1rem 1.15rem 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .pip-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .pip-item.pip-surface-blue {
+      --pip-bg: #1d4ed8;
+      --pip-meta: #bfdbfe;
+      --pip-title: #ffffff;
+      --pip-body: #e0e7ff;
+    }
+
+    .pip-item.pip-surface-indigo {
+      --pip-bg: #4338ca;
+      --pip-meta: #c7d2fe;
+      --pip-title: #ffffff;
+      --pip-body: #e0e7ff;
+    }
+
+    .pip-item.pip-surface-teal {
+      --pip-bg: #0f766e;
+      --pip-meta: #99f6e4;
+      --pip-title: #ffffff;
+      --pip-body: #ccfbf1;
+    }
+
+    .pip-item.pip-surface-slate {
+      --pip-bg: #334155;
+      --pip-meta: #cbd5e1;
+      --pip-title: #f8fafc;
+      --pip-body: #e2e8f0;
+    }
+
+    .pip-item.pip-surface-stone {
+      --pip-bg: #57534e;
+      --pip-meta: #d6d3d1;
+      --pip-title: #fafaf9;
+      --pip-body: #e7e5e4;
+    }
+
+    .pip-item.pip-surface-emerald {
+      --pip-bg: #047857;
+      --pip-meta: #a7f3d0;
+      --pip-title: #ffffff;
+      --pip-body: #d1fae5;
+    }
+
+    .pip-item.pip-surface-violet {
+      --pip-bg: #15803d;
+      --pip-meta: #bbf7d0;
+      --pip-title: #ffffff;
+      --pip-body: #dcfce7;
+    }
+
+    .pip-item.pip-surface-orange {
+      --pip-bg: #16a34a;
+      --pip-meta: #bbf7d0;
+      --pip-title: #f0fdf4;
+      --pip-body: #dcfce7;
+    }
+
+    .pip-item.pip-surface-rose {
+      --pip-bg: #be123c;
+      --pip-meta: #fecdd3;
+      --pip-title: #fff1f2;
+      --pip-body: #ffe4e6;
+    }
+
+    .pip-meta {
+      margin: 0 0 0.45rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pip-meta);
+    }
+
+    .pip-title {
+      margin: 0 0 0.55rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--pip-title);
+      line-height: 1.3;
+    }
+
+    .pip-body {
+      margin: 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: var(--pip-body);
+    }
+
+    /* —— Picker Performance (tab 2, same visual language as tab 1) —— */
+    [role="tabpanel"]#panel-1[data-visible="true"] {
+      padding: 1.65rem 1.2rem 1.85rem;
+      background:
+        radial-gradient(100% 65% at 50% -10%, rgba(134, 239, 172, 0.38) 0%, transparent 52%),
+        radial-gradient(90% 50% at 100% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 48%),
+        radial-gradient(70% 45% at 0% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 42%),
+        linear-gradient(168deg, #ffffff 0%, #f8fafc 40%, #f1f5f9 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    .perf-canvas {
+      max-width: 100%;
+    }
+
+    .perf-hero {
+      border-radius: 14px;
+      padding: 1.15rem 1.2rem 1.25rem;
+      margin-bottom: 1.1rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 245, 249, 0.95) 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .perf-hero-kicker {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .perf-hero-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .perf-hero-sub {
+      margin: 0.45rem 0 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+      max-width: 62ch;
+      line-height: 1.5;
+    }
+
+    .perf-hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      align-items: center;
+    }
+
+    .perf-hero-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #14532d;
+      background: rgba(22, 163, 74, 0.1);
+      padding: 0.35rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .perf-hero-pulse .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+    }
+
+    .perf-hero-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.55rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .perf-surface {
+      --perf-fg: #111827;
+      --perf-muted: #6b7280;
+      --perf-line: #e5e7eb;
+      color: var(--perf-fg);
+      background-color: #f0f2f5;
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+      border-radius: 12px;
+      padding: 1.2rem 1.2rem 1.35rem;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .perf-kpi-head {
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--perf-fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .perf-company-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #166534;
+      border: 1px solid rgba(22, 101, 52, 0.22);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .perf-company-chip span {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    .perf-business-badge {
+      display: inline-block;
+      max-width: 100%;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.25;
+      background: #ecfdf5;
+      color: #166534;
+      border: 1px solid rgba(22, 101, 52, 0.22);
+      white-space: nowrap;
+    }
+
+    .perf-kpi-title {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .perf-kpi-grid {
+      display: grid;
+      gap: 0.7rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    @media (min-width: 768px) {
+      .perf-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1100px) {
+      .perf-kpi-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    .perf-kpi-grid .perf-kpi-card .dash-metric-label {
+      margin: 0 0 0.4rem;
+    }
+
+    .perf-kpi-grid .perf-kpi-card[data-key="shift_cmp"] .dash-metric-val {
+      font-size: clamp(0.95rem, 1.8vw, 1.25rem);
+    }
+
+    .perf-shift-col {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #7c3aed;
+      white-space: nowrap;
+    }
+
+    .perf-target-miss {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .perf-target-met {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .perf-target-met .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #16a34a;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .perf-target-miss .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .perf-kpi-grid .dash-metric-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 7.25rem;
+      padding: 0.9rem 0.95rem 0.8rem;
+      min-width: 0;
+    }
+
+    .perf-kpi-grid .dash-metric-icon {
+      width: 1.35rem;
+      height: 1.35rem;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    .perf-kpi-grid .dash-metric-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .perf-kpi-grid .dash-metric-top {
+      flex-shrink: 0;
+      gap: 0.35rem;
+    }
+
+    .perf-kpi-grid .dash-metric-label {
+      flex-shrink: 0;
+    }
+
+    .perf-kpi-grid .dash-metric-sub {
+      flex: 1 1 auto;
+      margin-top: auto;
+      padding-top: 0.15rem;
+    }
+
+    .perf-kpi-card h4,
+    .perf-kpi-card .dash-metric-label {
+      margin: 0 0 0.35rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--perf-muted);
+      line-height: 1.35;
+    }
+
+    .perf-kpi-val,
+    .perf-kpi-card .dash-metric-val {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.2vw, 1.5rem);
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--perf-fg);
+      word-break: break-word;
+    }
+
+    .perf-kpi-card[data-key="top"] .dash-metric-val,
+    .perf-kpi-card[data-key="lowest"] .dash-metric-val,
+    .perf-kpi-card[data-key="mip"] .dash-metric-val {
+      font-size: clamp(0.78rem, 1.8vw, 1.1rem);
+      letter-spacing: 0.01em;
+    }
+
+    .perf-kpi-sub,
+    .perf-kpi-card .dash-metric-sub {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--perf-muted);
+      line-height: 1.45;
+    }
+
+    .perf-trend-card {
+      margin-top: 1.15rem;
+      padding: 1.15rem 1.2rem 1.2rem;
+      background: #fff;
+      border: 1px solid var(--perf-line);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    .perf-trend-head {
+      margin-bottom: 0.85rem;
+    }
+
+    .perf-trend-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--perf-fg);
+    }
+
+    .perf-trend-sub {
+      margin: 0.3rem 0 0;
+      font-size: 0.78rem;
+      color: var(--perf-muted);
+    }
+
+    .perf-trend-chart-wrap {
+      position: relative;
+      height: 280px;
+      width: 100%;
+    }
+
+    .perf-trend-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.25rem;
+      margin-top: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--perf-muted);
+    }
+
+    .perf-trend-table-wrap {
+      margin-top: 0.85rem;
+      overflow-x: auto;
+      border: 1px solid var(--perf-line);
+      border-radius: 8px;
+    }
+
+    .perf-trend-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .perf-trend-table th,
+    .perf-trend-table td {
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      border-bottom: 1px solid var(--perf-line);
+    }
+
+    .perf-trend-table th {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--perf-muted);
+      background: #f8fafc;
+    }
+
+    .perf-trend-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .perf-trend-table td.perf-num {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 600;
+    }
+
+    .perf-trend-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    .perf-trend-badge.met {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .perf-trend-badge.below {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .perf-trend-badge.none {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+
+    .perf-trend-empty {
+      margin: 1rem 0 0;
+      padding: 0.85rem 1rem;
+      font-size: 0.8rem;
+      color: var(--perf-muted);
+      background: #f8fafc;
+      border: 1px dashed var(--perf-line);
+      border-radius: 8px;
+    }
+
+    .perf-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem 1.25rem;
+      align-items: flex-end;
+      margin: 0 0 1rem;
+    }
+
+    .perf-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem 1.25rem;
+      align-items: flex-end;
+      flex: 1 1 auto;
+    }
+
+    .perf-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
+    .perf-filter-group label,
+    .perf-filter-group > span[id] {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--perf-muted);
+    }
+
+    .perf-filter-select {
+      font: inherit;
+      font-size: 0.85rem;
+      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--perf-line);
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+      appearance: none;
+      min-width: 7.5rem;
+      color: var(--perf-fg);
+    }
+
+    .perf-filter-select:focus {
+      outline: 2px solid rgba(124, 58, 237, 0.35);
+      outline-offset: 1px;
+    }
+
+    #perf-filter-date {
+      min-width: 9.5rem;
+    }
+
+    #perf-filter-picker {
+      min-width: 9rem;
+    }
+
+    #perf-filter-type {
+      min-width: 8.5rem;
+    }
+
+    #perf-filter-business {
+      min-width: 8.5rem;
+    }
+
+    .perf-shift-seg {
+      display: inline-flex;
+      border: 1px solid var(--perf-line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .perf-shift-seg button {
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.48rem 0.85rem;
+      border: none;
+      border-right: 1px solid var(--perf-line);
+      background: #fff;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .perf-shift-seg button:last-child {
+      border-right: none;
+    }
+
+    .perf-shift-seg button:hover:not(.active) {
+      background: #f8fafc;
+    }
+
+    .perf-shift-seg button.active {
+      background: #1b5e32;
+      color: #fff;
+    }
+
+    #perf-target-seg button[data-target="hit"].active,
+    #dt-target-seg button[data-target="hit"].active {
+      background: #16a34a;
+    }
+
+    #perf-target-seg button[data-target="miss"].active,
+    #dt-target-seg button[data-target="miss"].active {
+      background: #dc2626;
+    }
+
+    .perf-shift-seg button:focus-visible {
+      outline: 2px solid rgba(124, 58, 237, 0.5);
+      outline-offset: -2px;
+      z-index: 1;
+    }
+
+    .perf-toolbar label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .perf-search {
+      flex: 1 1 200px;
+      min-width: 0;
+      font: inherit;
+      font-size: 0.85rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .perf-search:focus {
+      outline: 2px solid rgba(22, 163, 74, 0.45);
+      outline-offset: 1px;
+    }
+
+    .perf-sort,
+    .perf-picker-filter {
+      font: inherit;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      min-width: 11rem;
+      max-width: 100%;
+    }
+
+    .perf-picker-filter {
+      flex: 1 1 200px;
+    }
+
+    .perf-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .perf-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .perf-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .perf-dot.green { background: #16a34a; }
+    .perf-dot.yellow { background: #eab308; }
+    .perf-dot.red { background: #e11d48; }
+
+    .perf-table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--perf-line);
+      background: #fff;
+    }
+
+    /* Picker scorecard table: ~15 data rows visible, rest scrolls (Tab 2) */
+    .perf-table-wrap.perf-picker-table-scroll {
+      max-height: calc(2.6rem + 15 * 2.38rem);
+      overflow-y: auto;
+      overflow-x: auto;
+      scrollbar-gutter: stable;
+    }
+
+    .perf-picker-table-scroll .perf-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fafafa;
+      box-shadow: 0 1px 0 #e2e8f0;
+    }
+
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .perf-table th,
+    .perf-table td {
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .perf-table td:first-child {
+      vertical-align: top;
+      min-width: 7.25rem;
+    }
+
+    .perf-table th {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--perf-muted);
+      background: #fafafa;
+      white-space: nowrap;
+    }
+
+    .perf-table tbody tr:hover {
+      background: rgba(22, 163, 74, 0.04);
+    }
+
+    .perf-num {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 500;
+      color: var(--perf-fg);
+    }
+
+    .perf-num.avg-green { color: #15803d; font-weight: 700; }
+    .perf-num.avg-yellow { color: #a16207; font-weight: 700; }
+    .perf-num.avg-red { color: #be123c; font-weight: 700; }
+
+    .perf-badge {
+      display: inline-block;
+      max-width: 100%;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      border: 1px solid transparent;
+    }
+
+    .perf-badge.green { background: rgba(22, 163, 74, 0.12); color: #166534; border-color: rgba(22, 163, 74, 0.25); }
+    .perf-badge.yellow { background: rgba(234, 179, 8, 0.15); color: #854d0e; border-color: rgba(234, 179, 8, 0.35); }
+    .perf-badge.red { background: rgba(244, 63, 94, 0.12); color: #9f1239; border-color: rgba(244, 63, 94, 0.25); }
+
+    .perf-picker-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.28rem;
+      min-width: 0;
+    }
+
+    .perf-type-badge {
+      display: inline-block;
+      max-width: 100%;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.25;
+      background: #ede9fe;
+      color: #6d28d9;
+      border: 1px solid rgba(109, 40, 217, 0.28);
+      white-space: nowrap;
+    }
+
+    .perf-type-badge[data-kind="operator"] {
+      background: #ede9fe;
+      color: #6d28d9;
+      border-color: rgba(109, 40, 217, 0.22);
+    }
+
+    .perf-type-badge[data-kind="supervisor"] {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: rgba(29, 78, 216, 0.22);
+    }
+
+    .perf-type-badge[data-kind="lead"] {
+      background: #ffedd5;
+      color: #c2410c;
+      border-color: rgba(194, 65, 12, 0.22);
+    }
+
+    .perf-type-badge[data-kind="system"] {
+      background: #f3f4f6;
+      color: #475569;
+      border-color: rgba(71, 85, 105, 0.22);
+    }
+
+    .perf-bar-cell {
+      min-width: 120px;
+    }
+
+    .perf-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .perf-bar-track {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .perf-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      min-width: 0;
+    }
+
+    .perf-bar-fill.mid {
+      background: linear-gradient(90deg, #eab308, #facc15);
+    }
+
+    .perf-bar-fill.low {
+      background: linear-gradient(90deg, #fb7185, #f43f5e);
+    }
+
+    .perf-bar-pct {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--perf-muted);
+      width: 2.5rem;
+      text-align: right;
+    }
+
+    .perf-achieve-cell {
+      min-width: 130px;
+    }
+
+    .perf-achieve-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .perf-achieve-track {
+      position: relative;
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: visible;
+    }
+
+    .perf-achieve-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      min-width: 0;
+    }
+
+    .perf-achieve-fill.mid {
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    }
+
+    .perf-achieve-fill.low {
+      background: linear-gradient(90deg, #fb7185, #f43f5e);
+    }
+
+    .perf-achieve-marker {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      right: 0;
+      width: 2px;
+      background: #94a3b8;
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    .perf-achieve-pct {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--perf-fg);
+      min-width: 2.8rem;
+      text-align: right;
+    }
+
+    .perf-trend-cell {
+      min-width: 110px;
+    }
+
+    .perf-spark-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .perf-sparkline {
+      display: block;
+      width: 72px;
+      height: 28px;
+    }
+
+    .perf-sparkline path {
+      fill: none;
+      stroke: #6366f1;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .perf-trend-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .perf-trend-delta.up { color: #15803d; }
+    .perf-trend-delta.down { color: #be123c; }
+    .perf-trend-delta.flat { color: #94a3b8; }
+
+    .perf-day-compl {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .perf-day-compl .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3b82f6;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .perf-picker-count {
+      margin-left: auto;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--perf-muted);
+      white-space: nowrap;
+    }
+
+    .perf-shift-sheet-head {
+      margin: 1.35rem 0 0.5rem;
+    }
+
+    .perf-shift-detail-section[hidden] {
+      display: none;
+    }
+
+    .perf-shift-sheet-title {
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7c3aed;
+    }
+
+    .perf-shift-sheet-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--perf-line);
+      background: #fff;
+      max-height: calc(2.6rem + 12 * 2.38rem);
+      overflow-y: auto;
+    }
+
+    .perf-shift-sheet {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .perf-shift-sheet th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7c3aed;
+      background: #fafafa;
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .perf-shift-sheet td {
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--perf-fg);
+    }
+
+    .perf-shift-sheet tbody tr:hover {
+      background: rgba(124, 58, 237, 0.04);
+    }
+
+    .perf-shift-sheet .perf-shift-label {
+      font-weight: 600;
+      color: #7c3aed;
+      white-space: nowrap;
+    }
+
+    .perf-shift-sheet .perf-picker-name {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .perf-shift-sheet .perf-num {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 500;
+    }
+
+    .perf-empty {
+      margin: 0;
+      padding: 1rem;
+      border: 1px dashed rgba(22, 163, 74, 0.4);
+      border-radius: 10px;
+      color: #475569;
+      font-size: 0.88rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    /* —— Zone Dispatch (tab 3): upload + workspace, same chrome as Picker Performance —— */
+    [role="tabpanel"]#panel-2[data-visible="true"] {
+      padding: 1.65rem 1.2rem 1.85rem;
+      background:
+        radial-gradient(100% 65% at 50% -10%, rgba(251, 146, 60, 0.14) 0%, transparent 52%),
+        radial-gradient(90% 50% at 100% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 48%),
+        radial-gradient(70% 45% at 0% 90%, rgba(22, 163, 74, 0.06) 0%, transparent 42%),
+        linear-gradient(168deg, #ffffff 0%, #f8fafc 40%, #f1f5f9 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    .zd-canvas {
+      max-width: 100%;
+    }
+
+    .zd-surface {
+      margin-top: 0.35rem;
+    }
+
+    .zd-upload-block {
+      margin-bottom: 1.1rem;
+    }
+
+    .zd-dropzone {
+      position: relative;
+      display: block;
+      cursor: pointer;
+      border: 2px dashed rgba(22, 163, 74, 0.38);
+      border-radius: 12px;
+      padding: 1.75rem 1.25rem 1.85rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.72);
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .zd-dropzone:hover,
+    .zd-dropzone:focus-within {
+      border-color: rgba(22, 163, 74, 0.55);
+      background: rgba(250, 245, 255, 0.55);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
+    }
+
+    .zd-dropzone.is-drag {
+      border-color: #16a34a;
+      background: rgba(22, 163, 74, 0.07);
+    }
+
+    .zd-upload-label {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    .zd-dropzone .zd-upload-label {
+      display: block;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .zd-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .zd-dropzone-icon {
+      font-size: 2.1rem;
+      line-height: 1;
+      margin-bottom: 0.45rem;
+      filter: saturate(1.1);
+    }
+
+    .zd-dropzone-title {
+      margin: 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .zd-dropzone-hint {
+      margin: 0.4rem 0 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 38rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .zd-workspace {
+      min-height: 240px;
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      background: rgba(255, 255, 255, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.15rem;
+    }
+
+    .zd-empty {
+      text-align: center;
+      max-width: 30rem;
+    }
+
+    .zd-empty-icon {
+      font-size: 2.35rem;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+      opacity: 0.88;
+    }
+
+    .zd-empty-title {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #14532d;
+      margin: 0 0 0.45rem;
+    }
+
+    .zd-empty-sub {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .zd-loaded {
+      text-align: center;
+      padding: 0.5rem;
+      max-width: 32rem;
+    }
+
+    .zd-loaded-name {
+      margin: 0;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .zd-loaded-meta {
+      margin: 0.55rem 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .zd-clear {
+      margin-top: 1rem;
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #14532d;
+      background: rgba(22, 163, 74, 0.1);
+      border: 1px solid rgba(22, 163, 74, 0.28);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .zd-clear:hover {
+      background: rgba(22, 163, 74, 0.16);
+      border-color: rgba(22, 163, 74, 0.4);
+    }
+
+    .zd-clear:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* —— Daily Tracker (tab 4): table + filters, same shell as other perf tabs —— */
+    .dt-canvas {
+      --dt-purple: #6d28d9;
+      --dt-purple-fg: #ffffff;
+      --dt-cell-met-bg: #dcfce7;
+      --dt-cell-met-fg: #166534;
+      --dt-cell-near-bg: #fef3c7;
+      --dt-cell-near-fg: #92400e;
+      --dt-cell-done-bg: #fee2e2;
+      --dt-cell-done-fg: #991b1b;
+      --dt-cell-empty-bg: #f3f4f6;
+      --dt-cell-empty-fg: #9ca3af;
+      max-width: 100%;
+    }
+
+    [role="tabpanel"]#panel-3[data-visible="true"] {
+      padding: 1.65rem 1.2rem 1.85rem;
+      background:
+        radial-gradient(100% 65% at 50% -10%, rgba(167, 139, 250, 0.14) 0%, transparent 52%),
+        radial-gradient(90% 50% at 100% 22%, rgba(59, 130, 246, 0.08) 0%, transparent 48%),
+        radial-gradient(70% 45% at 0% 88%, rgba(22, 163, 74, 0.06) 0%, transparent 42%),
+        linear-gradient(168deg, #ffffff 0%, #f8fafc 40%, #f1f5f9 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 1px 0 rgba(15, 23, 42, 0.04),
+        0 20px 50px rgba(15, 23, 42, 0.07);
+    }
+
+    .dt-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .dt-toolbar label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .dt-toolbar select {
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 0.5rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      min-width: 12rem;
+    }
+
+    .dt-toolbar select:focus {
+      outline: 2px solid rgba(22, 163, 74, 0.45);
+      outline-offset: 1px;
+    }
+
+    .dt-toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .dt-btn {
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      background: #fff;
+      color: #334155;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .dt-btn:hover {
+      background: #f8fafc;
+      border-color: rgba(22, 163, 74, 0.35);
+    }
+
+    .dt-btn-muted {
+      color: #14532d;
+      background: rgba(22, 163, 74, 0.08);
+      border-color: rgba(22, 163, 74, 0.25);
+    }
+
+    .dt-btn-muted:hover {
+      background: rgba(22, 163, 74, 0.14);
+    }
+
+    .dt-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .dt-day-count {
+      margin: -0.15rem 0 0.75rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 8px;
+      background: rgba(22, 163, 74, 0.08);
+      border: 1px solid rgba(22, 163, 74, 0.2);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #14532d;
+    }
+
+    .dt-day-count span.dt-day-n {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 1.05rem;
+    }
+
+    .dt-edit-hint {
+      margin: -0.35rem 0 0.85rem;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dt-cell-input {
+      width: 4rem;
+      max-width: 100%;
+      font: inherit;
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.35rem;
+      border: 2px solid #16a34a;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .dt-file-hint {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-width: 22rem;
+      text-align: right;
+    }
+
+    .dt-kpi-section {
+      margin-bottom: 1.1rem;
+    }
+
+    .dt-kpi-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 768px) {
+      .dt-kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    .dt-legend-meta {
+      margin-left: auto;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .dt-table-wrap {
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 10px;
+      overflow: auto;
+      max-height: min(70vh, 720px);
+      background: #fafafa;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    /* Inner grows with table width so title + legend bars span all columns (incl. AVERAGE). */
+    .dt-scroll-inner {
+      display: inline-block;
+      min-width: 100%;
+      vertical-align: top;
+      box-sizing: border-box;
+    }
+
+    .dt-scroll-inner .dt-legend-row {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .dt-scroll-inner .dt-table {
+      display: table;
+    }
+
+    .dt-shift-seg button.active {
+      background: var(--dt-purple);
+      color: #fff;
+    }
+
+    .dt-shift-seg button:focus-visible {
+      outline: 2px solid rgba(109, 40, 217, 0.5);
+    }
+
+    .dt-legend-row {
+      background: var(--dt-purple);
+      color: var(--dt-purple-fg);
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+    }
+
+    .dt-legend-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .dt-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .dt-swatch.green { background: var(--dt-cell-met-bg); }
+    .dt-swatch.yellow { background: var(--dt-cell-near-bg); }
+    .dt-swatch.red { background: var(--dt-cell-done-bg); }
+    .dt-swatch.grey { background: var(--dt-cell-empty-bg); }
+
+    .dt-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 6px 6px;
+      font-size: 0.78rem;
+      background: #fafafa;
+    }
+
+    .dt-table thead th {
+      background: var(--dt-purple);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.45rem 0.45rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      white-space: nowrap;
+    }
+
+    .dt-table thead th.dt-picker-head {
+      text-align: left;
+      left: 0;
+      z-index: 4;
+      min-width: 7.5rem;
+      background: var(--dt-purple);
+    }
+
+    .dt-table thead th.dt-business-head {
+      text-align: left;
+      min-width: 6.5rem;
+      background: var(--dt-purple);
+    }
+
+    .dt-table td.dt-business-cell {
+      text-align: left;
+      font-weight: 700;
+      color: #166534;
+      white-space: nowrap;
+      padding: 0.45rem 0.7rem;
+    }
+
+    .dt-table tbody tr:nth-child(even) {
+      background: #fff;
+    }
+
+    .dt-table tbody tr:nth-child(odd) {
+      background: #fff;
+    }
+
+    .dt-table td,
+    .dt-table th {
+      border: none;
+    }
+
+    .dt-table thead th {
+      border: 1px solid rgba(255, 255, 255, 0.22);
+    }
+
+    .dt-table td.dt-picker-cell {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      background: #f5f3ff;
+      color: #0f172a;
+      box-shadow: 1px 0 0 #ede9fe;
+      vertical-align: middle;
+      font-family: inherit;
+      cursor: default;
+    }
+
+    .dt-picker-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.32rem;
+      min-width: 0;
+    }
+
+    .dt-picker-name {
+      display: block;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.76rem;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      color: #0f172a;
+    }
+
+    .dt-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      max-width: 100%;
+      padding: 0.18rem 0.55rem 0.18rem 0.45rem;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .dt-type-badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dt-type-badge[data-kind="operator"] {
+      background: linear-gradient(180deg, #faf5ff 0%, #ede9fe 100%);
+      color: #6d28d9;
+      border: 1px solid rgba(109, 40, 217, 0.32);
+    }
+
+    .dt-type-badge[data-kind="operator"]::before {
+      background: #6d28d9;
+      box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+    }
+
+    .dt-type-badge[data-kind="system"] {
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #334155;
+      border: 1px solid rgba(100, 116, 139, 0.32);
+    }
+
+    .dt-type-badge[data-kind="system"]::before {
+      background: #64748b;
+      box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.12);
+    }
+
+    .dt-type-badge[data-kind="supervisor"] {
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      color: #1d4ed8;
+      border: 1px solid rgba(29, 78, 216, 0.28);
+    }
+
+    .dt-type-badge[data-kind="supervisor"]::before {
+      background: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    }
+
+    .dt-type-badge[data-kind="lead"] {
+      background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+      color: #c2410c;
+      border: 1px solid rgba(194, 65, 12, 0.28);
+    }
+
+    .dt-type-badge[data-kind="lead"]::before {
+      background: #ea580c;
+      box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.12);
+    }
+
+    .dt-type-badge[data-kind="default"] {
+      background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%);
+      color: #7c3aed;
+      border: 1px solid rgba(124, 58, 237, 0.25);
+    }
+
+    .dt-type-badge[data-kind="default"]::before {
+      background: #8b5cf6;
+    }
+
+    .dt-table tbody tr:nth-child(even) td.dt-picker-cell,
+    .dt-table tbody tr:nth-child(odd) td.dt-picker-cell {
+      background: #f5f3ff;
+    }
+
+    .dt-table td {
+      text-align: center;
+      padding: 0.35rem 0.4rem;
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 600;
+      cursor: pointer;
+      transition: outline 0.12s;
+    }
+
+    .dt-table td.dt-heat {
+      padding: 0.25rem 0.2rem;
+      vertical-align: middle;
+      min-width: 3.1rem;
+      border: none;
+      border-radius: 0;
+      position: relative;
+      overflow: visible;
+      background: transparent;
+      cursor: default;
+    }
+
+    .dt-heat-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.12rem;
+      min-height: 2.55rem;
+      min-width: 2.55rem;
+      border-radius: 8px;
+      padding: 0.28rem 0.22rem;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: var(--dt-cell-empty-bg);
+      box-shadow: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      transform-origin: center center;
+    }
+
+    .dt-table td.dt-heat:hover {
+      z-index: 6;
+    }
+
+    .dt-table td.dt-heat:hover .dt-heat-inner {
+      transform: scale(1.12);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .dt-table td.dt-heat.dt-has-data {
+      cursor: pointer;
+    }
+
+    .dt-heat-lines {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: inherit;
+    }
+
+    .dt-heat-tag {
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1;
+      opacity: 1;
+    }
+
+    .dt-heat.dt-green .dt-heat-inner {
+      background: var(--dt-cell-met-bg);
+      color: var(--dt-cell-met-fg);
+      border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .dt-heat.dt-yellow .dt-heat-inner {
+      background: var(--dt-cell-near-bg);
+      color: var(--dt-cell-near-fg);
+      border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .dt-heat.dt-red .dt-heat-inner {
+      background: var(--dt-cell-done-bg);
+      color: var(--dt-cell-done-fg);
+      border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .dt-heat.dt-empty .dt-heat-inner {
+      background: var(--dt-cell-empty-bg);
+      color: var(--dt-cell-empty-fg);
+      border-color: rgba(255, 255, 255, 0.95);
+      box-shadow: none;
+    }
+
+    .dt-heat.dt-empty .dt-heat-lines {
+      font-weight: 500;
+    }
+
+    .dt-table thead th.dt-total-head {
+      min-width: 4rem;
+      background: var(--dt-purple);
+      letter-spacing: 0.06em;
+      font-size: 0.64rem;
+    }
+
+    .dt-table td.dt-total-cell {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 0.82rem;
+      background: #fff;
+      color: #0f172a;
+      cursor: default;
+    }
+
+    .dt-tooltip {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      min-width: 14rem;
+      max-width: 20rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .dt-tooltip[hidden] {
+      display: none;
+    }
+
+    .dt-tip-head {
+      font-weight: 700;
+      font-size: 0.76rem;
+      margin-bottom: 0.45rem;
+      color: #e2e8f0;
+      letter-spacing: 0.01em;
+    }
+
+    .dt-tip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .dt-tip-row span:first-child {
+      color: #94a3b8;
+    }
+
+    .dt-tip-row span:last-child {
+      font-family: "Roboto Mono", ui-monospace, monospace;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .dt-tip-pill {
+      display: inline-block;
+      margin-top: 0.45rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dt-tip-pill.green { background: #166534; color: #bbf7d0; }
+    .dt-tip-pill.yellow { background: #854d0e; color: #fef08a; }
+    .dt-tip-pill.red { background: #9f1239; color: #fecdd3; }
+
+    .dt-tip-divider {
+      height: 1px;
+      margin: 0.4rem 0 0.35rem;
+      background: rgba(148, 163, 184, 0.28);
+    }
+
+    .dt-tip-section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin: 0.35rem 0 0.2rem;
+    }
+
+    .dt-footer {
+      margin: 0.85rem 0 0;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .dt-footer p {
+      margin: 0 0 0.35rem;
+    }
+
+    #dt-filter-date {
+      min-width: 9.5rem;
+    }
+
+    #dt-filter-picker {
+      min-width: 9rem;
+    }
+
+    #dt-filter-type {
+      min-width: 8.5rem;
+    }
+
+    #dt-filter-business {
+      min-width: 8.5rem;
+    }
+
+    .dt-toolbar-spaced {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .dt-empty-panel {
+      margin: 0;
+      padding: 1.25rem;
+      border: 1px dashed rgba(22, 163, 74, 0.4);
+      border-radius: 10px;
+      color: #475569;
+      font-size: 0.88rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.75);
+    }
+  </style>
+  <style>
+    .kpi-app.kpi-productivity .kpi-container { padding-top: 12px; padding-bottom: 16px; }
+    .productivity-page header.top { display: none; }
+    .productivity-page .shell { max-width: 100%; margin: 0; padding: 0 0 1rem; }
+
+    /* Match Overview / other KPI tabs */
+    .kpi-app.kpi-productivity,
+    .productivity-page {
+      --bg-deep: #f4f6f8;
+      --bg-panel: #ffffff;
+      --bg-tab: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #16a34a;
+      --accent-dim: #e8f3ec;
+      --header-grad: #ffffff;
+      --header-fg: #1b5e32;
+      --header-fg-muted: #6b7280;
+      --header-border: #e5e7eb;
+      --font: Inter, "Segoe UI", Roboto, sans-serif;
+      --font-display: Inter, "Segoe UI", Roboto, sans-serif;
+      background: #f4f6f8 !important;
+      background-image: none !important;
+      color: #111827;
+      font-family: Inter, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .productivity-page .tab-wrap {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+      margin-bottom: 18px;
+    }
+
+    .productivity-page [role="tab"] {
+      color: #6b7280;
+    }
+
+    .productivity-page [role="tab"]:hover:not([aria-selected="true"]) {
+      color: #111827;
+      background: #f3f4f6;
+    }
+
+    .productivity-page [role="tab"][aria-selected="true"] {
+      color: #1b5e32;
+      background: #e8f3ec;
+      box-shadow: none;
+    }
+
+    .productivity-page [role="tabpanel"],
+    .productivity-page [role="tabpanel"]#panel-0[data-visible="true"],
+    .productivity-page [role="tabpanel"]#panel-1[data-visible="true"],
+    .productivity-page [role="tabpanel"]#panel-3[data-visible="true"] {
+      background: transparent !important;
+      background-image: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+
+    .productivity-page .prod-surface,
+    .productivity-page .pvm-surface,
+    .productivity-page .bar-surface,
+    .productivity-page .rol-surface,
+    .productivity-page .pip-surface,
+    .productivity-page .perf-surface {
+      background: #fff !important;
+      background-image: none !important;
+      border: 1px solid #eceff2;
+      border-radius: 14px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 16px rgba(16, 24, 40, 0.04);
+    }
+
+    .productivity-page .perf-kpi-head {
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .productivity-page .dash-metric-card {
+      border: 1px solid #eceff2;
+      border-top-width: 4px;
+      border-radius: 14px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 16px rgba(16, 24, 40, 0.04);
+    }
+
+    .productivity-page .dash-metric-card[data-accent="rose"] { border-top-color: #dc2626; }
+    .productivity-page .dash-metric-card[data-accent="emerald"] { border-top-color: #16a34a; }
+    .productivity-page .dash-metric-card[data-accent="amber"] { border-top-color: #d97706; }
+    .productivity-page .dash-metric-card[data-accent="sky"] { border-top-color: #2563eb; }
+    .productivity-page .dash-metric-card[data-accent="violet"] { border-top-color: #1b5e32; }
+    .productivity-page .dash-metric-card[data-accent="blue"] { border-top-color: #2563eb; }
+    .productivity-page .dash-metric-card[data-accent="lime"] { border-top-color: #16a34a; }
+    .productivity-page .dash-metric-card[data-accent="orange"] { border-top-color: #f59e0b; }
+    .productivity-page .dash-metric-card[data-accent="slate"] { border-top-color: #374151; }
+    .productivity-page .dash-metric-card[data-accent="teal"] { border-top-color: #1b5e32; }
+
+    .productivity-page .dash-metric-card[data-accent="rose"] .dash-metric-icon { color: #dc2626; }
+    .productivity-page .dash-metric-card[data-accent="emerald"] .dash-metric-icon { color: #16a34a; }
+    .productivity-page .dash-metric-card[data-accent="amber"] .dash-metric-icon { color: #d97706; }
+    .productivity-page .dash-metric-card[data-accent="sky"] .dash-metric-icon { color: #2563eb; }
+    .productivity-page .dash-metric-card[data-accent="violet"] .dash-metric-icon { color: #1b5e32; }
+    .productivity-page .dash-metric-card[data-accent="blue"] .dash-metric-icon { color: #2563eb; }
+    .productivity-page .dash-metric-card[data-accent="lime"] .dash-metric-icon { color: #16a34a; }
+    .productivity-page .dash-metric-card[data-accent="orange"] .dash-metric-icon { color: #f59e0b; }
+    .productivity-page .dash-metric-card[data-accent="slate"] .dash-metric-icon { color: #6b7280; }
+    .productivity-page .dash-metric-card[data-accent="teal"] .dash-metric-icon { color: #1b5e32; }
+
+    .productivity-page .perf-company-chip,
+    .productivity-page .perf-business-badge {
+      background: #e8f3ec;
+      color: #1b5e32;
+      border-color: rgba(27, 94, 50, 0.18);
+    }
+
+    .productivity-page .perf-shift-col,
+    .productivity-page .perf-shift-sheet-title,
+    .productivity-page .perf-shift-sheet .perf-shift-label {
+      color: #1b5e32;
+    }
+
+    .productivity-page .perf-shift-seg button.active {
+      background: #1b5e32;
+      color: #fff;
+    }
+
+    .productivity-page #perf-target-seg button[data-target="hit"].active,
+    .productivity-page #dt-target-seg button[data-target="hit"].active {
+      background: #16a34a;
+    }
+
+    .productivity-page #perf-target-seg button[data-target="miss"].active,
+    .productivity-page #dt-target-seg button[data-target="miss"].active {
+      background: #dc2626;
+    }
+
+    .productivity-page .perf-shift-seg button:focus-visible,
+    .productivity-page .perf-filter-select:focus {
+      outline-color: rgba(27, 94, 50, 0.35);
+    }
+
+    .productivity-page .perf-table tbody tr:hover,
+    .productivity-page .perf-shift-sheet tbody tr:hover {
+      background: rgba(27, 94, 50, 0.04);
+    }
+
+    .productivity-page .perf-badge.green {
+      background: #e8f3ec;
+      color: #1b5e32;
+      border-color: rgba(27, 94, 50, 0.18);
+    }
+
+    .productivity-page .perf-type-badge,
+    .productivity-page .perf-type-badge[data-kind="operator"] {
+      background: #e8f3ec;
+      color: #1b5e32;
+      border-color: rgba(27, 94, 50, 0.18);
+    }
+
+    .productivity-page .perf-hero {
+      background: #fff;
+      border: 1px solid #eceff2;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    .productivity-page .dt-canvas {
+      --dt-purple: #1b5e32;
+      --dt-purple-fg: #ffffff;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="productivity-page">
+  {% csrf_token %}
+  <div class="shell">
+    <header class="top">
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="{% static 'assets/images/tamer_logistics_logo.png' %}"
+          alt="Tamer Logistics"
+          width="120"
+          height="40"
+        >
+        <div>
+          <h1>Warehouse Productivity</h1>
+          <span>Operations dashboard</span>
+        </div>
+      </div>
+      <a class="admin" href="/admin/">Admin</a>
+    </header>
+
+    <div class="tab-wrap">
+      <ul role="tablist" aria-label="Warehouse sections">
+        <!-- <li role="presentation">
+          <button type="button" role="tab" id="tab-0" aria-selected="false" aria-controls="panel-0" data-tab="0">
+            Picker Zone Plan
+          </button>
+        </li> -->
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-1" aria-selected="true" aria-controls="panel-1" data-tab="1">
+            Picker Performance
+          </button>
+        </li>
+        <!-- <li role="presentation">
+          <button type="button" role="tab" id="tab-2" aria-selected="false" aria-controls="panel-2" data-tab="2">
+            Zone Dispatch
+          </button>
+        </li> -->
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-3" aria-selected="false" aria-controls="panel-3" data-tab="3">
+            Picker Daily Tracker
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="panels">
+      <section role="tabpanel" id="panel-0" aria-labelledby="tab-0" data-visible="false" hidden>
+        <div class="plan-canvas">
+          <header class="plan-hero">
+            <div class="plan-hero-inner">
+              <div class="plan-hero-main">
+                <span class="plan-hero-kicker">Execution roadmap</span>
+                <h2 class="plan-hero-title">Picker zone plan</h2>
+                <p class="plan-hero-sub">Modules 01→05 in one view: productivity rules, picking test, barriers, rollout, and improvements — all driven from Admin.</p>
+                <div class="plan-hero-meta">
+                  <span class="plan-hero-pulse"><span class="dot" aria-hidden="true"></span> Synced from Admin</span>
+                  {% if plan_rail_steps %}
+                  <span class="plan-hero-pill">{{ plan_rail_steps|length }} active module{{ plan_rail_steps|length|pluralize }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% if plan_rail_steps %}
+              <ul class="plan-rail" aria-label="Jump to plan section">
+                {% for step in plan_rail_steps %}
+                <li>
+                  <a class="plan-rail-item" href="#{{ step.anchor }}" data-accent="{{ step.accent }}" aria-label="Jump to {{ step.label }}">
+                    <span class="n">{{ step.num }}</span>
+                    <span class="t">{{ step.label }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          </header>
+        <div class="plan-stack">
+        {% if productivity_dashboard %}
+        <div id="plan-productivity" class="prod-surface plan-block">
+          <header class="prod-mod-head">
+            <span class="prod-mod-num">{{ productivity_dashboard.module_number }}</span>
+            <span class="prod-mod-word">module</span>
+            <h2 class="prod-mod-title">{{ productivity_dashboard.dashboard_title }}</h2>
+          </header>
+          {% if productivity_dashboard.intro_text %}
+          <p class="prod-desc">{{ productivity_dashboard.intro_text }}</p>
+          {% endif %}
+          {% if productivity_dashboard.banner_title or productivity_dashboard.banner_value or productivity_dashboard.banner_text %}
+          <div class="prod-highlight">
+            <div>
+              {% if productivity_dashboard.banner_title %}
+              <h3>{{ productivity_dashboard.banner_title }}</h3>
+              {% endif %}
+              {% if productivity_dashboard.banner_text %}
+              <p>{{ productivity_dashboard.banner_text }}</p>
+              {% endif %}
+            </div>
+            {% if productivity_dashboard.banner_value %}
+            <div class="prod-highlight-val">{{ productivity_dashboard.banner_value }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+          <div class="prod-cards">
+            {% for card in productivity_dashboard.cards.all %}
+            <article class="prod-card dash-metric-card" data-accent="{% if card.icon_kind == 'red_ot' %}rose{% elif card.icon_kind == 'green_out' %}emerald{% elif card.icon_kind == 'bell' %}amber{% elif card.icon_kind == 'stop' %}sky{% elif card.icon_kind == 'image' %}violet{% else %}slate{% endif %}">
+              <div class="dash-metric-top">
+                <div class="dash-metric-val">{% if card.icon_kind == "red_ot" %}OT{% elif card.icon_kind == "green_out" %}OUT{% elif card.icon_kind == "bell" %}!{% elif card.icon_kind == "stop" %}▌{% else %}•{% endif %}</div>
+                <div class="dash-metric-icon prod-card-icon" aria-hidden="true">
+                  {% if card.icon_kind == "red_ot" %}
+                    <span class="prod-ic-arrow down">↓</span>
+                  {% elif card.icon_kind == "green_out" %}
+                    <span class="prod-ic-arrow up">↑</span>
+                  {% elif card.icon_kind == "bell" %}
+                    <span class="prod-ic-bell" title="">🔔</span>
+                  {% elif card.icon_kind == "stop" %}
+                    <span class="prod-ic-stop"></span>
+                  {% elif card.icon_kind == "image" and card.icon_image %}
+                    <img class="prod-card-img" src="{{ card.icon_image.url }}" alt="">
+                  {% else %}
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                  {% endif %}
+                </div>
+              </div>
+              <h4 class="dash-metric-label">{{ card.card_title }}</h4>
+              <p class="dash-metric-sub">{{ card.card_text|linebreaksbr }}</p>
+            </article>
+            {% empty %}
+            <p class="prod-desc" style="grid-column: 1 / -1;">No cards yet — add rows in the inline table in Admin.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if picking_method_program %}
+        <div id="plan-picking" class="pvm-surface plan-block">
+          <header class="pvm-mod-head">
+            <span class="pvm-mod-num">{{ picking_method_program.module_number }}</span>
+            <span class="pvm-mod-word">{{ picking_method_program.module_keyword }}</span>
+            <h2 class="pvm-mod-title">{{ picking_method_program.section_title }}</h2>
+          </header>
+          {% if picking_method_program.intro_text %}
+          <p class="pvm-intro">{{ picking_method_program.intro_text }}</p>
+          {% endif %}
+          {% for phase in picking_method_program.phases.all %}
+          <article class="pvm-phase" data-accent="{{ phase.theme }}">
+            <div class="pvm-phase-top">
+              <span class="pvm-dot" aria-hidden="true"></span>
+              <span class="pvm-week">{{ phase.week_label }}</span>
+            </div>
+            <div class="pvm-phase-title-row">
+              <h3 class="pvm-phase-title">{{ phase.main_title }}</h3>
+              {% if phase.test_badge %}
+              <span class="pvm-test-badge">{{ phase.test_badge }}</span>
+              {% endif %}
+            </div>
+            <p class="pvm-phase-desc">{{ phase.description|linebreaksbr }}</p>
+            {% if phase.tags.exists %}
+            <div class="pvm-tags">
+              {% for t in phase.tags.all %}
+              <span class="pvm-tag">{{ t.label }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </article>
+          {% endfor %}
+          {% if picking_method_program.summary_cards.all %}
+          <div class="pvm-summary">
+            {% for sc in picking_method_program.summary_cards.all %}
+            <div class="pvm-sum-card dash-metric-card" data-accent="{% if forloop.counter0 == 0 %}amber{% elif forloop.counter0 == 1 %}orange{% elif forloop.counter0 == 2 %}sky{% elif forloop.counter0 == 3 %}rose{% elif forloop.counter0 == 4 %}violet{% elif forloop.counter0 == 5 %}emerald{% elif forloop.counter0 == 6 %}lime{% else %}blue{% endif %}">
+              <div class="dash-metric-top">
+                <div class="dash-metric-val">{{ sc.display_value }}</div>
+                <div class="dash-metric-icon" aria-hidden="true">
+                  {% if forloop.counter0 == 0 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                  {% elif forloop.counter0 == 1 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 0 1 1 1v1.07a7.002 7.002 0 0 1 5.93 5.93H20a1 1 0 1 1 0 2h-1.07A7.002 7.002 0 0 1 12 19.93V21a1 1 0 1 1-2 0v-1.07A7.002 7.002 0 0 1 4.07 13H3a1 1 0 1 1 0-2h1.07A7.002 7.002 0 0 1 11 5.07V4a1 1 0 0 1 1-1zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>
+                  {% elif forloop.counter0 == 2 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.32 0L12 2.69z"/></svg>
+                  {% elif forloop.counter0 == 3 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V5a1 1 0 0 0-2 0v3h-3a1 1 0 0 0 0 2h3v3a1 1 0 0 0 2 0v-3h3a1 1 0 0 0 0-2zM4 14h2v6H4v-6zm4-4h2v10H8V10zm4 2h2v8h-2v-8zm4-6h2v14h-2V6z"/></svg>
+                  {% elif forloop.counter0 == 4 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-4 10.5V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4.5A6 6 0 0 0 12 2zm0 2a4 4 0 0 1 3.46 6H8.54A4 4 0 0 1 12 4z"/></svg>
+                  {% elif forloop.counter0 == 5 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 22a1 1 0 0 1-1-1v-4H2l8-9 5 5.5V9h2v4.5L21 20h-3v1a1 1 0 0 1-2 0v-1H6v1a1 1 0 0 1-1 1z"/></svg>
+                  {% elif forloop.counter0 == 6 %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12l-1 7h2l-7 13-7-13h2L6 2zm6 11.5L15.5 11H8.5L12 13.5z"/></svg>
+                  {% else %}
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18h12v2H6v-2zm11-7h1l2 4H5l2-4h1V7a5 5 0 0 1 10 0v4z"/></svg>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="dash-metric-label">{{ sc.label }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if barrier_program %}
+        <div id="plan-barriers" class="bar-surface plan-block">
+          <header class="bar-mod-head">
+            <span class="bar-mod-num">{{ barrier_program.module_number }}</span>
+            <span class="bar-mod-word">{{ barrier_program.module_keyword }}</span>
+            <h2 class="bar-mod-title">{{ barrier_program.section_title }}</h2>
+          </header>
+          {% if barrier_program.intro_text %}
+          <p class="bar-intro">{{ barrier_program.intro_text }}</p>
+          {% endif %}
+          {% for ch in barrier_program.challenges.all %}
+          <article class="bar-card">
+            <div class="bar-card-top">
+              <h3 class="bar-title"><span class="bar-warn" aria-hidden="true">⚠</span> {{ ch.title }}</h3>
+              <span class="bar-impact bar-impact-{{ ch.impact }}">{{ ch.get_impact_display }}</span>
+            </div>
+            <p class="bar-problem">{{ ch.problem_description|linebreaksbr }}</p>
+            <hr class="bar-sep">
+            <div class="bar-mit-head">→ Mitigation</div>
+            <div class="bar-mit-body">
+              {% if ch.mitigation_text %}
+              {{ ch.mitigation_text|linebreaksbr }}
+              {% else %}
+              <p class="bar-mit-pending">{% if ch.mitigation_placeholder %}{{ ch.mitigation_placeholder }}{% else %}Solution coming soon — under review.{% endif %}</p>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if rollout_program %}
+        <div id="plan-rollout" class="rol-surface plan-block">
+          <header class="rol-mod-head">
+            <span class="rol-mod-num">{{ rollout_program.module_number }}</span>
+            <span class="rol-mod-word">{{ rollout_program.module_keyword }}</span>
+            <h2 class="rol-mod-title">{{ rollout_program.section_title }}</h2>
+          </header>
+          {% if rollout_program.intro_text %}
+          <p class="rol-intro">{{ rollout_program.intro_text }}</p>
+          {% endif %}
+          <div class="rol-cards">
+            {% for rc in rollout_program.plan_cards.all %}
+            <article class="rol-card" data-accent="{{ rc.accent_theme }}">
+              <div class="rol-ic-wrap" aria-hidden="true">
+                {% if rc.icon_kind == "grid_bays" %}
+                <div class="rol-ic-grid"><span>1</span><span>2</span><span>3</span><span>4</span></div>
+                {% elif rc.icon_kind == "monitor" %}
+                <span class="rol-ic-emoji" title="">🖥</span>
+                {% elif rc.icon_kind == "smartphone" %}
+                <span class="rol-ic-emoji" title="">📱</span>
+                {% elif rc.icon_kind == "warehouse" %}
+                <span class="rol-ic-emoji" title="">🏭</span>
+                {% elif rc.icon_kind == "truck" %}
+                <span class="rol-ic-emoji" title="">🚚</span>
+                {% elif rc.icon_kind == "checklist" %}
+                <span class="rol-ic-emoji" title="">☑</span>
+                {% elif rc.icon_kind == "custom" and rc.icon_image %}
+                <img class="rol-ic-img" src="{{ rc.icon_image.url }}" alt="">
+                {% else %}
+                <span class="rol-ic-emoji" title="">◆</span>
+                {% endif %}
+              </div>
+              <h3 class="rol-card-title">{{ rc.card_title }}</h3>
+              <p class="rol-card-desc">{{ rc.card_description|linebreaksbr }}</p>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if process_improvement_program %}
+        <div id="plan-improvements" class="pip-surface plan-block">
+          <header class="pip-mod-head">
+            <span class="pip-mod-num">{{ process_improvement_program.module_number }}</span>
+            <span class="pip-mod-word">{{ process_improvement_program.module_keyword }}</span>
+            <h2 class="pip-mod-title">{{ process_improvement_program.section_title }}</h2>
+          </header>
+          {% if process_improvement_program.intro_text %}
+          <p class="pip-intro">{{ process_improvement_program.intro_text }}</p>
+          {% endif %}
+          {% for it in process_improvement_program.items.all %}
+          <article class="pip-item pip-surface-{{ it.surface }}">
+            <p class="pip-meta">{{ it.improvement_label }}{% if it.category_label %} · {{ it.category_label }}{% endif %}</p>
+            <h3 class="pip-title">{{ it.card_title }}</h3>
+            <p class="pip-body">{{ it.body_text|linebreaksbr }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        </div>
+
+        {% if not productivity_dashboard and not picking_method_program and not barrier_program and not rollout_program and not process_improvement_program %}
+        <p class="prod-empty">Nothing to show yet. In Admin, add an active <strong>Productivity dashboard</strong>, <strong>Picking method program</strong>, <strong>Barrier program</strong>, <strong>Rollout program</strong>, and/or <strong>Process improvement program</strong>.</p>
+        {% endif %}
+
+        </div>
+      </section>
+
+      <section role="tabpanel" id="panel-1" aria-labelledby="tab-1" data-visible="true">
+        <div class="perf-canvas">
+          
+
+          <div class="perf-surface">
+            <header class="perf-kpi-head">
+              <h3 class="perf-kpi-title">Summary metrics</h3>
+              {% if picker_performance.company_label %}
+              <div class="perf-company-chip"><span>Business</span>{{ picker_performance.company_label }}</div>
+              {% endif %}
+            </header>
+            {% if picker_performance.has_data %}
+            <div class="perf-toolbar">
+              <div class="perf-filter-bar" aria-label="Picker table filters">
+                <div class="perf-filter-group">
+                  <label for="perf-filter-date">Date</label>
+                  <select class="perf-filter-select" id="perf-filter-date" aria-label="Filter by date">
+                    {% for opt in picker_performance.filter_meta.date_options %}
+                    <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="perf-filter-group">
+                  <span id="perf-filter-shift-label">Shift</span>
+                  <div class="perf-shift-seg" id="perf-shift-seg" role="group" aria-labelledby="perf-filter-shift-label">
+                    <button type="button" class="active" data-shift="">All</button>
+                    <button type="button" data-shift="S1">S1</button>
+                    <button type="button" data-shift="S2">S2</button>
+                    <button type="button" data-shift="S3">S3</button>
+                  </div>
+                </div>
+                <div class="perf-filter-group">
+                  <label for="perf-filter-picker">Picker</label>
+                  <select class="perf-filter-select" id="perf-filter-picker" aria-label="Filter by picker">
+                    <option value="">All</option>
+                    {% for pname in picker_performance.filter_meta.pickers %}
+                    <option value="{{ pname }}">{{ pname }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="perf-filter-group">
+                  <label for="perf-filter-type">Type</label>
+                  <select class="perf-filter-select" id="perf-filter-type" aria-label="Filter by type">
+                    <option value="">All</option>
+                    {% for tname in picker_performance.filter_meta.type_options %}
+                    <option value="{{ tname }}">{{ tname }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="perf-filter-group">
+                  <label for="perf-filter-business">Business</label>
+                  <select class="perf-filter-select" id="perf-filter-business" aria-label="Filter by business">
+                    <option value="">All</option>
+                    {% for bname in picker_performance.filter_meta.business_options %}
+                    <option value="{{ bname }}">{{ bname }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="perf-filter-group">
+                  <span id="perf-filter-target-label">Target</span>
+                  <div class="perf-shift-seg" id="perf-target-seg" role="group" aria-labelledby="perf-filter-target-label">
+                    <button type="button" class="active" data-target="">All</button>
+                    <button type="button" data-target="hit">Hit</button>
+                    <button type="button" data-target="miss">Miss</button>
+                  </div>
+                </div>
+              </div>
+              <span class="perf-picker-count" id="perf-picker-count">{{ picker_performance.picker_count }} pickers</span>
+            </div>
+            {% endif %}
+            <div class="perf-kpi-grid" id="perf-summary-cards" aria-label="Picker performance KPIs">
+              {% for c in picker_performance.cards %}
+              <article class="perf-kpi-card dash-metric-card" data-accent="{{ c.accent }}" data-key="{{ c.key }}">
+                <h4 class="dash-metric-label">{{ c.title_en }}</h4>
+                <div class="dash-metric-top">
+                  <div class="dash-metric-val">{{ c.value }}</div>
+                  <div class="dash-metric-icon" aria-hidden="true">
+                    {% if c.key == "at_risk" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                    {% elif c.key == "target_rate" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 0 1 1 1v1.07a7.002 7.002 0 0 1 5.93 5.93H20a1 1 0 1 1 0 2h-1.07A7.002 7.002 0 0 1 12 19.93V21a1 1 0 1 1-2 0v-1.07A7.002 7.002 0 0 1 4.07 13H3a1 1 0 1 1 0-2h1.07A7.002 7.002 0 0 1 11 5.07V4a1 1 0 0 1 1-1zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>
+                    {% elif c.key == "top" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.32 0L12 2.69z"/></svg>
+                    {% elif c.key == "lowest" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22l-5.66-5.66a8 8 0 1 1 11.32 0L12 22z"/></svg>
+                    {% elif c.key == "daily_avg" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h11v9H3V6zm12 2h2.4L19 12v3h-4v-3zm-1 9a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+                    {% elif c.key == "orders" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4V4zm0 5h10v2H4V9zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>
+                    {% elif c.key == "days_missed" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    {% elif c.key == "shift_cmp" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 22a1 1 0 0 1-1-1v-4H2l8-9 5 5.5V9h2v4.5L21 20h-3v1a1 1 0 0 1-2 0v-1H6v1a1 1 0 0 1-1 1z"/></svg>
+                    {% elif c.key == "mip" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18h12v2H6v-2zm11-7h1l2 4H5l2-4h1V7a5 5 0 0 1 10 0v4z"/></svg>
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7l3-7z"/></svg>
+                    {% endif %}
+                  </div>
+                </div>
+                <p class="dash-metric-sub">{{ c.sub }}</p>
+              </article>
+              {% endfor %}
+            </div>
+
+            {% if picker_performance.has_data %}
+            {{ picker_performance.client_lines|json_script:"perf-client-lines" }}
+            {{ picker_performance.filter_meta|json_script:"perf-filter-meta" }}
+            <div class="perf-table-wrap perf-picker-table-scroll">
+              <table class="perf-table" id="perf-picker-table">
+                <thead>
+                  <tr>
+                    <th>Picker</th>
+                    <th>Business</th>
+                    <th>Days</th>
+                    <th>Shift</th>
+                    <th>Lines</th>
+                    <th>Pick</th>
+                    <th>Other</th>
+                    <th>Orders</th>
+                    <th>Lines/day</th>
+                    <th>Target</th>
+                    <th>Pick min</th>
+                    <th>Target MET</th>
+                    <th>Day compl.</th>
+                    <th>Target miss</th>
+                    <th>Trend</th>
+                    <th class="perf-achieve-cell">Achievement</th>
+                  </tr>
+                </thead>
+                <tbody id="perf-picker-tbody">
+                  {% for row in picker_performance.rows %}
+                  <tr
+                    data-picker="{{ row.picker_name }}"
+                    data-lpd="{{ row.lines_per_day }}"
+                    data-ach="{{ row.achievement_pct }}"
+                    data-spark="{{ row.trend_sparkline|join:',' }}"
+                  >
+                    <td>
+                      <div class="perf-picker-stack">
+                        <span class="perf-badge green">{{ row.picker_name }}</span>
+                        {% if row.picker_type %}
+                        <span class="perf-type-badge" data-kind="{{ row.picker_type|lower }}">{{ row.picker_type }}</span>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td>{{ row.business|default:"—" }}</td>
+                    <td class="perf-num">{{ row.days }}</td>
+                    <td class="perf-shift-col">{{ row.shift_band }}</td>
+                    <td class="perf-num">{{ row.lines }}</td>
+                    <td class="perf-num">{{ row.pick }}</td>
+                    <td class="perf-num">{{ row.other }}</td>
+                    <td class="perf-num">{{ row.orders }}</td>
+                    <td class="perf-num">{{ row.lines_per_day }}</td>
+                    <td class="perf-num">{{ row.target }}</td>
+                    <td class="perf-num">{% if row.pick_min != None %}{{ row.pick_min }}{% else %}—{% endif %}</td>
+                    <td class="perf-target-met"><span class="dot" aria-hidden="true"></span>{{ row.days_target_met }}</td>
+                    <td class="perf-day-compl"><span class="dot" aria-hidden="true"></span>{{ row.day_compl_below }}</td>
+                    <td class="perf-target-miss"><span class="dot" aria-hidden="true"></span>{{ row.days_target_missed }}</td>
+                    <td class="perf-trend-cell">
+                      <div class="perf-spark-wrap">
+                        <svg class="perf-sparkline" viewBox="0 0 72 28" aria-hidden="true" data-spark="{{ row.trend_sparkline|join:',' }}"></svg>
+                        {% if row.trend_delta != None %}
+                        <span class="perf-trend-delta {{ row.trend_direction }}">
+                          {% if row.trend_direction == 'up' %}▲{% elif row.trend_direction == 'down' %}▼{% else %}—{% endif %}
+                          {{ row.trend_delta }}
+                        </span>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="perf-achieve-cell">
+                      <div class="perf-achieve-row">
+                        <div class="perf-achieve-track" aria-hidden="true">
+                          <div class="perf-achieve-fill{% if row.perf_bar_tier == 'mid' %} mid{% elif row.perf_bar_tier == 'low' %} low{% endif %}" style="width: {{ row.perf_bar_width_pct }}%;"></div>
+                          <span class="perf-achieve-marker"></span>
+                        </div>
+                        <span class="perf-achieve-pct">{{ row.achievement_pct }}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <section class="perf-shift-detail-section" id="perf-shift-detail-section" hidden aria-label="Shift detail">
+            <header class="perf-shift-sheet-head">
+              <h4 class="perf-shift-sheet-title">Shift detail</h4>
+            </header>
+            <div class="perf-shift-sheet-wrap">
+              <table class="perf-shift-sheet" id="perf-shift-sheet">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Shift</th>
+                    <th>Picker</th>
+                    <th>Business</th>
+                    <th>Lines</th>
+                    <th>Pick</th>
+                    <th>Other</th>
+                    <th>Orders</th>
+                  </tr>
+                </thead>
+                <tbody id="perf-shift-tbody"></tbody>
+              </table>
+            </div>
+            </section>
+            {% else %}
+            <p class="perf-empty">
+              {% if picker_performance_workbook.used_file %}
+              No picker lines found in <strong>{{ picker_performance_workbook.filename }}</strong> (sheet <strong>{{ picker_performance_workbook.sheet }}</strong>). Check SAP headers (User column R, Source Storage Bin, Confirmation date/time).
+              {% elif picker_performance_program %}
+              No line rows yet for <strong>{{ picker_performance_program.title }}</strong>.
+              Use <strong>Import Excel (.xlsx)</strong> in Admin and upload <strong>Picking .xlsx</strong> (sheet <strong>Data</strong>, column <strong>Business</strong> = company).
+              {% else %}
+              No active <strong>Picker performance program</strong> yet. In Admin, add one under <em>Dashboard → Picker performance programs</em>, then import <strong>Picking .xlsx</strong> (sheet <strong>Data</strong>).
+              {% endif %}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section role="tabpanel" id="panel-2" aria-labelledby="tab-2" data-visible="false" hidden>
+        <div class="zd-canvas">
+          <header class="perf-hero">
+            <span class="perf-hero-kicker">Dispatch &amp; zones</span>
+            <h2 class="perf-hero-title">Zone dispatch</h2>
+            <p class="perf-hero-sub">Performance and dispatch in one place: drop a dispatch spreadsheet to prepare zone-level views. Detection expects warehouse bin columns such as <strong>Storage Bin</strong> or <strong>ST</strong> when the import pipeline is connected.</p>
+            <div class="perf-hero-meta">
+              <span class="perf-hero-pulse"><span class="dot" aria-hidden="true"></span> Upload preview</span>
+              <span class="perf-hero-pill">.xlsx / .xlsm</span>
+            </div>
+          </header>
+
+          <div class="perf-surface zd-surface">
+            <div class="zd-upload-block">
+              <label class="zd-dropzone" id="zd-dropzone" for="zd-file-input">
+                <span class="zd-upload-label">Upload dispatch file (.xlsx / .xlsm)</span>
+                <span class="zd-dropzone-icon" aria-hidden="true">📁</span>
+                <p class="zd-dropzone-title">Click to select file or drag and drop here</p>
+                <p class="zd-dropzone-hint">Same workbook powers <strong>Daily Tracker</strong>: include a sheet named <em>Daily Tracker</em> with <strong>Picker Name</strong> and daily columns.</p>
+                <input
+                  class="zd-sr-only"
+                  type="file"
+                  id="zd-file-input"
+                  name="dispatch"
+                  accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroEnabled.12"
+                >
+              </label>
+            </div>
+
+            <div class="zd-workspace" id="zd-workspace">
+              <div class="zd-empty" id="zd-empty">
+                <div class="zd-empty-icon" aria-hidden="true">📋</div>
+                <p class="zd-empty-title">Upload a dispatch file to get started</p>
+                <p class="zd-empty-sub">Upload an <strong>.xlsx / .xlsm</strong> workbook here. The file is parsed on the server: the <strong>Daily Tracker</strong> tab reads the sheet <em>Daily Tracker</em> (picker + daily lines).</p>
+              </div>
+              <div class="zd-loaded" id="zd-loaded" hidden>
+                <p class="zd-loaded-name" id="zd-loaded-name"></p>
+                <p class="zd-loaded-meta" id="zd-loaded-meta">Workbook stored for this session. Open <strong>Daily Tracker</strong> for the lines grid; zone dispatch tables will use the same file when that module is connected.</p>
+                <button type="button" class="zd-clear" id="zd-clear">Clear file</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section role="tabpanel" id="panel-3" aria-labelledby="tab-3" data-visible="false" hidden>
+        <div class="dt-canvas">
+          
+        
+          <div class="perf-surface zd-surface">
+            <p class="dt-empty-panel" id="dt-empty-panel"{% if picker_performance.has_data %} hidden{% endif %}>
+              No picker lines yet. Upload <strong>Picking .xlsx</strong> (sheet <strong>Data</strong>, column <strong>Business</strong> = company) from
+              <strong>Admin → Dashboard → Picker Performance</strong>.
+            </p>
+
+            <div id="dt-main"{% if not picker_performance.has_data %} hidden{% endif %}>
+              {% if picker_performance.has_data %}
+              {{ picker_performance.client_lines|json_script:"dt-client-lines" }}
+              {{ picker_performance.filter_meta|json_script:"dt-filter-meta" }}
+              {% endif %}
+
+              <div class="dt-kpi-section">
+                <header class="perf-kpi-head">
+                  <h3 class="perf-kpi-title">Summary metrics</h3>
+                  {% if picker_performance.company_label %}
+                  <div class="perf-company-chip"><span>Business</span>{{ picker_performance.company_label }}</div>
+                  {% endif %}
+                </header>
+                <div class="perf-toolbar dt-toolbar-spaced">
+                  <div class="perf-filter-bar" aria-label="Daily tracker filters">
+                    <div class="perf-filter-group">
+                      <label for="dt-filter-date">Date</label>
+                      <select class="perf-filter-select" id="dt-filter-date" aria-label="Filter by date">
+                        {% for opt in picker_performance.filter_meta.date_options %}
+                        <option value="{{ opt.value }}">{{ opt.label }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="perf-filter-group">
+                      <span id="dt-filter-shift-label">Shift</span>
+                      <div class="perf-shift-seg dt-shift-seg" id="dt-shift-seg" role="group" aria-labelledby="dt-filter-shift-label">
+                        <button type="button" class="active" data-shift="">All</button>
+                        <button type="button" data-shift="S1">S1</button>
+                        <button type="button" data-shift="S2">S2</button>
+                        <button type="button" data-shift="S3">S3</button>
+                      </div>
+                    </div>
+                    <div class="perf-filter-group">
+                      <label for="dt-filter-picker">Picker</label>
+                      <select class="perf-filter-select" id="dt-filter-picker" aria-label="Filter by picker">
+                        <option value="">All</option>
+                        {% for pname in picker_performance.filter_meta.pickers %}
+                        <option value="{{ pname }}">{{ pname }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="perf-filter-group">
+                      <label for="dt-filter-type">Type</label>
+                      <select class="perf-filter-select" id="dt-filter-type" aria-label="Filter by type">
+                        <option value="">All</option>
+                        {% for tname in picker_performance.filter_meta.type_options %}
+                        <option value="{{ tname }}">{{ tname }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="perf-filter-group">
+                      <label for="dt-filter-business">Business</label>
+                      <select class="perf-filter-select" id="dt-filter-business" aria-label="Filter by business">
+                        <option value="">All</option>
+                        {% for bname in picker_performance.filter_meta.business_options %}
+                        <option value="{{ bname }}">{{ bname }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="perf-filter-group">
+                      <span id="dt-filter-target-label">Target</span>
+                      <div class="perf-shift-seg" id="dt-target-seg" role="group" aria-labelledby="dt-filter-target-label">
+                        <button type="button" class="active" data-target="">All</button>
+                        <button type="button" data-target="hit">Hit</button>
+                        <button type="button" data-target="miss">Miss</button>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="perf-picker-count" id="dt-picker-count">{{ picker_performance.picker_count }} pickers</span>
+                </div>
+                <div class="perf-kpi-grid dt-kpi-grid" id="dt-summary-cards" aria-label="Daily tracker summary"></div>
+              </div>
+
+              <div class="dt-table-wrap" role="region" aria-label="Daily lines heatmap">
+                <div class="dt-scroll-inner">
+                  <div class="dt-legend-row" id="dt-legend-row"></div>
+                  <table class="dt-table" id="dt-table">
+                    <thead id="dt-thead"></thead>
+                    <tbody id="dt-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <footer class="dt-footer">
+                <p>Picker = pick confirmation user · Daily target = 200 lines (PICK bins) / 150 lines (other bins), blended by line mix · Day Completed = orders finished below target</p>
+                <p>Shifts: 1 06:00–15:00 · 2 15:00–00:00 · 3 00:00–06:00 · Tamer Logistics — Warehouse Operations · Source: Admin Excel import</p>
+              </footer>
+            </div>
+          </div>
+        </div>
+        <div id="dt-tooltip" class="dt-tooltip" hidden role="tooltip"></div>
+      </section>
+    </div>
+  </div>
+
+  
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    var WB_API_URL = "{% url 'dashboard:workbook_api' %}";
+    var WB_EDIT_URL = "{% url 'dashboard:workbook_edit' %}";
+    (function () {
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+      var panels = Array.prototype.slice.call(document.querySelectorAll('[role="tabpanel"]'));
+
+      function tabPanelId(tab) {
+        return parseInt(tab.getAttribute('data-tab'), 10);
+      }
+
+      function panelId(panel) {
+        return parseInt(panel.id.replace('panel-', ''), 10);
+      }
+
+      function select(panelIndex) {
+        tabs.forEach(function (tab) {
+          var on = tabPanelId(tab) === panelIndex;
+          tab.setAttribute('aria-selected', on ? 'true' : 'false');
+          tab.tabIndex = on ? 0 : -1;
+        });
+        panels.forEach(function (panel) {
+          var on = panelId(panel) === panelIndex;
+          panel.setAttribute('data-visible', on ? 'true' : 'false');
+          if (on) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', 'hidden');
+          }
+        });
+      }
+
+      tabs.forEach(function (tab, index) {
+        tab.addEventListener('click', function () {
+          select(tabPanelId(tab));
+        });
+        tab.addEventListener('keydown', function (e) {
+          var next = null;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            next = (index + 1) % tabs.length;
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            next = (index - 1 + tabs.length) % tabs.length;
+          } else if (e.key === 'Home') {
+            next = 0;
+          } else if (e.key === 'End') {
+            next = tabs.length - 1;
+          }
+          if (next !== null) {
+            e.preventDefault();
+            tabs[next].focus();
+            select(tabPanelId(tabs[next]));
+          }
+        });
+      });
+
+      select(tabPanelId(tabs[0]));
+    })();
+
+    (function () {
+      var tbody = document.getElementById('perf-picker-tbody');
+      var shiftDetailSection = document.getElementById('perf-shift-detail-section');
+      var dateSel = document.getElementById('perf-filter-date');
+      var pickerSel = document.getElementById('perf-filter-picker');
+      var typeSel = document.getElementById('perf-filter-type');
+      var businessSel = document.getElementById('perf-filter-business');
+      var shiftSeg = document.getElementById('perf-shift-seg');
+      var targetSeg = document.getElementById('perf-target-seg');
+      var countEl = document.getElementById('perf-picker-count');
+      var linesEl = document.getElementById('perf-client-lines');
+      var metaEl = document.getElementById('perf-filter-meta');
+      if (!tbody || !linesEl || !metaEl) return;
+
+      var shiftTbody = document.getElementById('perf-shift-tbody');
+
+      var allLines = JSON.parse(linesEl.textContent);
+      var filterMeta = JSON.parse(metaEl.textContent);
+      var pickerTypesMap = filterMeta.picker_types || {};
+      var activeShift = '';
+      var activeTarget = '';
+
+      var SHIFT_LABELS = {
+        S1: 'S1 (06:00–15:00)',
+        S2: 'S2 (15:00–00:00)',
+        S3: 'S3 (00:00–06:00)',
+        MORNING: 'S1 (06:00–15:00)',
+        EVENING: 'S2 (15:00–00:00)',
+        OTHER: '—'
+      };
+
+      var MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      function formatDateShort(iso) {
+        if (!iso) return '—';
+        var p = iso.split('-');
+        if (p.length !== 3) return iso;
+        var day = parseInt(p[2], 10);
+        var mon = MONTHS_SHORT[parseInt(p[1], 10) - 1] || p[1];
+        return (day < 10 ? '0' : '') + day + ' ' + mon;
+      }
+
+      function shiftLabel(code) {
+        return SHIFT_LABELS[code] || code || '—';
+      }
+
+      function mixedTarget(pick, other, total) {
+        if (total <= 0) return 0;
+        return Math.round((pick * 200 + other * 150) / total);
+      }
+
+      function halfSplitDelta(vals) {
+        if (!vals || vals.length < 2) return [null, 'flat'];
+        var mid = Math.floor(vals.length / 2);
+        var first = vals.slice(0, mid);
+        var second = vals.slice(mid);
+        var a = first.reduce(function (s, v) { return s + v; }, 0) / first.length;
+        var b = second.reduce(function (s, v) { return s + v; }, 0) / second.length;
+        var d = Math.round((b - a) * 10) / 10;
+        return [d, d > 0 ? 'up' : (d < 0 ? 'down' : 'flat')];
+      }
+
+      function lineType(ln) {
+        return ln.ty || pickerTypesMap[ln.p] || '';
+      }
+
+      function isFilterActive() {
+        var dateVal = dateSel ? dateSel.value : '';
+        var pickerVal = pickerSel ? pickerSel.value : '';
+        var typeVal = typeSel ? typeSel.value : '';
+        var businessVal = businessSel ? businessSel.value : '';
+        return !!(dateVal || pickerVal || typeVal || businessVal || activeShift || activeTarget);
+      }
+
+      function filterLines() {
+        var dateVal = dateSel ? dateSel.value : '';
+        var pickerVal = pickerSel ? pickerSel.value : '';
+        var typeVal = typeSel ? typeSel.value : '';
+        var businessVal = businessSel ? businessSel.value : '';
+        return allLines.filter(function (ln) {
+          if (pickerVal && ln.p !== pickerVal) return false;
+          if (typeVal && lineType(ln) !== typeVal) return false;
+          if (businessVal && (ln.b || '') !== businessVal) return false;
+          if (activeShift && ln.s !== activeShift) return false;
+          if (!dateVal) return true;
+          if (!ln.d) return false;
+          if (filterMeta.date_mode === 'months') return ln.d.slice(0, 7) === dateVal;
+          return ln.d === dateVal;
+        });
+      }
+
+      function aggregateDetailRows(lines) {
+        var groups = {};
+        lines.forEach(function (ln) {
+          if (!ln.d) return;
+          var key = ln.d + '\0' + (ln.s || '') + '\0' + ln.p;
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(ln);
+        });
+
+        return Object.keys(groups).map(function (key) {
+          var parts = key.split('\0');
+          var glines = groups[key];
+          var n = glines.length;
+          var pickN = glines.filter(function (x) { return x.ip; }).length;
+          var ordersSet = {};
+          glines.forEach(function (x) { if (x.dn) ordersSet[x.dn] = true; });
+          var biz = '';
+          glines.forEach(function (x) { if (!biz && x.b) biz = x.b; });
+          return {
+            date: parts[0],
+            shift: parts[1],
+            picker: parts[2],
+            business: biz,
+            lines: n,
+            pick: pickN,
+            other: n - pickN,
+            orders: Object.keys(ordersSet).length
+          };
+        }).sort(function (a, b) {
+          if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+          if (a.shift !== b.shift) return a.shift < b.shift ? -1 : 1;
+          return a.picker.localeCompare(b.picker);
+        });
+      }
+
+      function renderDetailTable(lines) {
+        var rows = aggregateDetailRows(lines);
+        if (!rows.length) {
+          shiftTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:1.25rem;">No shift rows match the current filters.</td></tr>';
+          return;
+        }
+        shiftTbody.innerHTML = rows.map(function (row) {
+          return '<tr>' +
+            '<td class="perf-num">' + esc(formatDateShort(row.date)) + '</td>' +
+            '<td class="perf-shift-label">' + esc(shiftLabel(row.shift)) + '</td>' +
+            '<td class="perf-picker-name">' + esc(row.picker) + '</td>' +
+            '<td>' + esc(row.business || '—') + '</td>' +
+            '<td class="perf-num">' + row.lines + '</td>' +
+            '<td class="perf-num">' + row.pick + '</td>' +
+            '<td class="perf-num">' + row.other + '</td>' +
+            '<td class="perf-num">' + row.orders + '</td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      function aggregateRows(lines) {
+        var byPicker = {};
+        var pickerDaily = {};
+        lines.forEach(function (ln) {
+          if (!byPicker[ln.p]) byPicker[ln.p] = [];
+          byPicker[ln.p].push(ln);
+          if (ln.d) {
+            if (!pickerDaily[ln.p]) pickerDaily[ln.p] = {};
+            if (!pickerDaily[ln.p][ln.d]) pickerDaily[ln.p][ln.d] = [];
+            pickerDaily[ln.p][ln.d].push(ln);
+          }
+        });
+
+        var rows = Object.keys(byPicker).map(function (pname) {
+          var plines = byPicker[pname];
+          var n = plines.length;
+          var pickN = plines.filter(function (x) { return x.ip; }).length;
+          var otherN = n - pickN;
+          var daysSet = {};
+          plines.forEach(function (x) { if (x.d) daysSet[x.d] = true; });
+          var daysCount = Object.keys(daysSet).length || 1;
+          var ordersSet = {};
+          plines.forEach(function (x) { if (x.dn) ordersSet[x.dn] = true; });
+          var orders = Object.keys(ordersSet).length;
+          var linesPerDay = n / daysCount;
+          var target = mixedTarget(pickN, otherN, n);
+          var achievementPct = target > 0 ? (linesPerDay / target * 100) : 0;
+
+          var durations = plines.map(function (x) { return x.pm; }).filter(function (v) { return v != null; });
+          var pickMin = durations.length ? Math.round(durations.reduce(function (a, b) { return a + b; }, 0) / durations.length * 10) / 10 : null;
+
+          var dayComplBelow = 0;
+          var daysTargetMissed = 0;
+          var daysTargetMet = 0;
+          var dailySpark = [];
+          var dailyFloats = [];
+          var shiftCounts = {};
+          plines.forEach(function (x) {
+            var sc = x.s || 'S3';
+            shiftCounts[sc] = (shiftCounts[sc] || 0) + 1;
+          });
+          var dominantShift = 'S3';
+          var shiftMax = 0;
+          Object.keys(shiftCounts).forEach(function (sc) {
+            if (shiftCounts[sc] > shiftMax) {
+              shiftMax = shiftCounts[sc];
+              dominantShift = sc;
+            }
+          });
+          if (pickerDaily[pname]) {
+            Object.keys(pickerDaily[pname]).sort().forEach(function (wd) {
+              var dl = pickerDaily[pname][wd];
+              var dn = dl.length;
+              var dp = dl.filter(function (x) { return x.ip; }).length;
+              var do_ = dn - dp;
+              var dtgt = mixedTarget(dp, do_, dn);
+              var dach = dtgt > 0 ? (dn / dtgt * 100) : 0;
+              if (dach < 80) dayComplBelow += 1;
+              if (dach < 100) daysTargetMissed += 1;
+              else daysTargetMet += 1;
+              dailySpark.push(dn);
+              dailyFloats.push(dn);
+            });
+          }
+
+          var trendParts = halfSplitDelta(dailyFloats);
+          var trendDelta = trendParts[0];
+          var trendDir = trendParts[1];
+          var barTier = achievementPct >= 100 ? 'high' : (achievementPct >= 80 ? 'mid' : 'low');
+          var barW = target > 0 ? Math.max(4, Math.min(100, achievementPct)) : 0;
+
+          var typeCounts = {};
+          plines.forEach(function (x) {
+            if (x.ty) typeCounts[x.ty] = (typeCounts[x.ty] || 0) + 1;
+          });
+          var pickerType = '';
+          var typeMax = 0;
+          Object.keys(typeCounts).forEach(function (ty) {
+            if (typeCounts[ty] > typeMax) {
+              typeMax = typeCounts[ty];
+              pickerType = ty;
+            }
+          });
+
+          var bizCounts = {};
+          plines.forEach(function (x) {
+            if (x.b) bizCounts[x.b] = (bizCounts[x.b] || 0) + 1;
+          });
+          var business = '';
+          var bizMax = 0;
+          Object.keys(bizCounts).forEach(function (bz) {
+            if (bizCounts[bz] > bizMax) {
+              bizMax = bizCounts[bz];
+              business = bz;
+            }
+          });
+
+          return {
+            picker_name: pname,
+            picker_type: pickerType || pickerTypesMap[pname] || '',
+            business: business,
+            days: daysCount,
+            lines: n,
+            pick: pickN,
+            other: otherN,
+            orders: orders,
+            lines_per_day: Math.round(linesPerDay * 10) / 10,
+            target: target,
+            pick_min: pickMin,
+            days_target_met: daysTargetMet,
+            day_compl_below: dayComplBelow,
+            day_compl_total: Object.keys(daysSet).length,
+            days_target_missed: daysTargetMissed,
+            shift_band: dominantShift,
+            trend_sparkline: dailySpark,
+            trend_delta: trendDelta,
+            trend_direction: trendDir,
+            achievement_pct: Math.round(achievementPct * 10) / 10,
+            perf_bar_width_pct: Math.round(barW * 10) / 10,
+            perf_bar_tier: barTier
+          };
+        });
+
+        rows.sort(function (a, b) { return b.lines_per_day - a.lines_per_day; });
+        return rows;
+      }
+
+      function drawSparkline(svg, vals) {
+        if (!svg || !vals || !vals.length) return;
+        var w = 72, h = 28, pad = 2;
+        var min = Math.min.apply(null, vals);
+        var max = Math.max.apply(null, vals);
+        var range = max - min || 1;
+        var pts = vals.map(function (v, i) {
+          var x = pad + (vals.length === 1 ? w / 2 : (i / (vals.length - 1)) * (w - pad * 2));
+          var y = h - pad - ((v - min) / range) * (h - pad * 2);
+          return x.toFixed(1) + ',' + y.toFixed(1);
+        });
+        svg.innerHTML = '<path d="M' + pts.join(' L') + '"/>';
+      }
+
+      function typeBadgeKind(label) {
+        var t = String(label || '').trim().toLowerCase();
+        if (t.indexOf('super') >= 0) return 'supervisor';
+        if (t.indexOf('lead') >= 0) return 'lead';
+        if (t.indexOf('oper') >= 0) return 'operator';
+        if (t.indexOf('system') >= 0) return 'system';
+        return 'default';
+      }
+
+      function pickerStackHtml(name, typeLabel, businessLabel) {
+        var html = '<div class="perf-picker-stack">' +
+          '<span class="perf-badge green">' + esc(name) + '</span>';
+        if (businessLabel) {
+          html += '<span class="perf-business-badge">' + esc(businessLabel) + '</span>';
+        }
+        if (typeLabel) {
+          html += '<span class="perf-type-badge" data-kind="' + esc(typeBadgeKind(typeLabel)) + '">' + esc(typeLabel) + '</span>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      function dtPickerStackHtml(name, typeLabel) {
+        var html = '<div class="dt-picker-stack"><span class="dt-picker-name">' + esc(name) + '</span>';
+        if (typeLabel) {
+          html += '<span class="dt-type-badge">' + esc(typeLabel) + '</span>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      function dominantPickerTypes(lines) {
+        var counts = {};
+        lines.forEach(function (ln) {
+          if (!ln.p || !ln.ty) return;
+          if (!counts[ln.p]) counts[ln.p] = {};
+          counts[ln.p][ln.ty] = (counts[ln.p][ln.ty] || 0) + 1;
+        });
+        var out = {};
+        Object.keys(counts).forEach(function (p) {
+          var best = '';
+          var max = 0;
+          Object.keys(counts[p]).forEach(function (ty) {
+            if (counts[p][ty] > max) {
+              max = counts[p][ty];
+              best = ty;
+            }
+          });
+          out[p] = best;
+        });
+        return out;
+      }
+
+      function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      }
+
+      function renderTable(rows) {
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:#94a3b8;padding:1.25rem;">No pickers match the current filters.</td></tr>';
+          if (countEl) countEl.textContent = '0 pickers';
+          return;
+        }
+
+        tbody.innerHTML = rows.map(function (row) {
+          var spark = (row.trend_sparkline || []).join(',');
+          var pickMinTxt = row.pick_min != null ? row.pick_min : '—';
+          var trendHtml = '';
+          if (row.trend_delta != null) {
+            var arrow = row.trend_direction === 'up' ? '▲' : (row.trend_direction === 'down' ? '▼' : '—');
+            trendHtml = '<span class="perf-trend-delta ' + row.trend_direction + '">' + arrow + ' ' + row.trend_delta + '</span>';
+          }
+          var barClass = row.perf_bar_tier === 'mid' ? ' mid' : (row.perf_bar_tier === 'low' ? ' low' : '');
+          return '<tr data-picker="' + esc(row.picker_name) + '">' +
+            '<td>' + pickerStackHtml(row.picker_name, row.picker_type) + '</td>' +
+            '<td>' + esc(row.business || '—') + '</td>' +
+            '<td class="perf-num">' + row.days + '</td>' +
+            '<td class="perf-shift-col">' + esc(row.shift_band || '—') + '</td>' +
+            '<td class="perf-num">' + row.lines + '</td>' +
+            '<td class="perf-num">' + row.pick + '</td>' +
+            '<td class="perf-num">' + row.other + '</td>' +
+            '<td class="perf-num">' + row.orders + '</td>' +
+            '<td class="perf-num">' + row.lines_per_day + '</td>' +
+            '<td class="perf-num">' + row.target + '</td>' +
+            '<td class="perf-num">' + pickMinTxt + '</td>' +
+            '<td class="perf-target-met"><span class="dot" aria-hidden="true"></span>' + row.days_target_met + '</td>' +
+            '<td class="perf-day-compl"><span class="dot" aria-hidden="true"></span>' + row.day_compl_below + '</td>' +
+            '<td class="perf-target-miss"><span class="dot" aria-hidden="true"></span>' + row.days_target_missed + '</td>' +
+            '<td class="perf-trend-cell"><div class="perf-spark-wrap">' +
+              '<svg class="perf-sparkline" viewBox="0 0 72 28" aria-hidden="true" data-spark="' + spark + '"></svg>' +
+              trendHtml +
+            '</div></td>' +
+            '<td class="perf-achieve-cell"><div class="perf-achieve-row">' +
+              '<div class="perf-achieve-track" aria-hidden="true">' +
+                '<div class="perf-achieve-fill' + barClass + '" style="width:' + row.perf_bar_width_pct + '%;"></div>' +
+                '<span class="perf-achieve-marker"></span>' +
+              '</div>' +
+              '<span class="perf-achieve-pct">' + row.achievement_pct + '%</span>' +
+            '</div></td>' +
+          '</tr>';
+        }).join('');
+
+        tbody.querySelectorAll('.perf-sparkline').forEach(function (svg) {
+          var raw = svg.getAttribute('data-spark') || '';
+          var vals = raw ? raw.split(',').map(function (v) { return parseFloat(v); }).filter(function (v) { return !isNaN(v); }) : [];
+          drawSparkline(svg, vals);
+        });
+
+        if (countEl) {
+          countEl.textContent = rows.length + (rows.length === 1 ? ' picker' : ' pickers');
+        }
+      }
+
+      function applyTargetFilter(rows) {
+        if (activeTarget === 'hit') {
+          return rows.filter(function (r) { return r.achievement_pct >= 100; });
+        }
+        if (activeTarget === 'miss') {
+          return rows.filter(function (r) { return r.achievement_pct < 100; });
+        }
+        return rows;
+      }
+
+      function fmtInt(n) {
+        return Number(n).toLocaleString('en-US');
+      }
+
+      function updateSummaryCards(lines, rows) {
+        var grid = document.getElementById('perf-summary-cards');
+        if (!grid) return;
+        var daysSet = {};
+        lines.forEach(function (ln) { if (ln.d) daysSet[ln.d] = true; });
+        var operatingDays = Object.keys(daysSet).length;
+        var atRisk = rows.filter(function (r) { return r.lines_per_day <= 150; }).length;
+        var met = 0;
+        var missed = 0;
+        rows.forEach(function (r) {
+          met += r.days_target_met || 0;
+          missed += r.days_target_missed || 0;
+        });
+        var pickerDays = met + missed;
+        var targetPct = pickerDays ? (met / pickerDays * 100) : 0;
+        var top = null;
+        var lowest = null;
+        rows.forEach(function (r) {
+          if (!top || r.lines_per_day > top.lines_per_day) top = r;
+          if (!lowest || r.lines_per_day < lowest.lines_per_day) lowest = r;
+        });
+        var ordersSet = {};
+        var s1 = 0, s2 = 0, s3 = 0;
+        lines.forEach(function (ln) {
+          if (ln.dn) ordersSet[ln.dn] = true;
+          if (ln.s === 'S1') s1 += 1;
+          else if (ln.s === 'S2') s2 += 1;
+          else s3 += 1;
+        });
+        var dailyAvg = operatingDays ? (lines.length / operatingDays) : 0;
+        var mip = null;
+        rows.forEach(function (r) {
+          if (r.trend_delta != null && r.trend_delta > 0) {
+            if (!mip || r.trend_delta > mip.trend_delta) mip = r;
+          }
+        });
+
+        function setCard(key, value, sub) {
+          var card = grid.querySelector('[data-key="' + key + '"]');
+          if (!card) return;
+          var valEl = card.querySelector('.dash-metric-val');
+          var subEl = card.querySelector('.dash-metric-sub');
+          if (valEl) valEl.textContent = value;
+          if (subEl && sub != null) subEl.textContent = sub;
+        }
+
+        setCard('at_risk', String(atRisk), 'Avg lines ≤ 150 / day');
+        setCard('target_rate', targetPct.toFixed(1) + '%', 'Picker-days at ≥100% target (' + met + '/' + pickerDays + ')');
+        setCard('top', top ? top.picker_name : '—', top ? ('Avg ' + top.lines_per_day + ' lines / day') : 'No pickers match');
+        setCard('lowest', lowest ? lowest.picker_name : '—', lowest ? ('Avg ' + lowest.lines_per_day + ' lines / day') : 'No pickers match');
+        setCard('daily_avg', dailyAvg.toFixed(1), 'Total lines ÷ operating days');
+        setCard('orders', fmtInt(Object.keys(ordersSet).length), 'Distinct Transfer Order Number');
+        setCard('days_missed', String(missed), 'Picker-days below 100% target (of ' + pickerDays + ')');
+        setCard('shift_cmp', fmtInt(s1) + ' · ' + fmtInt(s2) + ' · ' + fmtInt(s3), 'S1 (06–15) · S2 (15–00) · S3 (00–06) lines');
+        setCard(
+          'mip',
+          mip ? mip.picker_name : '—',
+          mip ? ('+' + mip.trend_delta + ' lines (first → last half)') : 'No positive gain (first → last half of days)'
+        );
+      }
+
+      function refresh() {
+        var filtered = filterLines();
+        var rows = applyTargetFilter(aggregateRows(filtered));
+        if (activeTarget) {
+          var keep = {};
+          rows.forEach(function (r) { keep[r.picker_name] = true; });
+          filtered = filtered.filter(function (ln) { return keep[ln.p]; });
+        }
+        renderTable(rows);
+        updateSummaryCards(filtered, rows);
+        if (shiftDetailSection) {
+          if (isFilterActive()) {
+            shiftDetailSection.removeAttribute('hidden');
+            renderDetailTable(filtered);
+          } else {
+            shiftDetailSection.setAttribute('hidden', '');
+            if (shiftTbody) shiftTbody.innerHTML = '';
+          }
+        }
+      }
+
+      if (dateSel) dateSel.addEventListener('change', refresh);
+      if (pickerSel) pickerSel.addEventListener('change', refresh);
+      if (typeSel) typeSel.addEventListener('change', refresh);
+      if (businessSel) businessSel.addEventListener('change', refresh);
+      if (shiftSeg) {
+        shiftSeg.querySelectorAll('button').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            shiftSeg.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            activeShift = btn.getAttribute('data-shift') || '';
+            refresh();
+          });
+        });
+      }
+      if (targetSeg) {
+        targetSeg.querySelectorAll('button').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            targetSeg.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            activeTarget = btn.getAttribute('data-target') || '';
+            refresh();
+          });
+        });
+      }
+
+      tbody.querySelectorAll('.perf-sparkline').forEach(function (svg) {
+        var raw = svg.getAttribute('data-spark') || '';
+        var vals = raw ? raw.split(',').map(function (v) { return parseFloat(v); }).filter(function (v) { return !isNaN(v); }) : [];
+        drawSparkline(svg, vals);
+      });
+
+      refresh();
+    })();
+
+    (function () {
+      var dz = document.getElementById('zd-dropzone');
+      var input = document.getElementById('zd-file-input');
+      var empty = document.getElementById('zd-empty');
+      var loaded = document.getElementById('zd-loaded');
+      var loadedName = document.getElementById('zd-loaded-name');
+      var clearBtn = document.getElementById('zd-clear');
+      if (!dz || !input || !empty || !loaded || !loadedName || !clearBtn) return;
+
+      function getCsrf() {
+        var t = document.querySelector('[name=csrfmiddlewaretoken]');
+        return t ? t.value : '';
+      }
+
+      function showEmpty() {
+        empty.removeAttribute('hidden');
+        loaded.setAttribute('hidden', 'hidden');
+        loadedName.textContent = '';
+      }
+
+      function showLoaded(name) {
+        loadedName.textContent = name;
+        empty.setAttribute('hidden', 'hidden');
+        loaded.removeAttribute('hidden');
+      }
+
+      function showParsing() {
+        loadedName.textContent = 'Uploading and parsing…';
+        empty.setAttribute('hidden', 'hidden');
+        loaded.removeAttribute('hidden');
+      }
+
+      function uploadWorkbook(file) {
+        showParsing();
+        var fd = new FormData();
+        fd.append('file', file);
+        fetch(WB_API_URL, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          headers: { 'X-CSRFToken': getCsrf() }
+        })
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { ok: r.ok, body: j };
+            });
+          })
+          .then(function (res) {
+            if (!res.body || !res.body.ok) {
+              window.alert((res.body && res.body.error) || 'Upload failed.');
+              input.value = '';
+              showEmpty();
+              if (window.__dailyTrackerSetPayload) window.__dailyTrackerSetPayload(null, null, null);
+              return;
+            }
+            showLoaded(res.body.file_name || file.name);
+            if (window.__dailyTrackerSetPayload) {
+              window.__dailyTrackerSetPayload(res.body.daily_tracker, res.body.file_name || file.name, 'session');
+            }
+          })
+          .catch(function () {
+            window.alert('Network error while uploading.');
+            input.value = '';
+            showEmpty();
+            if (window.__dailyTrackerSetPayload) window.__dailyTrackerSetPayload(null, null, null);
+          });
+      }
+
+      function validateAndShow(file) {
+        if (!file || !file.name) {
+          showEmpty();
+          return;
+        }
+        if (!/\.(xlsx|xlsm)$/i.test(file.name)) {
+          window.alert('Please choose an Excel dispatch file (.xlsx or .xlsm).');
+          input.value = '';
+          showEmpty();
+          return;
+        }
+        uploadWorkbook(file);
+      }
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (ev) {
+        dz.addEventListener(ev, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
+
+      dz.addEventListener('dragenter', function () {
+        dz.classList.add('is-drag');
+      });
+
+      dz.addEventListener('dragover', function () {
+        dz.classList.add('is-drag');
+      });
+
+      dz.addEventListener('dragleave', function (e) {
+        if (!dz.contains(e.relatedTarget)) {
+          dz.classList.remove('is-drag');
+        }
+      });
+
+      dz.addEventListener('drop', function (e) {
+        dz.classList.remove('is-drag');
+        var files = e.dataTransfer && e.dataTransfer.files;
+        var file = files && files[0];
+        if (file) {
+          validateAndShow(file);
+        }
+      });
+
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        validateAndShow(file);
+      });
+
+      clearBtn.addEventListener('click', function () {
+        fetch(WB_API_URL, {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'X-CSRFToken': getCsrf() }
+        })
+          .catch(function () { /* ignore */ })
+          .finally(function () {
+            input.value = '';
+            showEmpty();
+            fetch(WB_API_URL, { credentials: 'same-origin' })
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function (res) {
+                if (res.ok && res.daily_tracker && window.__dailyTrackerSetPayload) {
+                  window.__dailyTrackerSetPayload(res.daily_tracker, res.file_name, res.source || null);
+                } else if (window.__dailyTrackerSetPayload) {
+                  window.__dailyTrackerSetPayload(null, null, null);
+                }
+              })
+              .catch(function () {
+                if (window.__dailyTrackerSetPayload) window.__dailyTrackerSetPayload(null, null, null);
+              });
+          });
+      });
+      window.__zdWorkbookShowEmpty = showEmpty;
+    })();
+
+    (function () {
+      var linesEl = document.getElementById('dt-client-lines');
+      var metaEl = document.getElementById('dt-filter-meta');
+      var elEmpty = document.getElementById('dt-empty-panel');
+      var elMain = document.getElementById('dt-main');
+      var elCards = document.getElementById('dt-summary-cards');
+      var elLegend = document.getElementById('dt-legend-row');
+      var elThead = document.getElementById('dt-thead');
+      var elTbody = document.getElementById('dt-tbody');
+      var elTooltip = document.getElementById('dt-tooltip');
+      var dateSel = document.getElementById('dt-filter-date');
+      var pickerSel = document.getElementById('dt-filter-picker');
+      var typeSel = document.getElementById('dt-filter-type');
+      var businessSel = document.getElementById('dt-filter-business');
+      var shiftSeg = document.getElementById('dt-shift-seg');
+      var targetSeg = document.getElementById('dt-target-seg');
+      var countEl = document.getElementById('dt-picker-count');
+      if (!elEmpty || !elMain || !elCards || !elLegend || !elThead || !elTbody) return;
+
+      var MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var allLines = linesEl ? JSON.parse(linesEl.textContent) : [];
+      var filterMeta = metaEl ? JSON.parse(metaEl.textContent) : { date_mode: 'days', date_options: [], pickers: [] };
+      var pickerTypesMap = filterMeta.picker_types || {};
+      var pickerBusinessesMap = filterMeta.picker_businesses || {};
+      var activeShift = '';
+      var activeTarget = '';
+      var globalIdx = buildGlobalIndexes(allLines);
+
+      function formatDateShort(iso) {
+        if (!iso) return '—';
+        var p = iso.split('-');
+        if (p.length !== 3) return iso;
+        var day = parseInt(p[2], 10);
+        var mon = MONTHS_SHORT[parseInt(p[1], 10) - 1] || p[1];
+        return (day < 10 ? '0' : '') + day + '-' + mon;
+      }
+
+      function monthLabelFromIso(iso) {
+        if (!iso) return '';
+        var p = iso.split('-');
+        if (p.length < 2) return '';
+        return MONTHS_SHORT[parseInt(p[1], 10) - 1] || p[1];
+      }
+
+      function dtEsc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      }
+
+      function dtTypeBadgeKind(label) {
+        var t = String(label || '').trim().toLowerCase();
+        if (t.indexOf('super') >= 0) return 'supervisor';
+        if (t.indexOf('lead') >= 0) return 'lead';
+        if (t.indexOf('oper') >= 0) return 'operator';
+        if (t.indexOf('system') >= 0) return 'system';
+        return 'default';
+      }
+
+      function dtPickerStackHtml(name, typeLabel) {
+        var html = '<div class="dt-picker-stack"><span class="dt-picker-name">' + dtEsc(name) + '</span>';
+        if (typeLabel) {
+          html += '<span class="dt-type-badge" data-kind="' + dtEsc(dtTypeBadgeKind(typeLabel)) + '">' + dtEsc(typeLabel) + '</span>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      function dominantPickerTypes(lines) {
+        var out = {};
+        Object.keys(pickerTypesMap).forEach(function (p) {
+          if (pickerTypesMap[p]) out[p] = pickerTypesMap[p];
+        });
+        var counts = {};
+        lines.forEach(function (ln) {
+          if (!ln.p || !ln.ty) return;
+          if (!counts[ln.p]) counts[ln.p] = {};
+          counts[ln.p][ln.ty] = (counts[ln.p][ln.ty] || 0) + 1;
+        });
+        Object.keys(counts).forEach(function (p) {
+          var best = '';
+          var max = 0;
+          Object.keys(counts[p]).forEach(function (ty) {
+            if (counts[p][ty] > max) {
+              max = counts[p][ty];
+              best = ty;
+            }
+          });
+          if (best) out[p] = best;
+        });
+        return out;
+      }
+
+      function dominantPickerBusinesses(lines) {
+        var out = {};
+        Object.keys(pickerBusinessesMap).forEach(function (p) {
+          if (pickerBusinessesMap[p]) out[p] = pickerBusinessesMap[p];
+        });
+        var counts = {};
+        lines.forEach(function (ln) {
+          if (!ln.p || !ln.b) return;
+          if (!counts[ln.p]) counts[ln.p] = {};
+          counts[ln.p][ln.b] = (counts[ln.p][ln.b] || 0) + 1;
+        });
+        Object.keys(counts).forEach(function (p) {
+          var best = '';
+          var max = 0;
+          Object.keys(counts[p]).forEach(function (bz) {
+            if (counts[p][bz] > max) {
+              max = counts[p][bz];
+              best = bz;
+            }
+          });
+          if (best) out[p] = best;
+        });
+        return out;
+      }
+
+      function buildGlobalIndexes(lines) {
+        var dayTotals = {};
+        var pickerMonth = {};
+        lines.forEach(function (ln) {
+          if (!ln.d) return;
+          if (!dayTotals[ln.d]) dayTotals[ln.d] = { lines: 0, pick: 0, other: 0 };
+          dayTotals[ln.d].lines += 1;
+          if (ln.ip) dayTotals[ln.d].pick += 1;
+          else dayTotals[ln.d].other += 1;
+          var ym = ln.d.slice(0, 7);
+          var mk = ln.p + '\u0001' + ym;
+          if (!pickerMonth[mk]) pickerMonth[mk] = { lines: 0, pick: 0, other: 0 };
+          pickerMonth[mk].lines += 1;
+          if (ln.ip) pickerMonth[mk].pick += 1;
+          else pickerMonth[mk].other += 1;
+        });
+        return { dayTotals: dayTotals, pickerMonth: pickerMonth };
+      }
+
+      function mixedTarget(pick, other, total) {
+        if (total <= 0) return 0;
+        return Math.round((pick * 200 + other * 150) / total);
+      }
+
+      function fmtNum(n) {
+        return Number(n).toLocaleString('en-US');
+      }
+
+      function statusForAchievement(pct) {
+        if (pct >= 100) return { tier: 'green', tag: 'MET', pill: 'Target Met' };
+        if (pct >= 80) return { tier: 'yellow', tag: 'NEAR', pill: 'Near Target' };
+        return { tier: 'red', tag: 'DONE', pill: 'Day Completed' };
+      }
+
+      function lineType(ln) {
+        return ln.ty || pickerTypesMap[ln.p] || '';
+      }
+
+      function filterLines() {
+        var dateVal = dateSel ? dateSel.value : '';
+        var pickerVal = pickerSel ? pickerSel.value : '';
+        var typeVal = typeSel ? typeSel.value : '';
+        var businessVal = businessSel ? businessSel.value : '';
+        return allLines.filter(function (ln) {
+          if (pickerVal && ln.p !== pickerVal) return false;
+          if (typeVal && lineType(ln) !== typeVal) return false;
+          if (businessVal && (ln.b || '') !== businessVal) return false;
+          if (activeShift && ln.s !== activeShift) return false;
+          if (!dateVal) return true;
+          if (!ln.d) return false;
+          if (filterMeta.date_mode === 'months') return ln.d.slice(0, 7) === dateVal;
+          return ln.d === dateVal;
+        });
+      }
+
+      function buildModel(lines) {
+        var cells = {};
+        var datesSet = {};
+        var pickersSet = {};
+
+        lines.forEach(function (ln) {
+          if (!ln.d || !ln.p) return;
+          var key = ln.p + '\u0001' + ln.d;
+          if (!cells[key]) {
+            cells[key] = {
+              picker: ln.p,
+              date: ln.d,
+              lines: 0,
+              pick: 0,
+              other: 0,
+              orders: {},
+              shifts: { S1: 0, S2: 0, S3: 0 },
+              pickMins: []
+            };
+          }
+          var c = cells[key];
+          c.lines += 1;
+          if (ln.ip) c.pick += 1;
+          else c.other += 1;
+          if (ln.dn) c.orders[ln.dn] = 1;
+          var sh = ln.s || 'S3';
+          if (!c.shifts[sh]) c.shifts[sh] = 0;
+          c.shifts[sh] += 1;
+          if (ln.pm != null && !isNaN(ln.pm)) c.pickMins.push(ln.pm);
+          datesSet[ln.d] = 1;
+          pickersSet[ln.p] = 1;
+        });
+
+        var dates = Object.keys(datesSet).sort();
+        var pickers = Object.keys(pickersSet).sort();
+        var dailyRows = [];
+        var pickerTotals = {};
+
+        pickers.forEach(function (p) {
+          pickerTotals[p] = 0;
+        });
+
+        Object.keys(cells).forEach(function (key) {
+          var c = cells[key];
+          var tgt = mixedTarget(c.pick, c.other, c.lines);
+          var ach = tgt > 0 ? (c.lines / tgt) * 100 : 0;
+          var st = statusForAchievement(ach);
+          var orderCount = Object.keys(c.orders).length;
+          var avgPick = null;
+          if (c.pickMins.length) {
+            avgPick = Math.round(c.pickMins.reduce(function (s, v) { return s + v; }, 0) / c.pickMins.length);
+          }
+          pickerTotals[c.picker] += c.lines;
+          dailyRows.push({
+            picker: c.picker,
+            date: c.date,
+            lines: c.lines,
+            pick: c.pick,
+            other: c.other,
+            target: tgt,
+            achievement: ach,
+            orders: orderCount,
+            avgPick: avgPick,
+            shifts: c.shifts,
+            tier: st.tier,
+            tag: st.tag,
+            pill: st.pill
+          });
+        });
+
+        var totalLines = lines.length;
+        var operatingDays = dates.length;
+        var targetMetDays = dailyRows.filter(function (d) { return d.achievement >= 100; }).length;
+        var targetAchievementPct = dailyRows.length ? (targetMetDays / dailyRows.length) * 100 : 0;
+        var dailyAvg = operatingDays ? totalLines / operatingDays : 0;
+
+        return {
+          dates: dates,
+          pickers: pickers,
+          pickerTypes: dominantPickerTypes(lines),
+          pickerBusinesses: dominantPickerBusinesses(lines),
+          cells: cells,
+          dailyRows: dailyRows,
+          pickerTotals: pickerTotals,
+          summary: {
+            totalLines: totalLines,
+            targetAchievementPct: targetAchievementPct,
+            pickerDaysLogged: dailyRows.length,
+            pickerCount: pickers.length,
+            operatingDays: operatingDays,
+            dailyAvg: dailyAvg,
+            targetMetDays: targetMetDays
+          }
+        };
+      }
+
+      function applyTargetToModel(model) {
+        if (!activeTarget) return model;
+        var keep = model.dailyRows.filter(function (d) {
+          return activeTarget === 'hit' ? d.achievement >= 100 : d.achievement < 100;
+        });
+        var pickersSet = {};
+        var datesSet = {};
+        var pickerTotals = {};
+        var keepKeys = {};
+        keep.forEach(function (d) {
+          pickersSet[d.picker] = 1;
+          datesSet[d.date] = 1;
+          pickerTotals[d.picker] = (pickerTotals[d.picker] || 0) + d.lines;
+          keepKeys[d.picker + '\u0001' + d.date] = 1;
+        });
+        var cells = {};
+        Object.keys(model.cells).forEach(function (key) {
+          if (keepKeys[key]) cells[key] = model.cells[key];
+        });
+        var pickers = Object.keys(pickersSet).sort();
+        var dates = Object.keys(datesSet).sort();
+        var totalLines = keep.reduce(function (s, d) { return s + d.lines; }, 0);
+        var operatingDays = dates.length;
+        var targetMetDays = keep.filter(function (d) { return d.achievement >= 100; }).length;
+        model.dailyRows = keep;
+        model.pickers = pickers;
+        model.dates = dates;
+        model.pickerTotals = pickerTotals;
+        model.cells = cells;
+        model.summary = {
+          totalLines: totalLines,
+          targetAchievementPct: keep.length ? (targetMetDays / keep.length) * 100 : 0,
+          pickerDaysLogged: keep.length,
+          pickerCount: pickers.length,
+          operatingDays: operatingDays,
+          dailyAvg: operatingDays ? totalLines / operatingDays : 0,
+          targetMetDays: targetMetDays
+        };
+        return model;
+      }
+
+      function cardIconSvg(key) {
+        var icons = {
+          total_lines: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4V4zm0 5h10v2H4V9zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>',
+          target_rate: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a1 1 0 0 1 1 1v1.07a7.002 7.002 0 0 1 5.93 5.93H20a1 1 0 1 1 0 2h-1.07A7.002 7.002 0 0 1 12 19.93V21a1 1 0 1 1-2 0v-1.07A7.002 7.002 0 0 1 4.07 13H3a1 1 0 1 1 0-2h1.07A7.002 7.002 0 0 1 11 5.07V4a1 1 0 0 1 1-1zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>',
+          picker_days: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>',
+          daily_avg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h11v9H3V6zm12 2h2.4L19 12v3h-4v-3zm-1 9a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>'
+        };
+        return icons[key] || '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 3 2-7L2 9h7l3-7z"/></svg>';
+      }
+
+      function renderSummary(model) {
+        var s = model.summary;
+        var cards = [
+          {
+            key: 'total_lines',
+            accent: 'violet',
+            label: 'Total Lines',
+            value: fmtNum(s.totalLines),
+            sub: 'Across ' + s.operatingDays + ' operating day' + (s.operatingDays === 1 ? '' : 's')
+          },
+          {
+            key: 'target_rate',
+            accent: 'emerald',
+            label: 'Target Achievement',
+            value: s.targetAchievementPct.toFixed(1) + '%',
+            sub: 'Days at ≥100% target'
+          },
+          {
+            key: 'picker_days',
+            accent: 'blue',
+            label: 'Picker-Days Logged',
+            value: fmtNum(s.pickerDaysLogged),
+            sub: s.pickerCount + ' picker' + (s.pickerCount === 1 ? '' : 's') + ' active'
+          },
+          {
+            key: 'daily_avg',
+            accent: 'orange',
+            label: 'Daily Avg Lines',
+            value: s.dailyAvg.toFixed(1),
+            sub: 'Total ÷ operating days'
+          }
+        ];
+        elCards.innerHTML = '';
+        cards.forEach(function (c) {
+          var art = document.createElement('article');
+          art.className = 'perf-kpi-card dash-metric-card';
+          art.setAttribute('data-accent', c.accent);
+          art.setAttribute('data-key', c.key);
+          art.innerHTML =
+            '<h4 class="dash-metric-label"></h4>' +
+            '<div class="dash-metric-top">' +
+            '<div class="dash-metric-val"></div>' +
+            '<div class="dash-metric-icon" aria-hidden="true"></div>' +
+            '</div>' +
+            '<p class="dash-metric-sub"></p>';
+          art.querySelector('.dash-metric-label').textContent = c.label;
+          art.querySelector('.dash-metric-val').textContent = c.value;
+          art.querySelector('.dash-metric-sub').textContent = c.sub;
+          art.querySelector('.dash-metric-icon').innerHTML = cardIconSvg(c.key);
+          elCards.appendChild(art);
+        });
+      }
+
+      function cellLookup(model, picker, date) {
+        var key = picker + '\u0001' + date;
+        return model.cells[key] || null;
+      }
+
+      function showTooltip(ev, detail) {
+        if (!elTooltip || !detail) return;
+        var achStr = detail.target > 0 ? Math.round(detail.achievement) + '%' : '—';
+        var shiftParts = [];
+        ['S1', 'S2', 'S3'].forEach(function (sh) {
+          var n = detail.shifts[sh] || 0;
+          if (n > 0) shiftParts.push(sh + '-' + n);
+        });
+        var shiftStr = shiftParts.length ? shiftParts.join(' ') : '—';
+        var dayT = globalIdx.dayTotals[detail.date];
+        var monthKey = detail.picker + '\u0001' + detail.date.slice(0, 7);
+        var monthT = globalIdx.pickerMonth[monthKey];
+        var monLbl = monthLabelFromIso(detail.date);
+        var extra = '';
+        if (dayT || monthT) {
+          extra += '<div class="dt-tip-divider"></div>';
+          extra += '<div class="dt-tip-section-label">Warehouse totals (SAP)</div>';
+        }
+        if (dayT) {
+          extra +=
+            '<div class="dt-tip-row"><span>Day total · ' + formatDateShort(detail.date) + '</span><span>' +
+            fmtNum(dayT.lines) + ' · PICK ' + fmtNum(dayT.pick) + ' / Other ' + fmtNum(dayT.other) +
+            '</span></div>';
+        }
+        if (monthT) {
+          extra +=
+            '<div class="dt-tip-row"><span>Month total · ' + detail.picker +
+            (monLbl ? ' (' + monLbl + ')' : '') +
+            '</span><span>' +
+            fmtNum(monthT.lines) + ' · PICK ' + fmtNum(monthT.pick) + ' / Other ' + fmtNum(monthT.other) +
+            '</span></div>';
+        }
+        elTooltip.innerHTML =
+          '<div class="dt-tip-head">' + detail.picker + ' · ' + formatDateShort(detail.date) + '</div>' +
+          '<div class="dt-tip-row"><span>Lines</span><span>' + detail.lines + '</span></div>' +
+          '<div class="dt-tip-row"><span>Target</span><span>' + detail.target + '</span></div>' +
+          '<div class="dt-tip-row"><span>Achievement</span><span>' + achStr + '</span></div>' +
+          '<div class="dt-tip-row"><span>Orders</span><span>' + detail.orders + '</span></div>' +
+          '<div class="dt-tip-row"><span>PICK / Other</span><span>' + detail.pick + ' / ' + detail.other + '</span></div>' +
+          '<div class="dt-tip-row"><span>Avg pick</span><span>' + (detail.avgPick != null ? detail.avgPick + ' min' : '—') + '</span></div>' +
+          '<div class="dt-tip-row"><span>Shifts</span><span>' + shiftStr + '</span></div>' +
+          extra +
+          '<span class="dt-tip-pill ' + detail.tier + '">' + detail.pill + '</span>';
+        elTooltip.removeAttribute('hidden');
+        positionTooltip(ev);
+      }
+
+      function hideTooltip() {
+        if (elTooltip) elTooltip.setAttribute('hidden', 'hidden');
+      }
+
+      function positionTooltip(ev) {
+        if (!elTooltip) return;
+        var pad = 12;
+        var x = ev.clientX + pad;
+        var y = ev.clientY + pad;
+        elTooltip.style.left = x + 'px';
+        elTooltip.style.top = y + 'px';
+        var rect = elTooltip.getBoundingClientRect();
+        if (rect.right > window.innerWidth - 8) {
+          elTooltip.style.left = Math.max(8, ev.clientX - rect.width - pad) + 'px';
+        }
+        if (rect.bottom > window.innerHeight - 8) {
+          elTooltip.style.top = Math.max(8, ev.clientY - rect.height - pad) + 'px';
+        }
+      }
+
+      function buildHeatCell(detail) {
+        var td = document.createElement('td');
+        td.className = 'dt-heat';
+        var inner = document.createElement('div');
+        inner.className = 'dt-heat-inner';
+        if (!detail) {
+          td.classList.add('dt-empty');
+          var dash = document.createElement('span');
+          dash.className = 'dt-heat-lines';
+          dash.textContent = '—';
+          inner.appendChild(dash);
+        } else {
+          td.classList.add('dt-' + detail.tier, 'dt-has-data');
+          var num = document.createElement('span');
+          num.className = 'dt-heat-lines';
+          num.textContent = String(detail.lines);
+          var tag = document.createElement('span');
+          tag.className = 'dt-heat-tag';
+          tag.textContent = detail.tag;
+          inner.appendChild(num);
+          inner.appendChild(tag);
+          td.addEventListener('mouseenter', function (ev) {
+            showTooltip(ev, detail);
+          });
+          td.addEventListener('mousemove', positionTooltip);
+          td.addEventListener('mouseleave', hideTooltip);
+        }
+        td.appendChild(inner);
+        return td;
+      }
+
+      function renderTable(model) {
+        var s = model.summary;
+        elLegend.innerHTML =
+          '<span><span class="dt-swatch green" aria-hidden="true"></span> Target Met ≥100%</span>' +
+          '<span><span class="dt-swatch yellow" aria-hidden="true"></span> Near Target 80–99%</span>' +
+          '<span><span class="dt-swatch red" aria-hidden="true"></span> Day Completed &lt;80%</span>' +
+          '<span><span class="dt-swatch grey" aria-hidden="true"></span> No shift</span>' +
+          '<span class="dt-legend-meta">' + s.pickerCount + ' pickers · ' + s.operatingDays + ' days</span>';
+
+        var trh = document.createElement('tr');
+        var th0 = document.createElement('th');
+        th0.className = 'dt-picker-head';
+        th0.textContent = 'Picker Name';
+        trh.appendChild(th0);
+        var thBiz = document.createElement('th');
+        thBiz.className = 'dt-business-head';
+        thBiz.textContent = 'Business';
+        trh.appendChild(thBiz);
+        model.dates.forEach(function (d) {
+          var th = document.createElement('th');
+          th.textContent = formatDateShort(d);
+          trh.appendChild(th);
+        });
+        var thTot = document.createElement('th');
+        thTot.className = 'dt-total-head';
+        thTot.textContent = 'Total';
+        trh.appendChild(thTot);
+        elThead.innerHTML = '';
+        elThead.appendChild(trh);
+
+        elTbody.innerHTML = '';
+        model.pickers.forEach(function (picker) {
+          var tr = document.createElement('tr');
+          var td0 = document.createElement('td');
+          td0.className = 'dt-picker-cell';
+          td0.innerHTML = dtPickerStackHtml(picker, (model.pickerTypes && model.pickerTypes[picker]) || '');
+          tr.appendChild(td0);
+          var tdBiz = document.createElement('td');
+          tdBiz.className = 'dt-business-cell';
+          tdBiz.textContent = (model.pickerBusinesses && model.pickerBusinesses[picker]) || '—';
+          tr.appendChild(tdBiz);
+
+          model.dates.forEach(function (d) {
+            var raw = cellLookup(model, picker, d);
+            var detail = null;
+            if (raw) {
+              var tgt = mixedTarget(raw.pick, raw.other, raw.lines);
+              var ach = tgt > 0 ? (raw.lines / tgt) * 100 : 0;
+              var st = statusForAchievement(ach);
+              var orderCount = Object.keys(raw.orders).length;
+              var avgPick = null;
+              if (raw.pickMins.length) {
+                avgPick = Math.round(raw.pickMins.reduce(function (s, v) { return s + v; }, 0) / raw.pickMins.length);
+              }
+              detail = {
+                picker: picker,
+                date: d,
+                lines: raw.lines,
+                pick: raw.pick,
+                other: raw.other,
+                target: tgt,
+                achievement: ach,
+                orders: orderCount,
+                avgPick: avgPick,
+                shifts: raw.shifts,
+                tier: st.tier,
+                tag: st.tag,
+                pill: st.pill
+              };
+            }
+            tr.appendChild(buildHeatCell(detail));
+          });
+
+          var tdTot = document.createElement('td');
+          tdTot.className = 'dt-total-cell';
+          tdTot.textContent = fmtNum(model.pickerTotals[picker] || 0);
+          tr.appendChild(tdTot);
+          elTbody.appendChild(tr);
+        });
+      }
+
+      function setVisibility(hasData) {
+        if (hasData) {
+          elEmpty.setAttribute('hidden', 'hidden');
+          elMain.removeAttribute('hidden');
+        } else {
+          elEmpty.removeAttribute('hidden');
+          elMain.setAttribute('hidden', 'hidden');
+        }
+      }
+
+      function render() {
+        if (!allLines.length) {
+          setVisibility(false);
+          elCards.innerHTML = '';
+          elThead.innerHTML = '';
+          elTbody.innerHTML = '';
+          elLegend.innerHTML = '';
+          return;
+        }
+        setVisibility(true);
+        var filtered = filterLines();
+        var model = applyTargetToModel(buildModel(filtered));
+        if (countEl) {
+          countEl.textContent = model.summary.pickerCount + ' picker' + (model.summary.pickerCount === 1 ? '' : 's');
+        }
+        renderSummary(model);
+        renderTable(model);
+      }
+
+      if (dateSel) dateSel.addEventListener('change', render);
+      if (pickerSel) pickerSel.addEventListener('change', render);
+      if (typeSel) typeSel.addEventListener('change', render);
+      if (businessSel) businessSel.addEventListener('change', render);
+      if (shiftSeg) {
+        shiftSeg.addEventListener('click', function (e) {
+          var btn = e.target.closest('button[data-shift]');
+          if (!btn) return;
+          activeShift = btn.getAttribute('data-shift') || '';
+          shiftSeg.querySelectorAll('button').forEach(function (b) {
+            b.classList.toggle('active', b === btn);
+          });
+          render();
+        });
+      }
+      if (targetSeg) {
+        targetSeg.addEventListener('click', function (e) {
+          var btn = e.target.closest('button[data-target]');
+          if (!btn) return;
+          activeTarget = btn.getAttribute('data-target') || '';
+          targetSeg.querySelectorAll('button').forEach(function (b) {
+            b.classList.toggle('active', b === btn);
+          });
+          render();
+        });
+      }
+
+      window.__dailyTrackerSetPayload = function () { /* legacy workbook hook — no-op */ };
+      window.__renderDailyTracker = render;
+
+      render();
+    })();
+  </script>
+{% endblock %}

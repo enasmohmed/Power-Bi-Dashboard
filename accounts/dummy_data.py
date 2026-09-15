@@ -49,6 +49,77 @@ OVERVIEW = {
 }
 
 
+def _ob_hover(title, key, metric, days, companies, unit=None, rank_title=None):
+    data = {
+        "title": title,
+        "key": key,
+        "metric": metric,
+        "unit": unit or ("misses" if metric == "miss" else "SLA %"),
+        "days": days,
+        "companies": companies,
+    }
+    if rank_title:
+        data["rank_title"] = rank_title
+    return data
+
+
+def _stamp_city_hovers(payload):
+    for company in payload.get("companies") or []:
+        title = "Warehouses" if company.get("layout") == "warehouse" else "Cities"
+        cards = company.get("cards") or []
+        scored = [card for card in cards if card.get("score") is not None]
+        best = max(scored, key=lambda card: card["score"]) if len(scored) >= 2 else None
+        worst = min(scored, key=lambda card: card["score"]) if len(scored) >= 2 else None
+        ranked = []
+        for card in sorted(cards, key=lambda item: (-(item.get("score") or 0), item.get("name") or "")):
+            score = card.get("score")
+            flag = ""
+            if best is not None and worst is not None and best is not worst:
+                if card is best:
+                    flag = "best"
+                elif card is worst:
+                    flag = "worst"
+            ranked.append({
+                "name": card.get("name"),
+                "pct_label": "100%" if score == 100 else f"{score}%",
+                "bar": 0 if score is None else max(8, min(100, int(round(float(score))))),
+                "dot": "#22c55e" if (score or 0) >= 100 else ("#f59e0b" if (score or 0) >= 90 else "#dc2626"),
+                "flag": flag,
+                "tone": card.get("tone") or "ok",
+            })
+        for card in cards:
+            score = card.get("score") or 0
+            bar = max(8, min(100, int(round(float(score)))))
+            tone = card.get("tone") or "ok"
+            label = "100%" if score == 100 else f"{score}%"
+            card["hover"] = _ob_hover(card["name"], "location", "pct", [
+                {"label": "Before", "date": "29 Mar", "pct_label": label, "bar": bar, "tone": tone, "total": 10},
+                {"label": "Yesterday", "date": "30 Mar", "pct_label": label, "bar": bar, "tone": tone, "total": 12},
+                {"label": "Today", "date": "31 Mar", "pct_label": label, "bar": bar, "tone": tone, "total": 8},
+            ], ranked, rank_title=title)
+    return payload
+
+
+def _stamp_inventory_hovers(payload):
+    for company in payload.get("companies") or []:
+        for kpi in company.get("kpis") or []:
+            value = int(kpi.get("value") or 0)
+            label = f"{value:,}"
+            text = str(kpi.get("label") or "").lower()
+            if "located" in text:
+                key, unit = "inv_located", "LPNs"
+            elif "received" in text:
+                key, unit = "inv_received", "LPNs"
+            else:
+                key, unit = "inv_qty", "qty"
+            kpi["hover"] = _ob_hover(kpi["label"], key, "count", [
+                {"label": "Before", "date": "15 Aug", "pct_label": label, "bar": 72, "tone": kpi.get("tone") or "info", "total": 1},
+                {"label": "Yesterday", "date": "16 Aug", "pct_label": label, "bar": 100, "tone": kpi.get("tone") or "info", "total": 1},
+                {"label": "Today", "date": "17 Aug", "pct_label": label, "bar": 84, "tone": kpi.get("tone") or "info", "total": 1},
+            ], [], unit=unit)
+    return payload
+
+
 OUTBOUND = {
     "year_range": "2023 - 2026",
     "companies": [
@@ -61,10 +132,38 @@ OUTBOUND = {
             "table_title": "Hit / Miss by Warehouse",
             "sla_note": "Local 48h — Remote 72h",
             "kpis": [
-                {"label": "Local Despatch", "value": "96.6%", "sub": "1,736 Hit / 62 Miss", "tone": "ok"},
-                {"label": "Local CRO", "value": "96.4%", "sub": "1,733 Hit / 65 Miss", "tone": "ok"},
-                {"label": "Remote Despatch", "value": "98.1%", "sub": "659 Hit / 13 Miss", "tone": "ok"},
-                {"label": "Remote CRO", "value": "97.6%", "sub": "643 Hit / 15 Miss", "tone": "ok"},
+                {"label": "Local Despatch", "value": "96.6%", "sub": "1,736 Hit / 62 Miss", "tone": "ok", "rank_value": 96.6, "hover": _ob_hover("Local Despatch", "local_despatch", "pct", [
+                    {"label": "Before", "date": "29 Mar", "pct": 94.1, "pct_label": "94.1%", "bar": 94, "tone": "warn", "total": 51},
+                    {"label": "Yesterday", "date": "30 Mar", "pct": 97.8, "pct_label": "97.8%", "bar": 98, "tone": "ok", "total": 91},
+                    {"label": "Today", "date": "31 Mar", "pct": 92.5, "pct_label": "92.5%", "bar": 93, "tone": "warn", "total": 40},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "100%", "bar": 100, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "96.6%", "bar": 97, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
+                {"label": "Local CRD", "value": "96.4%", "sub": "1,733 Hit / 65 Miss", "tone": "ok", "rank_value": 96.4, "hover": _ob_hover("Local CRD", "local_crd", "pct", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "95.2%", "bar": 95, "tone": "ok", "total": 50},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "97.0%", "bar": 97, "tone": "ok", "total": 88},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "91.8%", "bar": 92, "tone": "warn", "total": 38},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "100%", "bar": 100, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "96.4%", "bar": 96, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
+                {"label": "Remote Despatch", "value": "98.1%", "sub": "659 Hit / 13 Miss", "tone": "ok", "rank_value": 98.1, "hover": _ob_hover("Remote Despatch", "remote_despatch", "pct", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "97.4%", "bar": 97, "tone": "ok", "total": 22},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "99.1%", "bar": 99, "tone": "ok", "total": 31},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "96.0%", "bar": 96, "tone": "ok", "total": 18},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "98.7%", "bar": 99, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "98.1%", "bar": 98, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
+                {"label": "Remote CRD", "value": "97.6%", "sub": "643 Hit / 15 Miss", "tone": "ok", "rank_value": 97.6, "hover": _ob_hover("Remote CRD", "remote_crd", "pct", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "96.8%", "bar": 97, "tone": "ok", "total": 21},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "98.4%", "bar": 98, "tone": "ok", "total": 30},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "95.5%", "bar": 96, "tone": "ok", "total": 17},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "98.0%", "bar": 98, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "97.6%", "bar": 98, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
             ],
             "rows": [
                 {"name": "Abha", "dot": "#f59e0b", "local_hit": 65, "local_miss": 3, "local_pct": 95.8, "remote_hit": 92, "remote_miss": None, "remote_pct": 100, "total": 160},
@@ -89,10 +188,38 @@ OUTBOUND = {
             "table_title": "Hit / Miss by City",
             "sla_note": "Local 48h — Remote 72h",
             "kpis": [
-                {"label": "Local Despatch (48h)", "value": "100%", "sub": "45/45 orders", "tone": "ok"},
-                {"label": "Remote Despatch (72h)", "value": "98.7%", "sub": "150/152 orders", "tone": "ok"},
-                {"label": "Total Misses", "value": "2", "sub": "Makkah remote orders", "tone": "bad"},
-                {"label": "Overall", "value": "99.0%", "sub": "195/197 orders", "tone": "ok"},
+                {"label": "Local Despatch (48h)", "value": "100%", "sub": "45/45 orders", "tone": "ok", "rank_value": 100, "hover": _ob_hover("Local Despatch (48h)", "local_despatch", "pct", [
+                    {"label": "Before", "date": "29 Aug", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 12},
+                    {"label": "Yesterday", "date": "30 Aug", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 18},
+                    {"label": "Today", "date": "31 Aug", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 15},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "100%", "bar": 100, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "96.6%", "bar": 97, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
+                {"label": "Remote Despatch (72h)", "value": "98.7%", "sub": "150/152 orders", "tone": "ok", "rank_value": 98.7, "hover": _ob_hover("Remote Despatch (72h)", "remote_despatch", "pct", [
+                    {"label": "Before", "date": "29 Aug", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 40},
+                    {"label": "Yesterday", "date": "30 Aug", "pct_label": "97.5%", "bar": 98, "tone": "ok", "total": 52},
+                    {"label": "Today", "date": "31 Aug", "pct_label": "98.2%", "bar": 98, "tone": "ok", "total": 48},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "98.7%", "bar": 99, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "98.1%", "bar": 98, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
+                {"label": "Total Misses", "value": "2", "sub": "Makkah remote orders", "tone": "bad", "rank_value": 2, "hover": _ob_hover("Total Misses", "total_misses", "miss", [
+                    {"label": "Before", "date": "29 Aug", "pct_label": "0", "bar": 8, "tone": "ok", "total": 52},
+                    {"label": "Yesterday", "date": "30 Aug", "pct_label": "1", "bar": 50, "tone": "bad", "total": 70},
+                    {"label": "Today", "date": "31 Aug", "pct_label": "1", "bar": 50, "tone": "bad", "total": 63},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "2", "bar": 8, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "77", "bar": 100, "dot": "#e53935", "flag": "worst", "tone": "bad"},
+                ])},
+                {"label": "Overall", "value": "99.0%", "sub": "195/197 orders", "tone": "ok", "rank_value": 99.0, "hover": _ob_hover("Overall", "overall", "pct", [
+                    {"label": "Before", "date": "29 Aug", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 52},
+                    {"label": "Yesterday", "date": "30 Aug", "pct_label": "98.6%", "bar": 99, "tone": "ok", "total": 70},
+                    {"label": "Today", "date": "31 Aug", "pct_label": "98.4%", "bar": 98, "tone": "ok", "total": 63},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "99.0%", "bar": 99, "dot": "#43a047", "flag": "best", "tone": "ok"},
+                    {"name": "IFFCO", "pct_label": "97.8%", "bar": 98, "dot": "#e53935", "flag": "worst", "tone": "ok"},
+                ])},
             ],
             "rows": [
                 {"name": "Jeddah", "dot": "#22c55e", "orders": 45, "hit": 45, "miss": None, "sla": 100, "status": "Perfect"},
@@ -125,10 +252,36 @@ INBOUND = {
             "table_title": "Inbound by Warehouse — IFFCO",
             "sla_note": "Target: 24h",
             "kpis": [
-                {"label": "System Receiving", "value": "100%", "sub": "All within 24h", "tone": "ok"},
-                {"label": "GRN Sharing", "value": "100%", "sub": "All on time", "tone": "ok"},
-                {"label": "All Warehouses", "value": "7/7", "sub": "Perfect compliance", "tone": "ok"},
-                {"label": "Inbound SLA", "value": "100%", "sub": "Target: 24 hours", "tone": "ok"},
+                {"label": "System Receiving", "value": "100%", "sub": "All within 24h", "tone": "ok", "rank_value": 100, "hover": _ob_hover("System Receiving", "ib_receiving", "rcv", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 12},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 18},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 9},
+                ], [
+                    {"name": "IFFCO", "pct_label": "100%", "bar": 100, "dot": "#e53935", "flag": "best", "tone": "ok"},
+                    {"name": "ARAMCO", "pct_label": "62.1%", "bar": 62, "dot": "#43a047", "flag": "worst", "tone": "warn"},
+                ])},
+                {"label": "GRN Sharing", "value": "100%", "sub": "All on time", "tone": "ok", "rank_value": 100, "hover": _ob_hover("GRN Sharing", "ib_grn", "grn", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 12},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 18},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 9},
+                ], [
+                    {"name": "IFFCO", "pct_label": "100%", "bar": 100, "dot": "#e53935", "flag": "best", "tone": "ok"},
+                ])},
+                {"label": "All Warehouses", "value": "7/7", "sub": "Perfect compliance", "tone": "ok", "rank_value": 100, "rank_label": "7/7", "hover": _ob_hover("All Warehouses", "ib_warehouses", "wh", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "7/7", "bar": 100, "tone": "ok", "total": 7},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "7/7", "bar": 100, "tone": "ok", "total": 7},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "7/7", "bar": 100, "tone": "ok", "total": 7},
+                ], [
+                    {"name": "IFFCO", "pct_label": "7/7", "bar": 100, "dot": "#e53935", "flag": "", "tone": "ok"},
+                ])},
+                {"label": "Inbound SLA", "value": "100%", "sub": "Target: 24 hours", "tone": "ok", "rank_value": 100, "hover": _ob_hover("Inbound SLA", "ib_receiving", "rcv", [
+                    {"label": "Before", "date": "29 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 12},
+                    {"label": "Yesterday", "date": "30 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 18},
+                    {"label": "Today", "date": "31 Mar", "pct_label": "100%", "bar": 100, "tone": "ok", "total": 9},
+                ], [
+                    {"name": "IFFCO", "pct_label": "100%", "bar": 100, "dot": "#e53935", "flag": "best", "tone": "ok"},
+                    {"name": "ARAMCO", "pct_label": "62.1%", "bar": 62, "dot": "#43a047", "flag": "worst", "tone": "warn"},
+                ])},
             ],
             "rows": [
                 {"name": "Abha", "receiving": 100, "grn": 100, "status": "On Track"},
@@ -151,10 +304,35 @@ INBOUND = {
             "table_title": "Inbound Shipments — SLA (24h)",
             "sla_note": "Target: 24h",
             "kpis": [
-                {"label": "Inbound SLA (24h)", "value": "62.1%", "sub": "36 Hit / 22 Miss", "tone": "warn"},
-                {"label": "Shipments Missed", "value": "22", "sub": "Exceeded 24h window", "tone": "bad"},
-                {"label": "Total Shipments", "value": "58", "sub": "Standard + Returns", "tone": "info"},
-                {"label": "Avg Miss Duration", "value": "~35h", "sub": "Most: 31-40h range", "tone": "warn"},
+                {"label": "Inbound SLA (24h)", "value": "62.1%", "sub": "36 Hit / 22 Miss", "tone": "warn", "rank_value": 62.1, "hover": _ob_hover("Inbound SLA (24h)", "ib_receiving", "rcv", [
+                    {"label": "Before", "date": "15 Aug", "pct_label": "70.0%", "bar": 70, "tone": "warn", "total": 10},
+                    {"label": "Yesterday", "date": "16 Aug", "pct_label": "55.0%", "bar": 55, "tone": "warn", "total": 20},
+                    {"label": "Today", "date": "17 Aug", "pct_label": "62.5%", "bar": 63, "tone": "warn", "total": 8},
+                ], [
+                    {"name": "IFFCO", "pct_label": "100%", "bar": 100, "dot": "#e53935", "flag": "best", "tone": "ok"},
+                    {"name": "ARAMCO", "pct_label": "62.1%", "bar": 62, "dot": "#43a047", "flag": "worst", "tone": "warn"},
+                ])},
+                {"label": "Shipments Missed", "value": "22", "sub": "Exceeded 24h window", "tone": "bad", "rank_value": 22, "hover": _ob_hover("Shipments Missed", "ib_misses", "miss", [
+                    {"label": "Before", "date": "15 Aug", "pct_label": "3", "bar": 38, "tone": "bad", "total": 10},
+                    {"label": "Yesterday", "date": "16 Aug", "pct_label": "9", "bar": 100, "tone": "bad", "total": 20},
+                    {"label": "Today", "date": "17 Aug", "pct_label": "3", "bar": 38, "tone": "bad", "total": 8},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "22", "bar": 100, "dot": "#43a047", "flag": "worst", "tone": "bad"},
+                ], unit="misses")},
+                {"label": "Total Shipments", "value": "58", "sub": "Standard + Returns", "tone": "info", "rank_value": 58, "hover": _ob_hover("Total Shipments", "ib_total", "count", [
+                    {"label": "Before", "date": "15 Aug", "pct_label": "10", "bar": 50, "tone": "info", "total": 10},
+                    {"label": "Yesterday", "date": "16 Aug", "pct_label": "20", "bar": 100, "tone": "info", "total": 20},
+                    {"label": "Today", "date": "17 Aug", "pct_label": "8", "bar": 40, "tone": "info", "total": 8},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "58", "bar": 100, "dot": "#43a047", "flag": "", "tone": "info"},
+                ], unit="shipments")},
+                {"label": "Avg Miss Duration", "value": "~35h", "sub": "Most: 31-40h range", "tone": "warn", "rank_value": 35, "hover": _ob_hover("Avg Miss Duration", "ib_avg_miss", "hours", [
+                    {"label": "Before", "date": "15 Aug", "pct_label": "~31h", "bar": 82, "tone": "warn", "total": 3},
+                    {"label": "Yesterday", "date": "16 Aug", "pct_label": "~38h", "bar": 100, "tone": "warn", "total": 9},
+                    {"label": "Today", "date": "17 Aug", "pct_label": "~28h", "bar": 74, "tone": "warn", "total": 3},
+                ], [
+                    {"name": "ARAMCO", "pct_label": "~35h", "bar": 100, "dot": "#43a047", "flag": "", "tone": "warn"},
+                ], unit="hours")},
             ],
             "rows": [
                 {"shipment": "SHARAMCO...88122", "type": "Return", "arrival": "2026-08-17", "hours": 14.1, "hours_width": 35.3, "hours_tone": "ok", "rcv": 100, "status": "On Time"},
@@ -214,6 +392,8 @@ CITIES = {
     ],
 }
 
+_stamp_city_hovers(CITIES)
+
 
 INVENTORY = {
     "year_range": "2025 - 2026",
@@ -238,6 +418,8 @@ INVENTORY = {
         },
     ],
 }
+
+_stamp_inventory_hovers(INVENTORY)
 
 
 SLA = {

@@ -1,0 +1,100 @@
+/* Login / Sign-up palette aligned with the KPI dashboard */
+:root {
+    --kpi-green: #1b5e32;
+    --kpi-green-soft: #e8f3ec;
+    --kpi-text: #111827;
+    --kpi-muted: #6b7280;
+    --kpi-line: #e5e7eb;
+    --kpi-bg: #f4f6f8;
+    --kpi-ok: #16a34a;
+    --kpi-bad: #dc2626;
+    --kpi-warn: #d97706;
+    --theme-default: #1b5e32;
+    --theme-secondary: #d97706;
+}
+
+html,
+body {
+    background: var(--kpi-bg) !important;
+    color: var(--kpi-text);
+}
+
+.login-card {
+    --theme-default: #1b5e32;
+    --theme-secondary: #d97706;
+    background-image: none !important;
+    background-color: var(--kpi-bg) !important;
+    background:
+        radial-gradient(980px 420px at 6% -8%, rgba(22, 163, 74, 0.16), transparent 58%),
+        radial-gradient(820px 380px at 96% 4%, rgba(217, 119, 6, 0.14), transparent 52%),
+        radial-gradient(760px 360px at 92% 108%, rgba(220, 38, 38, 0.10), transparent 54%),
+        radial-gradient(640px 320px at 4% 108%, rgba(27, 94, 50, 0.12), transparent 50%),
+        var(--kpi-bg) !important;
+}
+
+.login-card .logo img {
+    max-height: 120px;
+    width: auto;
+    max-width: 380px;
+    object-fit: contain;
+}
+
+.login-card .login-main {
+    background: #fff !important;
+    border: 1px solid #eceff2;
+    border-top: 4px solid var(--kpi-ok);
+    border-radius: 14px !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 16px rgba(16, 24, 40, 0.04);
+}
+
+.login-card .login-main .theme-form h3,
+.login-card .login-main .theme-form h4,
+.login-card label,
+.login-card .col-form-label {
+    color: var(--kpi-green) !important;
+    font-weight: 700;
+}
+
+.login-card .login-main .theme-form p,
+.login-card .form-text {
+    color: var(--kpi-muted) !important;
+}
+
+.login-card .login-main .theme-form input,
+.login-card input[type="text"],
+.login-card input[type="email"],
+.login-card input[type="password"],
+.login-card select {
+    background-color: var(--kpi-green-soft) !important;
+    border: 1px solid var(--kpi-line) !important;
+    color: var(--kpi-text) !important;
+}
+
+.login-card .login-main .theme-form input:hover,
+.login-card .login-main .theme-form input:focus,
+.login-card input:focus,
+.login-card select:focus {
+    border-color: var(--kpi-green) !important;
+    box-shadow: 0 0 0 3px rgba(27, 94, 50, 0.12) !important;
+}
+
+.login-card .btn-primary {
+    background-color: var(--kpi-green) !important;
+    border-color: var(--kpi-green) !important;
+    color: #fff !important;
+}
+
+.login-card .btn-primary:hover,
+.login-card .btn-primary:focus {
+    background-color: #154a28 !important;
+    border-color: #154a28 !important;
+}
+
+.login-card a {
+    color: var(--kpi-ok) !important;
+    font-weight: 600;
+}
+
+.login-card a:hover {
+    color: var(--kpi-green) !important;
+}

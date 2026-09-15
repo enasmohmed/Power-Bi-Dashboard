@@ -834,6 +834,202 @@ def _count_hit_miss(df, lane=None, kind="despatch"):
     return hit, miss, total, _pct(hit, total)
 
 
+def _kpi_day_trend(df, lane=None, kind="despatch", metric="pct", last_n=3):
+    date_col = _order_date_col(df)
+    if df is None or df.empty or not date_col or date_col not in df.columns:
+        return []
+    work = df.copy()
+    work["_day"] = _to_dt(work[date_col]).dt.normalize()
+    work = work.dropna(subset=["_day"])
+    if work.empty:
+        return []
+    max_day = work["_day"].max()
+    labels = {0: "Today", 1: "Yesterday", 2: "Before"}
+    out = []
+    for offset in range(last_n - 1, -1, -1):
+        day = max_day - pd.Timedelta(days=int(offset))
+        slice_df = work[work["_day"] == day]
+        hit, miss, total, pct = _count_hit_miss(slice_df, lane, kind)
+        if metric == "miss":
+            value = miss
+            value_label = f"{miss:,}" if total else "—"
+            tone = _tone(miss, miss=True) if total else "info"
+        else:
+            value = pct
+            value_label = _fmt_pct(pct) if total else "—"
+            tone = _tone(pct) if total else "info"
+        out.append({
+            "label": labels.get(offset, pd.Timestamp(day).strftime("%d %b")),
+            "date": pd.Timestamp(day).strftime("%d %b"),
+            "pct": value,
+            "pct_label": value_label,
+            "hit": hit,
+            "miss": miss,
+            "total": total,
+            "tone": tone,
+            "metric": metric,
+        })
+    if metric == "miss":
+        peak = max((row["pct"] or 0) for row in out) or 1
+        for row in out:
+            row["bar"] = 0 if not row["total"] else max(8, min(100, int(round(100 * (row["pct"] or 0) / peak))))
+    else:
+        for row in out:
+            row["bar"] = 0 if not row["total"] or row["pct"] is None else max(8, min(100, int(round(float(row["pct"])))))
+    return out
+
+
+def _hover_spec(label):
+    text = str(label or "").strip().lower()
+    specs = (
+        ("local cro", "local_crd", "local", "crd", "pct"),
+        ("local crd", "local_crd", "local", "crd", "pct"),
+        ("local despatch", "local_despatch", "local", "despatch", "pct"),
+        ("remote cro", "remote_crd", "remote", "crd", "pct"),
+        ("remote crd", "remote_crd", "remote", "crd", "pct"),
+        ("remote despatch", "remote_despatch", "remote", "despatch", "pct"),
+        ("total misses", "total_misses", None, "despatch", "miss"),
+        ("overall", "overall", None, "despatch", "pct"),
+    )
+    for prefix, key, lane, kind, metric in specs:
+        if text == prefix or text.startswith(prefix):
+            return key, lane, kind, metric
+    return None
+
+
+def _attach_kpi_hovers(kpis, df):
+    for kpi in kpis:
+        spec = _hover_spec(kpi.get("label"))
+        if not spec:
+            continue
+        key, lane, kind, metric = spec
+        kpi["hover"] = {
+            "key": key,
+            "title": kpi.get("label"),
+            "metric": metric,
+            "unit": "misses" if metric == "miss" else "SLA %",
+            "days": _kpi_day_trend(df, lane=lane, kind=kind, metric=metric),
+            "companies": [],
+        }
+    return kpis
+
+
+def _fill_kpi_company_ranks(companies):
+    grouped = {}
+    for company in companies:
+        for kpi in company.get("kpis") or []:
+            hover = kpi.get("hover")
+            if not hover:
+                continue
+            value = kpi.get("rank_value")
+            metric = hover.get("metric") or "pct"
+            if kpi.get("rank_label"):
+                label = kpi["rank_label"]
+            elif metric == "miss":
+                label = f"{int(value):,}" if value is not None else "—"
+            elif metric == "hours":
+                label = f"~{int(value)}h" if value is not None else "—"
+            elif metric == "count":
+                label = f"{int(value):,}" if value is not None else "—"
+            else:
+                label = _fmt_pct(value) if value is not None else "—"
+            if metric == "miss":
+                tone = _tone(value, miss=True)
+            elif metric in ("hours", "count"):
+                tone = kpi.get("tone") or "info"
+            else:
+                tone = _tone(value)
+            rows = grouped.setdefault(hover["key"], [])
+            if any(row["name"] == (company.get("name") or "") for row in rows):
+                continue
+            rows.append({
+                "name": company.get("name") or "",
+                "pct": value,
+                "pct_label": label,
+                "dot": company.get("dot_color") or "#9ca3af",
+                "flag": "",
+                "tone": tone,
+                "metric": metric,
+            })
+    for key, rows in grouped.items():
+        valid = [row for row in rows if row["pct"] is not None]
+        metric = rows[0]["metric"] if rows else "pct"
+        lower = metric in ("miss", "hours")
+        scaled = lower or metric == "count"
+        if len(valid) >= 2:
+            if lower:
+                best = min(valid, key=lambda row: row["pct"])
+                worst = max(valid, key=lambda row: row["pct"])
+            else:
+                best = max(valid, key=lambda row: row["pct"])
+                worst = min(valid, key=lambda row: row["pct"])
+            if best is not worst:
+                best["flag"] = "best"
+                worst["flag"] = "worst"
+        if scaled:
+            peak = max((row["pct"] or 0) for row in valid) or 1
+            for row in rows:
+                row["bar"] = 0 if row["pct"] is None else max(8, min(100, int(round(100 * (row["pct"] or 0) / peak))))
+            if lower:
+                rows.sort(key=lambda row: (row["pct"] is None, row["pct"] if row["pct"] is not None else 10**9))
+            else:
+                rows.sort(key=lambda row: (row["pct"] is None, -(row["pct"] or 0)))
+        else:
+            for row in rows:
+                row["bar"] = 0 if row["pct"] is None else max(8, min(100, int(round(float(row["pct"])))))
+            rows.sort(key=lambda row: (row["pct"] is None, -(row["pct"] or 0)))
+    for company in companies:
+        for kpi in company.get("kpis") or []:
+            hover = kpi.get("hover")
+            if hover is not None:
+                hover["companies"] = grouped.get(hover.get("key"), [])
+    return companies
+
+
+def _fill_location_ranks(cards):
+    rows = []
+    for card in cards:
+        if not card.get("hover"):
+            continue
+        value = card.get("score")
+        rows.append({
+            "name": card.get("name") or "",
+            "pct": value,
+            "pct_label": _fmt_pct(value) if value is not None else "—",
+            "dot": _dot(value),
+            "flag": "",
+            "tone": card.get("tone") or _tone(value),
+            "metric": "pct",
+        })
+    valid = [row for row in rows if row["pct"] is not None]
+    if len(valid) >= 2:
+        best = max(valid, key=lambda row: row["pct"])
+        worst = min(valid, key=lambda row: row["pct"])
+        if best is not worst:
+            best["flag"] = "best"
+            worst["flag"] = "worst"
+    for row in rows:
+        row["bar"] = 0 if row["pct"] is None else max(8, min(100, int(round(float(row["pct"])))))
+    rows.sort(key=lambda row: (row["pct"] is None, -(row["pct"] or 0)))
+    for card in cards:
+        hover = card.get("hover")
+        if hover is not None:
+            hover["companies"] = rows
+    return cards
+
+
+def _place_card_hover(df, name, rank_title):
+    return {
+        "key": "location",
+        "title": name,
+        "metric": "pct",
+        "unit": "SLA %",
+        "rank_title": rank_title,
+        "days": _kpi_day_trend(df),
+        "companies": [],
+    }
+
+
 def _overview_company(sheets, key, name):
     df = _orders_for(sheets, key)
     if df is None or df.empty:
@@ -997,12 +1193,12 @@ def _outbound_company(df, key, name, method, warehouse="all"):
             "layout": "city",
             "table_title": "Hit / Miss by City",
             "sla_note": "Local 48h — Remote 72h",
-            "kpis": [
-                {"label": "Local Despatch (48h)", "value": _fmt_pct(l_pct), "sub": f"{l_hit}/{l_total} orders", "tone": _tone(l_pct)},
-                {"label": "Remote Despatch (72h)", "value": _fmt_pct(r_pct), "sub": f"{r_hit}/{r_total} orders", "tone": _tone(r_pct)},
-                {"label": "Total Misses", "value": str(miss), "sub": miss_note, "tone": _tone(miss, miss=True)},
-                {"label": "Overall", "value": _fmt_pct(overall), "sub": f"{hit}/{total} orders", "tone": _tone(overall)},
-            ],
+            "kpis": _attach_kpi_hovers([
+                {"label": "Local Despatch (48h)", "value": _fmt_pct(l_pct), "sub": f"{l_hit}/{l_total} orders", "tone": _tone(l_pct), "rank_value": l_pct},
+                {"label": "Remote Despatch (72h)", "value": _fmt_pct(r_pct), "sub": f"{r_hit}/{r_total} orders", "tone": _tone(r_pct), "rank_value": r_pct},
+                {"label": "Total Misses", "value": str(miss), "sub": miss_note, "tone": _tone(miss, miss=True), "rank_value": miss},
+                {"label": "Overall", "value": _fmt_pct(overall), "sub": f"{hit}/{total} orders", "tone": _tone(overall), "rank_value": overall},
+            ], df),
             "warehouses": [row["name"] for row in warehouses],
         }
         payload["rows"] = _city_rows(df)
@@ -1022,12 +1218,12 @@ def _outbound_company(df, key, name, method, warehouse="all"):
         "layout": "warehouse",
         "table_title": "Hit / Miss by Warehouse",
         "sla_note": "Local 48h — Remote 72h",
-        "kpis": [
-            {"label": "Local Despatch", "value": _fmt_pct(l_pct), "sub": f"{l_hit:,} Hit / {l_miss} Miss", "tone": _tone(l_pct)},
-            {"label": "Local CRD", "value": _fmt_pct(crd_l_pct) if crd_l_hit or crd_l_miss else "—", "sub": f"{crd_l_hit:,} Hit / {crd_l_miss} Miss" if crd_l_hit or crd_l_miss else "KPI CRD not in file", "tone": _tone(crd_l_pct) if crd_l_hit or crd_l_miss else "info"},
-            {"label": "Remote Despatch", "value": _fmt_pct(r_pct), "sub": f"{r_hit:,} Hit / {r_miss} Miss", "tone": _tone(r_pct)},
-            {"label": "Remote CRD", "value": _fmt_pct(crd_r_pct) if crd_r_hit or crd_r_miss else "—", "sub": f"{crd_r_hit:,} Hit / {crd_r_miss} Miss" if crd_r_hit or crd_r_miss else "KPI CRD not in file", "tone": _tone(crd_r_pct) if crd_r_hit or crd_r_miss else "info"},
-        ],
+        "kpis": _attach_kpi_hovers([
+            {"label": "Local Despatch", "value": _fmt_pct(l_pct), "sub": f"{l_hit:,} Hit / {l_miss} Miss", "tone": _tone(l_pct), "rank_value": l_pct},
+            {"label": "Local CRD", "value": _fmt_pct(crd_l_pct) if crd_l_hit or crd_l_miss else "—", "sub": f"{crd_l_hit:,} Hit / {crd_l_miss} Miss" if crd_l_hit or crd_l_miss else "KPI CRD not in file", "tone": _tone(crd_l_pct) if crd_l_hit or crd_l_miss else "info", "rank_value": crd_l_pct if crd_l_hit or crd_l_miss else None},
+            {"label": "Remote Despatch", "value": _fmt_pct(r_pct), "sub": f"{r_hit:,} Hit / {r_miss} Miss", "tone": _tone(r_pct), "rank_value": r_pct},
+            {"label": "Remote CRD", "value": _fmt_pct(crd_r_pct) if crd_r_hit or crd_r_miss else "—", "sub": f"{crd_r_hit:,} Hit / {crd_r_miss} Miss" if crd_r_hit or crd_r_miss else "KPI CRD not in file", "tone": _tone(crd_r_pct) if crd_r_hit or crd_r_miss else "info", "rank_value": crd_r_pct if crd_r_hit or crd_r_miss else None},
+        ], df),
         "rows": rows,
         "warehouses": [row["name"] for row in rows],
         "totals": {
@@ -1048,6 +1244,7 @@ def _outbound(sheets, warehouse="all"):
         if not block:
             continue
         companies.append(block)
+    _fill_kpi_company_ranks(companies)
     year_range = "2025 - 2026"
     oh = sheets.get("orderheader")
     if oh is not None and not oh.empty:
@@ -1055,6 +1252,126 @@ def _outbound(sheets, warehouse="all"):
         if date_col:
             year_range = _period(oh[date_col])["year_range"]
     return {"year_range": year_range, "companies": companies}
+
+
+def _inbound_date_col(df):
+    return _find_col(df, "Arrival Date", "Arrival TS", "Arrival", "Offloading Date", "Offload Date")
+
+
+def _inbound_slice_stats(df, metric):
+    if df is None or df.empty:
+        return None, 0, "—", "info"
+    if metric == "rcv":
+        hit = int(df["_rcv_hit"].fillna(False).sum()) if "_rcv_hit" in df else 0
+        miss = int(df["_rcv_miss"].fillna(False).sum()) if "_rcv_miss" in df else 0
+        total = hit + miss
+        pct = _pct(hit, total)
+        return pct, total, _fmt_pct(pct) if total else "—", _tone(pct) if total else "info"
+    if metric == "grn":
+        scored = int(df["_grn_hours"].notna().sum()) if "_grn_hours" in df else len(df)
+        hit = int(df["_grn_hit"].fillna(False).sum()) if "_grn_hit" in df else 0
+        pct = _pct(hit, scored)
+        return pct, scored, _fmt_pct(pct) if scored else "—", _tone(pct) if scored else "info"
+    if metric == "wh":
+        fac_col = _wh_col(df)
+        if not fac_col:
+            return None, 0, "—", "info"
+        ok = 0
+        n = 0
+        for _, group in df.groupby(df[fac_col].astype(str)):
+            gh = int(group["_rcv_hit"].fillna(False).sum())
+            gm = int(group["_rcv_miss"].fillna(False).sum()) if "_rcv_miss" in group else 0
+            t = gh + gm or len(group)
+            rp = _pct(gh, t) or 0
+            n += 1
+            if rp >= 99:
+                ok += 1
+        pct = _pct(ok, n)
+        return pct, n, f"{ok}/{n}" if n else "—", "ok" if n and ok == n else ("warn" if n else "info")
+    if metric == "miss":
+        miss = int(df["_rcv_miss"].fillna(False).sum()) if "_rcv_miss" in df else 0
+        total = len(df)
+        return miss, total, f"{miss:,}" if total else "—", _tone(miss, miss=True) if total else "info"
+    if metric == "count":
+        total = len(df)
+        return total, total, f"{total:,}" if total else "—", "info"
+    if metric == "hours":
+        if "_rcv_miss" not in df or "_rcv_hours" not in df:
+            return None, 0, "—", "ok"
+        miss_hours = df.loc[df["_rcv_miss"].fillna(False), "_rcv_hours"].dropna()
+        if miss_hours.empty:
+            return None, 0, "—", "ok"
+        avg = round(float(miss_hours.mean()), 0)
+        return avg, len(miss_hours), f"~{int(avg)}h", "warn"
+    return None, 0, "—", "info"
+
+
+def _inbound_day_trend(df, metric="rcv", last_n=3):
+    date_col = _inbound_date_col(df)
+    if df is None or df.empty or not date_col or date_col not in df.columns:
+        return []
+    work = df.copy()
+    work["_day"] = _to_dt(work[date_col]).dt.normalize()
+    work = work.dropna(subset=["_day"])
+    if work.empty:
+        return []
+    max_day = work["_day"].max()
+    labels = {0: "Today", 1: "Yesterday", 2: "Before"}
+    out = []
+    for offset in range(last_n - 1, -1, -1):
+        day = max_day - pd.Timedelta(days=int(offset))
+        value, total, value_label, tone = _inbound_slice_stats(work[work["_day"] == day], metric)
+        out.append({
+            "label": labels.get(offset, pd.Timestamp(day).strftime("%d %b")),
+            "date": pd.Timestamp(day).strftime("%d %b"),
+            "pct": value,
+            "pct_label": value_label,
+            "total": total,
+            "tone": tone,
+            "metric": metric,
+        })
+    if metric in ("miss", "hours", "count"):
+        peak = max((row["pct"] or 0) for row in out) or 1
+        for row in out:
+            row["bar"] = 0 if not row["total"] or row["pct"] is None else max(8, min(100, int(round(100 * (row["pct"] or 0) / peak))))
+    else:
+        for row in out:
+            row["bar"] = 0 if not row["total"] or row["pct"] is None else max(8, min(100, int(round(float(row["pct"])))))
+    return out
+
+
+def _inbound_hover_spec(label):
+    text = str(label or "").strip().lower()
+    specs = (
+        ("system receiving", "ib_receiving", "rcv", "SLA %"),
+        ("grn sharing", "ib_grn", "grn", "SLA %"),
+        ("all warehouses", "ib_warehouses", "wh", "SLA %"),
+        ("inbound sla", "ib_receiving", "rcv", "SLA %"),
+        ("shipments missed", "ib_misses", "miss", "misses"),
+        ("total shipments", "ib_total", "count", "shipments"),
+        ("avg miss duration", "ib_avg_miss", "hours", "hours"),
+    )
+    for prefix, key, metric, unit in specs:
+        if text == prefix or text.startswith(prefix):
+            return key, metric, unit
+    return None
+
+
+def _attach_inbound_hovers(kpis, df):
+    for kpi in kpis:
+        spec = _inbound_hover_spec(kpi.get("label"))
+        if not spec:
+            continue
+        key, metric, unit = spec
+        kpi["hover"] = {
+            "key": key,
+            "title": kpi.get("label"),
+            "metric": metric,
+            "unit": unit,
+            "days": _inbound_day_trend(df, metric=metric),
+            "companies": [],
+        }
+    return kpis
 
 
 def _inbound_warehouse_block(df, key, name):
@@ -1084,6 +1401,8 @@ def _inbound_warehouse_block(df, key, name):
                 "grn": gp,
                 "status": "On Track" if rp >= 99 else "Watch",
             })
+    wh_ok = sum(1 for r in rows if r["receiving"] >= 99)
+    wh_n = len(rows)
     return {
         "key": key,
         "name": name,
@@ -1093,12 +1412,12 @@ def _inbound_warehouse_block(df, key, name):
         "layout": "warehouse",
         "table_title": f"Inbound by Warehouse — {name}",
         "sla_note": "Target: 24h",
-        "kpis": [
-            {"label": "System Receiving", "value": _fmt_pct(rcv_pct), "sub": "All within 24h" if rcv_pct >= 99.5 else f"{rcv_miss} late", "tone": _tone(rcv_pct)},
-            {"label": "GRN Sharing", "value": _fmt_pct(grn_pct), "sub": "All on time" if grn_pct >= 99.5 else f"{max(total - grn_hit, 0)} late", "tone": _tone(grn_pct)},
-            {"label": "All Warehouses", "value": f"{sum(1 for r in rows if r['receiving'] >= 99)}/{len(rows) or 0}", "sub": "Facility compliance", "tone": "ok" if rows and all(r["receiving"] >= 99 for r in rows) else "warn"},
-            {"label": "Inbound SLA", "value": _fmt_pct(rcv_pct), "sub": "Target: 24 hours", "tone": _tone(rcv_pct)},
-        ],
+        "kpis": _attach_inbound_hovers([
+            {"label": "System Receiving", "value": _fmt_pct(rcv_pct), "sub": "All within 24h" if rcv_pct >= 99.5 else f"{rcv_miss} late", "tone": _tone(rcv_pct), "rank_value": rcv_pct},
+            {"label": "GRN Sharing", "value": _fmt_pct(grn_pct), "sub": "All on time" if grn_pct >= 99.5 else f"{max(total - grn_hit, 0)} late", "tone": _tone(grn_pct), "rank_value": grn_pct},
+            {"label": "All Warehouses", "value": f"{wh_ok}/{wh_n or 0}", "sub": "Facility compliance", "tone": "ok" if rows and all(r["receiving"] >= 99 for r in rows) else "warn", "rank_value": _pct(wh_ok, wh_n), "rank_label": f"{wh_ok}/{wh_n or 0}"},
+            {"label": "Inbound SLA", "value": _fmt_pct(rcv_pct), "sub": "Target: 24 hours", "tone": _tone(rcv_pct), "rank_value": rcv_pct},
+        ], df),
         "rows": rows,
         "totals": {"receiving": rcv_pct, "grn": grn_pct, "status": _fmt_pct(rcv_pct)},
         "year_range": period["year_range"],
@@ -1150,12 +1469,12 @@ def _inbound_shipment_block(df, key, name):
         "layout": "shipments",
         "table_title": "Inbound Shipments — SLA (24h)",
         "sla_note": "Target: 24h",
-        "kpis": [
-            {"label": "Inbound SLA (24h)", "value": _fmt_pct(pct), "sub": f"{hit} Hit / {miss} Miss", "tone": _tone(pct)},
-            {"label": "Shipments Missed", "value": str(miss), "sub": "Exceeded 24h window", "tone": "bad" if miss else "ok"},
-            {"label": "Total Shipments", "value": str(total), "sub": "Standard + Returns", "tone": "info"},
-            {"label": "Avg Miss Duration", "value": f"~{int(avg_miss)}h" if avg_miss else "—", "sub": "Missed shipments only", "tone": "warn" if miss else "ok"},
-        ],
+        "kpis": _attach_inbound_hovers([
+            {"label": "Inbound SLA (24h)", "value": _fmt_pct(pct), "sub": f"{hit} Hit / {miss} Miss", "tone": _tone(pct), "rank_value": pct},
+            {"label": "Shipments Missed", "value": str(miss), "sub": "Exceeded 24h window", "tone": "bad" if miss else "ok", "rank_value": miss},
+            {"label": "Total Shipments", "value": str(total), "sub": "Standard + Returns", "tone": "info", "rank_value": total},
+            {"label": "Avg Miss Duration", "value": f"~{int(avg_miss)}h" if avg_miss else "—", "sub": "Missed shipments only", "tone": "warn" if miss else "ok", "rank_value": avg_miss if miss else None},
+        ], df),
         "rows": rows,
         "year_range": period["year_range"],
     }
@@ -1176,6 +1495,7 @@ def _inbound(sheets):
         if year:
             years.append(year)
         companies.append(block)
+    _fill_kpi_company_ranks(companies)
     return {"year_range": years[-1] if years else _year_range(sheets), "companies": companies}
 
 
@@ -1186,6 +1506,9 @@ def _warehouse_cards(df, ib):
         return cards
     ib_fac = _wh_col(ib) if ib is not None and not ib.empty else None
     for name, group in df.groupby(df[wh_col].astype(str)):
+        name = str(name).strip()
+        if not name or name.lower() in {"nan", "none", "null"}:
+            continue
         h, m, t, p = _count_hit_miss(group)
         _, _, _, lp = _count_hit_miss(group, "local")
         _, _, _, rp = _count_hit_miss(group, "remote")
@@ -1205,8 +1528,9 @@ def _warehouse_cards(df, ib):
             "local": lp,
             "remote": rp,
             "inbound": inbound if inbound is not None else 0,
+            "hover": _place_card_hover(group, str(name).strip(), "Warehouses"),
         })
-    return cards
+    return _fill_location_ranks(cards)
 
 
 def _city_cards(df):
@@ -1235,6 +1559,7 @@ def _city_cards(df):
             "misses": m,
             "avg_label": "Local" if _city_is_local(name) else "Remote",
             "avg_hours": avg_hours,
+            "hover": _place_card_hover(group, name, "Cities"),
         })
     other = df.loc[~df.index.isin(used)]
     if not other.empty:
@@ -1249,8 +1574,9 @@ def _city_cards(df):
             "misses": m,
             "avg_label": None,
             "avg_hours": None,
+            "hover": _place_card_hover(other, "Other Cities", "Cities"),
         })
-    return cards
+    return _fill_location_ranks(cards)
 
 
 def _cities(sheets):
@@ -1291,6 +1617,97 @@ def _year_range(sheets):
     return _memo(sheets, "year_range", factory)
 
 
+def _inventory_anchor_day(df):
+    stamps = []
+    for name in ("First Putaway TS", "Received Timestamp", "Create Timestamp", "Mod Timestamp"):
+        col = _find_col(df, name)
+        if not col:
+            continue
+        series = _to_dt(df[col]).dropna()
+        if not series.empty:
+            stamps.append(series.max())
+    return max(stamps) if stamps else None
+
+
+def _inventory_day_series(df, kind):
+    created = _find_col(df, "Create Timestamp", "Create Date")
+    putaway = _find_col(df, "First Putaway TS", "Putaway TS")
+    received = _find_col(df, "Received Timestamp", "Receive Date", "Received Date")
+    if kind == "received":
+        col = received or created
+        return _to_dt(df[col]) if col else None
+    col = putaway or created
+    if col and putaway and created and putaway != created:
+        return _to_dt(df[putaway]).fillna(_to_dt(df[created]))
+    return _to_dt(df[col]) if col else None
+
+
+def _inventory_day_trend(df, kind, last_n=3):
+    if df is None or df.empty:
+        return []
+    max_day = _inventory_anchor_day(df)
+    series = _inventory_day_series(df, kind)
+    if max_day is None or series is None:
+        return []
+    work = df.copy()
+    work["_day"] = series.dt.normalize()
+    status_col = _find_col(work, "Status", "LPN Status")
+    lpn_col = _find_col(work, "LPN Nbr", "LPN", "LPN Number")
+    qty_col = _find_col(work, "Current Qty", "Qty", "Quantity", "On Hand Qty")
+    labels = {0: "Today", 1: "Yesterday", 2: "Before"}
+    out = []
+    for offset in range(last_n - 1, -1, -1):
+        day = pd.Timestamp(max_day).normalize() - pd.Timedelta(days=int(offset))
+        slice_df = work[work["_day"] == day]
+        if status_col and kind in ("located", "qty"):
+            slice_df = slice_df[slice_df[status_col].astype(str).str.contains("located", case=False, na=False)]
+        elif status_col and kind == "received":
+            slice_df = slice_df[slice_df[status_col].astype(str).str.contains("received", case=False, na=False)]
+        if kind == "qty":
+            value = int(pd.to_numeric(slice_df[qty_col], errors="coerce").fillna(0).sum()) if qty_col else 0
+        elif lpn_col:
+            value = int(slice_df[lpn_col].nunique())
+        else:
+            value = len(slice_df)
+        total = len(slice_df)
+        out.append({
+            "label": labels.get(offset, pd.Timestamp(day).strftime("%d %b")),
+            "date": pd.Timestamp(day).strftime("%d %b"),
+            "pct": value,
+            "pct_label": f"{value:,}" if total or value else "—",
+            "total": total,
+            "tone": "info" if kind != "qty" else "ok",
+            "metric": "count",
+        })
+    peak = max((row["pct"] or 0) for row in out) or 1
+    for row in out:
+        row["bar"] = 0 if not row["total"] else max(8, min(100, int(round(100 * (row["pct"] or 0) / peak))))
+    return out
+
+
+def _attach_inventory_hovers(kpis, df):
+    specs = {
+        "located lpns": ("inv_located", "located", "LPNs"),
+        "received lpns": ("inv_received", "received", "LPNs"),
+        "total qty on hand": ("inv_qty", "qty", "qty"),
+    }
+    for kpi in kpis:
+        spec = specs.get(str(kpi.get("label") or "").strip().lower())
+        if not spec:
+            continue
+        key, kind, unit = spec
+        kpi["rank_value"] = kpi.get("value")
+        kpi["hover"] = {
+            "key": key,
+            "title": kpi.get("label"),
+            "metric": "count",
+            "unit": unit,
+            "days": _inventory_day_trend(df, kind),
+            "companies": [],
+        }
+    return kpis
+
+
 def _inventory_company(df, key, name):
     status_col = _find_col(df, "Status", "LPN Status")
     lpn_col = _find_col(df, "LPN Nbr", "LPN", "LPN Number")
@@ -1312,11 +1729,11 @@ def _inventory_company(df, key, name):
         "name": name,
         "section_title": f"{name} Inventory Snapshot — {facility}",
         "dot_color": _dot_color(key),
-        "kpis": [
+        "kpis": _attach_inventory_hovers([
             {"label": "Located LPNs", "value": int(located_n), "sub": "In storage locations", "tone": "info"},
             {"label": "Received LPNs", "value": int(received_n), "sub": "Pending putaway", "tone": "neutral"},
             {"label": "Total Qty On Hand", "value": qty, "sub": "Units in warehouse", "tone": "ok"},
-        ],
+        ], df),
         "notes": [
             {"text": f"Facility: {facility}" + (" — Jeddah Warehouse" if key == "aramco" else ""), "status": "Active", "tone": "info"},
             {"text": f"{int(received_n)} LPNs in Received status — pending putaway", "status": "Action Needed" if received_n else "OK", "tone": "warn" if received_n else "ok"},
@@ -1344,6 +1761,7 @@ def _inventory(sheets):
         if jed.any():
             df = df[jed]
     payload["companies"] = [_inventory_company(df, "aramco", "ARAMCO")]
+    _fill_kpi_company_ranks(payload["companies"])
     return payload
 
 

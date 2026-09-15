@@ -50,6 +50,8 @@ INSTALLED_APPS = [
 
     'crispy_forms',
     'crispy_bootstrap4',
+
+    'dashboard',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -168,6 +170,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 KPI_EXCEL_NAME = 'Data_Power_Bi.xlsx'
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 50000
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
