@@ -233,6 +233,15 @@ def _is_empty_cell(val: Any) -> bool:
     return False
 
 
+def _cell_text(val: Any) -> str:
+    if _is_empty_cell(val):
+        return ""
+    s = str(val).strip()
+    if s.lower() in ("nan", "none", "-"):
+        return ""
+    return s
+
+
 def _hour_from_time_raw(raw: Any) -> float | None:
     """Extract hour-of-day (0–24) from Excel time cell."""
     if _is_empty_cell(raw):
@@ -311,6 +320,21 @@ def normalize_shift_code(raw: str | None) -> str:
     return s if s in (SHIFT_S1, SHIFT_S2, SHIFT_S3) else SHIFT_S3
 
 
+def classify_is_pick(bin_str: str, storage_type: str = "") -> bool:
+    """
+    Nestle SAP: PICK… bins are picks; other WM bins are bulk/other.
+    NESPRESSO: P-19-P-C-01 pick faces.
+    IFC / ARAMCO picking extracts have no WM storage type — every line is a pick.
+    """
+    b = (bin_str or "").strip().upper()
+    st = (storage_type or "").strip()
+    if b.startswith("PICK") or b.startswith("P-") or b.startswith("P_"):
+        return True
+    if st:
+        return False
+    return True
+
+
 def mixed_target(pick_count: int, other_count: int, total_lines: int) -> int:
     if total_lines <= 0:
         return 0
@@ -344,6 +368,10 @@ def parse_sap_sheet(
     Returns (rows, resolved_sheet_name). Each row dict:
     work_date, picker_name, business, is_pick, shift_band (S1|S2|S3),
     pick_duration_min, delivery_number, lines (always 1).
+
+    Order number = Transfer Order Number, else Delivery (same KPI as Nestle).
+    Rows with Business but no SAP User (NESPRESSO / IFC / ARAMCO) are kept;
+    picker_name falls back to the Business value.
     """
     raw = file_obj.read() if hasattr(file_obj, "read") else file_obj
     buf = io.BytesIO(raw) if not isinstance(raw, io.BytesIO) else raw
@@ -365,6 +393,10 @@ def parse_sap_sheet(
     col_bin = _pick_column(
         norm_map,
         {"source storage bin", "source storage", "storage bin", "source bin"},
+    )
+    col_storage_type = _pick_column(
+        norm_map,
+        {"source storage type", "storage type", "wm storage type"},
     )
     col_conf_date = _pick_column(
         norm_map,
@@ -396,13 +428,18 @@ def parse_sap_sheet(
         norm_map,
         {"creation date+time", "creation datetime", "creation date time"},
     )
-    col_delivery = _pick_column(
+    col_to = _pick_column(
         norm_map,
         {
             "transfer order number",
             "transfer order",
             "transfer order no",
             "transfer order #",
+        },
+    )
+    col_delivery = _pick_column(
+        norm_map,
+        {
             "delivery",
             "delivery number",
             "delivery no",
@@ -424,28 +461,33 @@ def parse_sap_sheet(
 
     pi = int(col_picker[1:])
     bi = int(col_bin[1:]) if col_bin else None
+    sti = int(col_storage_type[1:]) if col_storage_type else None
     cdi = int(col_conf_date[1:]) if col_conf_date else None
     cti = int(col_conf_time[1:]) if col_conf_time else None
     cdti = int(col_conf_dt[1:]) if col_conf_dt else None
     crdi = int(col_create_date[1:]) if col_create_date else None
     crti = int(col_create_time[1:]) if col_create_time else None
     crdti = int(col_create_dt[1:]) if col_create_dt else None
+    toi = int(col_to[1:]) if col_to else None
     deli = int(col_delivery[1:]) if col_delivery else None
     ti = int(col_type[1:]) if col_type else None
     bsi = int(col_business[1:]) if col_business else None
+    user_indexes = [int(k[1:]) for k, v in norm_map.items() if v == "user"]
 
     rows: list[dict[str, Any]] = []
     for _, r in body.iterrows():
-        picker = r.iloc[pi] if pi < len(r) else None
-        if picker is None or (isinstance(picker, float) and pd.isna(picker)):
-            continue
-        picker_name = str(picker).strip()
-        if not picker_name or picker_name.lower() == "nan":
-            continue
+        picker_name = _cell_text(r.iloc[pi] if pi < len(r) else None)
+        if not picker_name:
+            for ui in user_indexes:
+                if ui == pi or ui >= len(r):
+                    continue
+                picker_name = _cell_text(r.iloc[ui])
+                if picker_name:
+                    break
 
-        bin_val = r.iloc[bi] if bi is not None and bi < len(r) else ""
-        bin_str = "" if bin_val is None or (isinstance(bin_val, float) and pd.isna(bin_val)) else str(bin_val).strip()
-        is_pick = bin_str[:4].upper() == "PICK"
+        bin_str = _cell_text(r.iloc[bi] if bi is not None and bi < len(r) else "")
+        storage_type = _cell_text(r.iloc[sti] if sti is not None and sti < len(r) else "")
+        is_pick = classify_is_pick(bin_str, storage_type)
 
         if cdti is not None and cdti < len(r):
             conf_dt = _parse_datetime(r.iloc[cdti])
@@ -474,25 +516,19 @@ def parse_sap_sheet(
 
         work_date = conf_dt.date() if conf_dt else None
 
-        delivery = ""
-        if deli is not None and deli < len(r):
-            dv = r.iloc[deli]
-            if dv is not None and not (isinstance(dv, float) and pd.isna(dv)):
-                delivery = str(dv).strip()
+        delivery = _cell_text(r.iloc[toi] if toi is not None and toi < len(r) else None)
+        if not delivery:
+            delivery = _cell_text(r.iloc[deli] if deli is not None and deli < len(r) else None)
+        picker_type = _cell_text(r.iloc[ti] if ti is not None and ti < len(r) else None)
+        business = _cell_text(r.iloc[bsi] if bsi is not None and bsi < len(r) else None)
 
-        picker_type = ""
-        if ti is not None and ti < len(r):
-            tv = r.iloc[ti]
-            if tv is not None and not (isinstance(tv, float) and pd.isna(tv)):
-                picker_type = str(tv).strip()
-
-        business = ""
-        if bsi is not None and bsi < len(r):
-            bv = r.iloc[bsi]
-            if bv is not None and not (isinstance(bv, float) and pd.isna(bv)):
-                business = str(bv).strip()
-                if business.lower() in ("nan", "none", "-"):
-                    business = ""
+        # Non-Nestle exports (NESPRESSO / IFC / ARAMCO) often have Business +
+        # confirmation date but no SAP User. Keep those rows so every Business
+        # in the sheet appears in filters and KPIs.
+        if not picker_name:
+            if not business and work_date is None:
+                continue
+            picker_name = business or "Unassigned"
 
         rows.append(
             {
@@ -903,13 +939,14 @@ def import_picker_shifts_from_excel(
 
     Returns (count_imported, resolved_sheet_name).
     """
+    from django.db import transaction
+
     from .models import PickerShiftRecord
 
     sheet = (sheet_name_override or program.excel_sheet_name or "Data").strip()
     sheet = sheet or "Data"
     rows, resolved = parse_sap_sheet(file_obj, sheet_name=sheet)
     program.excel_sheet_name = resolved[:64]
-    PickerShiftRecord.objects.filter(program=program).delete()
     batch = [
         PickerShiftRecord(
             program=program,
@@ -925,8 +962,10 @@ def import_picker_shifts_from_excel(
         )
         for r in rows
     ]
-    PickerShiftRecord.objects.bulk_create(batch, batch_size=1000)
-    program.save()
+    with transaction.atomic():
+        PickerShiftRecord.objects.filter(program=program).delete()
+        PickerShiftRecord.objects.bulk_create(batch, batch_size=1000)
+        program.save()
     return len(batch), resolved
 
 
