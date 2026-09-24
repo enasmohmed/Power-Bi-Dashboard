@@ -30,6 +30,13 @@ COMPANY_LABELS = {
     "saas": "SAAS",
 }
 PREFERRED_COMPANIES = ("iffco", "aramco", "nespresso", "saas")
+# Nespresso stores Jeddah/Riyadh as numeric facility ids. Show the same 3PL codes used elsewhere.
+WAREHOUSE_LABELS = {
+    "00001": "3PLRUH",
+    "00003": "3PLJED",
+    "1": "3PLRUH",
+    "3": "3PLJED",
+}
 
 SHEET_ALIASES = {
     "orderheader": ("orderheader", "order header", "orders", "order hdr"),
@@ -171,6 +178,22 @@ def _filter_company(df, kind):
     return df[df[col].map(_company_key) == kind]
 
 
+def warehouse_label(value):
+    text = str(value or "").strip()
+    if text.startswith('="') and text.endswith('"'):
+        text = text[2:-1].strip()
+    if text.lower() in {"", "nan", "none", "nat"}:
+        return ""
+    return WAREHOUSE_LABELS.get(text, text)
+
+
+def _normalize_facility_columns(df):
+    for col in list(df.columns):
+        if _norm(col) in {"facilitycode", "facility", "wh", "warehouse", "facilityname"}:
+            df[col] = df[col].map(warehouse_label)
+    return df
+
+
 def _add_company_key(df):
     col = _company_col(df)
     if not col:
@@ -235,9 +258,49 @@ def discover_companies(sheets):
     return order
 
 
+def shipment_identity(company, warehouse, shipment):
+    ship = str(shipment or "").strip()
+    if ship.endswith(".0"):
+        ship = ship[:-2]
+    wh = str(warehouse or "").strip()
+    if wh.lower() in {"nan", "none", "nat", "—", "-"}:
+        wh = ""
+    return f"{company}|{wh}|{ship}"
+
+
+def _flag(value):
+    try:
+        if value is None or pd.isna(value):
+            return False
+    except (TypeError, ValueError):
+        return False
+    return bool(value)
+
+
+def apply_rcv_overrides(df, company, overrides):
+    if df is None or df.empty or not overrides:
+        return df
+    ship_col = _find_col(df, "Shipment Nbr", "Shipment", "Shipment Number")
+    fac_col = _wh_col(df)
+    if not ship_col:
+        return df
+    df = df.copy()
+    for idx, row in df.iterrows():
+        wh = str(row[fac_col]).strip() if fac_col and pd.notna(row.get(fac_col)) else ""
+        token = shipment_identity(company, wh, row.get(ship_col))
+        result = overrides.get(token)
+        if result == "hit":
+            df.at[idx, "_rcv_hit"] = True
+            df.at[idx, "_rcv_miss"] = False
+        elif result == "miss":
+            df.at[idx, "_rcv_hit"] = False
+            df.at[idx, "_rcv_miss"] = True
+    return df
+
+
 def discover_warehouses(sheets, company_key="all"):
     names = []
-    for sheet_name in ("orderheader", "oblpn"):
+    for sheet_name in ("orderheader", "oblpn", "ibshipments"):
         df = sheets.get(sheet_name)
         if df is None or df.empty:
             continue
@@ -436,7 +499,7 @@ def _read_with_engine(path, engine, only=None):
             continue
         df = df.dropna(how="all")
         df.columns = [str(c).strip() for c in df.columns]
-        sheets[name_to_key.get(name, _sheet_key(name))] = _add_company_key(df)
+        sheets[name_to_key.get(name, _sheet_key(name))] = _add_company_key(_normalize_facility_columns(df))
     return sheets
 
 
@@ -521,7 +584,9 @@ def _apply_warehouse(df, warehouse):
     col = _wh_col(df)
     if not col:
         return df
-    return df[df[col].astype(str).str.strip() == str(warehouse).strip()].copy()
+    wanted = warehouse_label(warehouse) or str(warehouse).strip()
+    labels = df[col].astype(str).str.strip().map(warehouse_label)
+    return df[labels == wanted].copy()
 
 
 def _city_local_mask(series):
@@ -1030,6 +1095,148 @@ def _place_card_hover(df, name, rank_title):
     }
 
 
+_OV_DOTS = ("#0f766e", "#2563eb", "#7c3aed", "#d97706", "#15803d", "#e11d48", "#0891b2", "#db2777")
+
+
+def _ov_cell(pct, hit=0, miss=0, total=0):
+    if not total or pct is None:
+        return {
+            "value": None,
+            "label": "N/A",
+            "tone": "na",
+            "icon": "dash",
+            "hit": 0,
+            "miss": 0,
+            "total": 0,
+            "bar": 0,
+            "tip": "No scored orders",
+        }
+    if pct >= 99:
+        tone, icon = "good", "check"
+    elif pct >= 90:
+        tone, icon = "ok", "check"
+    else:
+        tone, icon = "bad", "cross"
+    return {
+        "value": pct,
+        "label": _fmt_pct(pct),
+        "tone": tone,
+        "icon": icon,
+        "hit": int(hit),
+        "miss": int(miss),
+        "total": int(total),
+        "bar": max(6, min(100, int(round(float(pct))))),
+        "tip": f"{int(hit):,} hit · {int(miss):,} miss · {int(total):,} orders",
+    }
+
+
+def _ov_lane_cell(df, lane, kind):
+    if df is None or getattr(df, "empty", True) or "_lane" not in getattr(df, "columns", []):
+        return _ov_cell(None)
+    group = df[df["_lane"] == lane]
+    if group.empty:
+        return _ov_cell(None)
+    hit_col = "_crd_hit" if kind == "crd" else "_hit"
+    miss_col = "_crd_miss" if kind == "crd" else "_miss"
+    raw_hit = int(group[hit_col].fillna(False).sum()) if hit_col in group.columns else 0
+    raw_miss = int(group[miss_col].fillna(False).sum()) if miss_col in group.columns else 0
+    if not raw_hit and not raw_miss:
+        return _ov_cell(None)
+    hit, miss, total, pct = _count_hit_miss(group, kind=kind)
+    return _ov_cell(pct, hit, miss, total or (hit + miss))
+
+
+def _ov_inbound_cell(df, kind):
+    if df is None or getattr(df, "empty", True):
+        return _ov_cell(None)
+    hours_col = "_rcv_hours" if kind == "rcv" else "_grn_hours"
+    hit_col = "_rcv_hit" if kind == "rcv" else "_grn_hit"
+    if hours_col not in df.columns or hit_col not in df.columns or not df[hours_col].notna().any():
+        return _ov_cell(None)
+    scored = df[df[hours_col].notna()]
+    hit = int(scored[hit_col].fillna(False).sum())
+    total = len(scored)
+    return _ov_cell(_pct(hit, total), hit, total - hit, total)
+
+
+def _ov_average(cells):
+    valued = [cell for cell in cells if cell.get("value") is not None]
+    if not valued:
+        return _ov_cell(None)
+    avg = round(sum(cell["value"] for cell in valued) / len(valued), 1)
+    hit = sum(cell["hit"] for cell in valued)
+    miss = sum(cell["miss"] for cell in valued)
+    total = sum(cell["total"] for cell in valued)
+    cell = _ov_cell(avg, hit, miss, total)
+    if avg >= 97:
+        cell["tone"] = "good"
+    elif avg >= 90:
+        cell["tone"] = "ok"
+    else:
+        cell["tone"] = "bad"
+    cell["icon"] = "check" if cell["tone"] != "bad" else "cross"
+    cell["tip"] = f"Average of {len(valued)} scored measures"
+    return cell
+
+
+def _ov_sum_cells(cells):
+    hit = sum(int(cell.get("hit") or 0) for cell in cells)
+    miss = sum(int(cell.get("miss") or 0) for cell in cells)
+    total = sum(int(cell.get("total") or 0) for cell in cells)
+    return _ov_cell(_pct(hit, total), hit, miss, total)
+
+
+def _overview_warehouses(orders, inbound):
+    order_map = dict(_warehouse_slices(orders)) if orders is not None and not getattr(orders, "empty", True) else {}
+    inbound_map = dict(_warehouse_slices(inbound)) if inbound is not None and not getattr(inbound, "empty", True) else {}
+    names = []
+    for name in list(order_map) + list(inbound_map):
+        if name not in names:
+            names.append(name)
+    rows = []
+    for index, name in enumerate(names):
+        orders_df = order_map.get(name)
+        inbound_df = inbound_map.get(name)
+        if (orders_df is None or getattr(orders_df, "empty", True)) and (
+            inbound_df is None or getattr(inbound_df, "empty", True)
+        ):
+            continue
+        local_n = int((orders_df["_lane"] == "local").sum()) if orders_df is not None and "_lane" in orders_df.columns else 0
+        remote_n = int((orders_df["_lane"] == "remote").sum()) if orders_df is not None and "_lane" in orders_df.columns else 0
+        cells = {
+            "despatch_local": _ov_lane_cell(orders_df, "local", "despatch"),
+            "crd_local": _ov_lane_cell(orders_df, "local", "crd"),
+            "despatch_remote": _ov_lane_cell(orders_df, "remote", "despatch"),
+            "crd_remote": _ov_lane_cell(orders_df, "remote", "crd"),
+            "inbound": _ov_inbound_cell(inbound_df, "rcv"),
+            "grn": _ov_inbound_cell(inbound_df, "grn"),
+        }
+        label = "Unassigned" if name in {"", "—"} else name
+        avg = _ov_average(list(cells.values()))
+        rows.append({
+            "name": label,
+            "dot": _OV_DOTS[index % len(_OV_DOTS)],
+            "orders": 0 if orders_df is None else len(orders_df),
+            "local_orders": local_n,
+            "remote_orders": remote_n,
+            "avg": avg,
+            "chips": [
+                cells["despatch_local"],
+                cells["crd_local"],
+                cells["despatch_remote"],
+                cells["crd_remote"],
+                cells["inbound"],
+                cells["grn"],
+                avg,
+            ],
+            **cells,
+        })
+        if rows[-1]["name"] == "Unassigned" and all(cell["tone"] == "na" for cell in rows[-1]["chips"]):
+            rows.pop()
+    rows.sort(key=lambda row: (row["name"] == "Unassigned", row["name"].lower()))
+    return rows
+
+
 def _overview_company(sheets, key, name):
     df = _orders_for(sheets, key)
     if df is None or df.empty:
@@ -1037,7 +1244,7 @@ def _overview_company(sheets, key, name):
     ib = _load_inbound(sheets, key)
     local_hit, local_miss, local_total, local_pct = _count_hit_miss(df, "local")
     remote_hit, remote_miss, remote_total, remote_pct = _count_hit_miss(df, "remote")
-    _, total_miss, _, overall = _count_hit_miss(df)
+    scored_hit, total_miss, scored_total, overall = _count_hit_miss(df)
     total = len(df)
     if not local_total and not remote_total:
         local_total = total
@@ -1091,6 +1298,12 @@ def _overview_company(sheets, key, name):
         "remote_sla": remote_pct or 0,
         "inbound_sla": inbound or 0,
         "dot_color": _dot_color(key),
+        "scored_hit": scored_hit,
+        "scored_total": scored_total,
+        "ib_hit": ib_hit,
+        "ib_scored": ib_hit + ib_miss,
+        "warehouses": _overview_warehouses(df, ib),
+        "sla_hours": sla_settings.get(key),
     }
 
 
@@ -1106,6 +1319,100 @@ def _overview(sheets):
     result = {"year_range": _year_range(sheets), "companies": companies}
     store["overview"] = result
     return result
+
+
+def combine_overview(companies):
+    companies = [company for company in (companies or []) if company]
+    if not companies:
+        return None
+    rows = []
+    multi = len(companies) > 1
+    for company in companies:
+        for row in company.get("warehouses") or []:
+            item = dict(row)
+            if multi:
+                item["name"] = f"{row['name']} · {company['name']}"
+            rows.append(item)
+    for index, row in enumerate(rows):
+        row["dot"] = _OV_DOTS[index % len(_OV_DOTS)]
+    keys = (
+        "despatch_local",
+        "crd_local",
+        "despatch_remote",
+        "crd_remote",
+        "inbound",
+        "grn",
+    )
+    totals = {key: _ov_sum_cells([row[key] for row in rows]) for key in keys}
+    totals["avg"] = _ov_average([totals[key] for key in keys])
+    totals["chips"] = [totals[key] for key in keys] + [totals["avg"]]
+    total_orders = sum(int(company.get("total_outbound") or 0) for company in companies)
+    local_orders = sum(int(company.get("local") or 0) for company in companies)
+    remote_orders = sum(int(company.get("remote") or 0) for company in companies)
+    misses = sum(int(company.get("total_misses") or 0) for company in companies)
+    misses_local = sum(int(company.get("misses_local") or 0) for company in companies)
+    misses_remote = sum(int(company.get("misses_remote") or 0) for company in companies)
+    scored_hit = sum(int(company.get("scored_hit") or 0) for company in companies)
+    scored_total = sum(int(company.get("scored_total") or 0) for company in companies)
+    if not scored_total:
+        scored_total = total_orders
+        scored_hit = max(total_orders - misses, 0)
+    overall = _pct(scored_hit, scored_total) or 0
+    ib_hit = sum(int(company.get("ib_hit") or 0) for company in companies)
+    ib_scored = sum(int(company.get("ib_scored") or 0) for company in companies)
+    inbound = _pct(ib_hit, ib_scored) if ib_scored else 0
+    if ib_scored and inbound >= 99.5:
+        inbound_note = "All shipments within 24hrs"
+    elif ib_scored:
+        inbound_note = f"{max(ib_scored - ib_hit, 0):,} shipments exceeded 24h"
+    else:
+        inbound_note = "No inbound timestamps"
+    cfg = companies[0].get("sla_hours") or sla_settings.get("all")
+    if multi:
+        cfg = sla_settings.get("all")
+    hit_pct = round(100 * scored_hit / scored_total) if scored_total else 0
+    miss_pct = max(100 - hit_pct, 0) if scored_total else 0
+    if misses and hit_pct >= 100:
+        hit_pct, miss_pct = 99, 1
+    periods = [company.get("period") for company in companies if company.get("period")]
+    period = periods[0] if len(set(periods)) == 1 else " · ".join(dict.fromkeys(periods))
+    subtitle = companies[0]["name"] if not multi else "All Companies"
+    chart_max = 100
+    return {
+        "subtitle": subtitle,
+        "period": period or "",
+        "sla_pill": (
+            f"Local: {cfg['local_h']}h Despatch · {cfg['crd_h']}h CRD"
+            f"  |  Remote: {cfg['remote_h']}h Despatch · {cfg['crd_h']}h CRD"
+        ),
+        "hours": {
+            "local": cfg["local_h"],
+            "remote": cfg["remote_h"],
+            "crd": cfg["crd_h"],
+            "inbound": cfg["inbound_h"],
+            "grn": cfg["grn_h"],
+        },
+        "total_outbound": total_orders,
+        "local": local_orders,
+        "remote": remote_orders,
+        "overall_sla": overall,
+        "overall_label": _fmt_pct(overall),
+        "sla_note": "Strong across all warehouses" if overall >= 95 else "Needs attention",
+        "total_misses": misses,
+        "misses_local": misses_local,
+        "misses_remote": misses_remote,
+        "inbound_kpi": inbound or 0,
+        "inbound_label": _fmt_pct(inbound) if ib_scored else "—",
+        "inbound_note": inbound_note,
+        "hit_orders": scored_hit,
+        "miss_orders": max(scored_total - scored_hit, 0),
+        "scored_orders": scored_total,
+        "hit_pct": hit_pct,
+        "miss_pct": miss_pct,
+        "warehouses": rows,
+        "totals": totals,
+        "chart_max": chart_max,
+    }
 
 
 def _warehouse_rows(df):
@@ -1134,7 +1441,17 @@ def _warehouse_rows(df):
     return rows
 
 
-def _city_rows(df):
+def _warehouse_slices(df):
+    col = _wh_col(df)
+    if df is None or df.empty or not col or col not in df.columns:
+        return [("—", df)]
+    labels = df[col].fillna("").astype(str).str.strip()
+    labels = labels.mask(labels.str.lower().isin({"", "nan", "none", "nat"}), "—")
+    names = sorted(labels.unique(), key=lambda value: (value == "—", str(value).lower()))
+    return [(name, df[labels == name]) for name in names]
+
+
+def _city_slice_rows(df, warehouse):
     featured = ["Jeddah", "Riyadh", "Madinah", "Dammam", "Makkah", "Tabuk", "Yanbu"]
     rows = []
     used = set()
@@ -1148,6 +1465,7 @@ def _city_rows(df):
         used |= set(group.index)
         h, m, t, p = _count_hit_miss(group)
         rows.append({
+            "warehouse": warehouse,
             "name": name,
             "dot": _dot(p),
             "orders": t,
@@ -1160,6 +1478,7 @@ def _city_rows(df):
     if not other.empty:
         h, m, t, p = _count_hit_miss(other)
         rows.append({
+            "warehouse": warehouse,
             "name": "Other Cities",
             "dot": _dot(p),
             "orders": t,
@@ -1168,6 +1487,13 @@ def _city_rows(df):
             "sla": p or 0,
             "status": _city_status(p),
         })
+    return rows
+
+
+def _city_rows(df):
+    rows = []
+    for warehouse, group in _warehouse_slices(df):
+        rows.extend(_city_slice_rows(group, warehouse))
     return rows
 
 
@@ -1202,6 +1528,11 @@ def _outbound_company(df, key, name, method, warehouse="all"):
             "warehouses": [row["name"] for row in warehouses],
         }
         payload["rows"] = _city_rows(df)
+        for row in payload["rows"]:
+            warehouse = row.get("warehouse") or ""
+            city = row.get("name") or ""
+            row["review_key"] = f"ob|{key}|{warehouse}|{city}"
+            row["hit_miss"] = "miss" if row.get("status") == "Watch" else "hit"
         payload["totals"] = {"orders": total, "hit": hit, "miss": miss, "sla": overall or 0, "status": _fmt_pct(overall)}
         return payload
 
@@ -1436,6 +1767,7 @@ def _inbound_shipment_block(df, key, name):
     avg_miss = round(float(miss_hours.mean()), 0) if not miss_hours.empty else 0
     ship_col = _find_col(df, "Shipment Nbr", "Shipment", "Shipment Number")
     type_col = _find_col(df, "Type", "Shipment Type", "Order Type")
+    fac_col = _wh_col(df)
     rows = []
     sample = df.head(40)
     for _, row in sample.iterrows():
@@ -1443,22 +1775,35 @@ def _inbound_shipment_block(df, key, name):
         hours = round(float(hours), 1) if pd.notna(hours) else 0
         width = min(100, round((hours / 40.0) * 100, 1))
         tone = "ok" if hours <= 24 else ("warn" if hours <= 36 else "bad")
-        ship = str(row[ship_col]) if ship_col else "Shipment"
+        full = str(row[ship_col]).strip() if ship_col and pd.notna(row.get(ship_col)) else ""
+        if full.endswith(".0"):
+            full = full[:-2]
+        ship = full or "Shipment"
         if len(ship) > 18:
             ship = ship[:10] + "..." + ship[-5:]
+        warehouse = str(row[fac_col]).strip() if fac_col and pd.notna(row.get(fac_col)) else ""
+        if warehouse.lower() in {"nan", "none", "nat"}:
+            warehouse = ""
+        hit_flag = _flag(row.get("_rcv_hit"))
+        miss_flag = _flag(row.get("_rcv_miss"))
         arrival_val = ""
         if arrival and pd.notna(row.get(arrival)):
             arrival_val = pd.to_datetime(row[arrival], errors="coerce")
             arrival_val = arrival_val.strftime("%Y-%m-%d") if pd.notna(arrival_val) else ""
         rows.append({
             "shipment": ship,
+            "shipment_full": full,
+            "warehouse": warehouse or "—",
+            "warehouse_code": warehouse,
+            "shipment_key": shipment_identity(key, warehouse, full) if full else "",
+            "hit_miss": "hit" if hit_flag else ("miss" if miss_flag else ""),
             "type": str(row[type_col]).title() if type_col and pd.notna(row.get(type_col)) else "Standard",
             "arrival": arrival_val,
             "hours": hours,
             "hours_width": width,
             "hours_tone": tone,
-            "rcv": 100 if row.get("_rcv_hit") else round(min(99, max(50, 100 - hours)), 1),
-            "status": "On Time" if row.get("_rcv_hit") else "Late",
+            "rcv": 100 if hit_flag else round(min(99, max(50, 100 - hours)), 1),
+            "status": "On Time" if hit_flag else "Late",
         })
     return {
         "key": key,
@@ -1480,11 +1825,13 @@ def _inbound_shipment_block(df, key, name):
     }
 
 
-def _inbound(sheets):
+def _inbound(sheets, warehouse="all", overrides=None):
     companies = []
     years = []
     for item in discover_companies(sheets):
         df = _load_inbound(sheets, item["key"])
+        df = _apply_warehouse(df, warehouse)
+        df = apply_rcv_overrides(df, item["key"], overrides or {})
         if df is None or df.empty:
             continue
         if item["key"] == "aramco":
@@ -1579,21 +1926,40 @@ def _city_cards(df):
     return _fill_location_ranks(cards)
 
 
-def _cities(sheets):
+def _cities(sheets, warehouse="all"):
     companies = []
     for item in discover_companies(sheets):
         key, name = item["key"], item["name"]
-        df = _orders_for(sheets, key)
+        df = _apply_warehouse(_orders_for(sheets, key), warehouse)
         if df is None or df.empty:
             continue
+        ib = _apply_warehouse(_load_inbound(sheets, key), warehouse)
+        warehouse_cards = _warehouse_cards(df, ib)
         if key == "iffco" or not _uses_timestamp_method(key, df):
-            cards = _warehouse_cards(df, _load_inbound(sheets, key))
             layout = "warehouse"
             title = f"{name} Performance by Warehouse"
+            groups = [{
+                "title": title,
+                "layout": "warehouse",
+                "cards": warehouse_cards,
+            }]
+            cards = warehouse_cards
         else:
-            cards = _city_cards(df)
             layout = "city"
             title = f"{name} Performance by Destination City"
+            groups = [
+                {
+                    "title": f"{name} by Warehouse",
+                    "layout": "warehouse",
+                    "cards": warehouse_cards,
+                },
+                {
+                    "title": title,
+                    "layout": "city",
+                    "cards": _city_cards(df),
+                },
+            ]
+            cards = groups[-1]["cards"]
         companies.append({
             "key": key,
             "name": name,
@@ -1601,6 +1967,7 @@ def _cities(sheets):
             "layout": layout,
             "dot_color": _dot_color(key),
             "cards": cards,
+            "groups": groups,
         })
     return {"year_range": _year_range(sheets), "companies": companies}
 
@@ -1968,6 +2335,82 @@ def _sum_num(df, *candidates):
     return int(pd.to_numeric(df[col], errors="coerce").fillna(0).sum())
 
 
+def _status_tone(label):
+    text = str(label or "").strip().lower()
+    if "cancel" in text:
+        return "bad"
+    if "transit" in text:
+        return "info"
+    if "start" in text:
+        return "warn"
+    if "complete" in text:
+        return "ok"
+    if "verif" in text:
+        return "good"
+    return "neutral"
+
+
+def _status_rank(label):
+    order = ("verified", "receiving complete", "receiving started", "in transit", "cancelled")
+    text = str(label or "").strip().lower()
+    for index, name in enumerate(order):
+        if text == name:
+            return index
+    return 50
+
+
+def _labeled_counts(series):
+    if series is None:
+        return []
+    labels = series.fillna("").astype(str).str.strip()
+    labels = labels.mask(labels.str.lower().isin({"", "nan", "none", "nat"}), "Blank")
+    if labels.empty:
+        return []
+    frame = pd.DataFrame({"label": labels, "key": labels.str.casefold()})
+    display = {}
+    for key, group in frame.groupby("key", sort=False):
+        display[key] = group["label"].value_counts().index[0]
+    frame["label"] = frame["key"].map(display)
+    counts = frame["label"].value_counts()
+    return [{"label": str(name), "value": int(count)} for name, count in counts.items()]
+
+
+def _shipment_type_breakdown(df):
+    if df is None or df.empty:
+        return [], []
+    type_col = _find_col(df, "Shipment Type", "Type", "IB Type")
+    if not type_col:
+        return [], []
+    status_col = _find_col(df, "Status", "Shipment Status")
+    labels = df[type_col].fillna("").astype(str).str.strip()
+    labels = labels.mask(labels.str.lower().isin({"", "nan", "none", "nat"}), "Blank")
+    frame = pd.DataFrame({"label": labels, "key": labels.str.casefold()})
+    if status_col:
+        status = df[status_col].fillna("").astype(str).str.strip()
+        status = status.mask(status.str.lower().isin({"", "nan", "none", "nat"}), "Blank")
+        frame["status"] = status.to_numpy()
+    else:
+        frame["status"] = "Unknown"
+    display = {}
+    for key, group in frame.groupby("key", sort=False):
+        display[key] = group["label"].value_counts().index[0]
+    frame["label"] = frame["key"].map(display)
+    type_counts = frame["label"].value_counts()
+    types = [{"label": str(name), "value": int(count)} for name, count in type_counts.items()]
+    status_rows = []
+    for name, _count in type_counts.items():
+        group = frame[frame["label"] == name]
+        counts = group["status"].value_counts()
+        parts = [
+            {"label": str(status), "value": int(count), "tone": _status_tone(status)}
+            for status, count in counts.items()
+            if int(count)
+        ]
+        parts.sort(key=lambda part: (_status_rank(part["label"]), -part["value"]))
+        status_rows.append({"label": str(name), "total": int(len(group)), "parts": parts})
+    return types, status_rows
+
+
 def _chart_from_series(series, presets):
     empty = [{"label": label, "value": 0} for label, _keys in presets]
     if series is None:
@@ -2040,23 +2483,8 @@ def _healthcare_block(sheets, key, name):
         else:
             pending_ib = _pending_count(ib, "inbound")
 
-    type_series = ib[_find_col(ib, "Type", "Shipment Type", "IB Type")] if ib is not None and not ib.empty and _find_col(ib, "Type", "Shipment Type", "IB Type") else None
-    temp_series = ib[_find_col(ib, "Temperature", "Temp", "Storage Type", "Temp Type")] if ib is not None and not ib.empty and _find_col(ib, "Temperature", "Temp", "Storage Type", "Temp Type") else None
-    types = _chart_from_series(
-        type_series,
-        (("Bulk", ("bulk", "ftl", "full")), ("Loose", ("loose", "ltl", "mix", "carton", "standard"))),
-    )
-    temps = _chart_from_series(
-        temp_series,
-        (("Cold", ("cold", "chill")), ("Frozen", ("frozen", "freeze")), ("Ambient", ("ambient", "dry", "normal"))),
-    )
-    if temp_series is None:
-        total_ib = shipments or len(ib) if ib is not None else 0
-        temps = [
-            {"label": "Cold", "value": 0},
-            {"label": "Frozen", "value": 0},
-            {"label": "Ambient", "value": total_ib},
-        ]
+    raw_ib = _filter_company(sheets.get("ibshipments"), key)
+    types, type_status = _shipment_type_breakdown(raw_ib)
 
     lane_col = "_lane" if oh is not None and not oh.empty and "_lane" in oh else None
     tender = int((oh["_lane"] == "local").sum()) if lane_col else 0
@@ -2070,6 +2498,9 @@ def _healthcare_block(sheets, key, name):
         else:
             tender = len(oh) if oh is not None else 0
             private = 0
+    raw_oh = _filter_company(sheets.get("orderheader"), key)
+    order_type_col = _find_col(raw_oh, "Order Type", "Type") if raw_oh is not None and not getattr(raw_oh, "empty", True) else None
+    order_types = _labeled_counts(raw_oh[order_type_col] if order_type_col else None)
     ob_type = _find_col(ob, "Type", "LPN Type", "Order Type") if ob is not None and not ob.empty else None
     ob_types = _chart_from_series(
         ob[ob_type] if ob_type else None,
@@ -2104,13 +2535,14 @@ def _healthcare_block(sheets, key, name):
             "quantity": quantity,
             "lines": lines,
             "types": types,
-            "temps": temps,
+            "type_status": type_status,
         },
         "outbound": {
             "tender": tender,
             "private": private,
             "bulk": ob_types[0]["value"] if ob_types else 0,
             "loose": ob_types[1]["value"] if len(ob_types) > 1 else 0,
+            "order_types": order_types,
             "lines": ob_lines or (len(oh) if oh is not None else 0),
             "quantity": ob_qty,
             "pending": ob_pending,
@@ -2141,11 +2573,15 @@ def _healthcare(sheets):
 
 
 def combine_dashboard(companies):
-    inbound = {"vehicles": 0, "pallets": 0, "shipments": 0, "pending": 0, "quantity": 0, "lines": 0, "types": [], "temps": []}
-    outbound = {"tender": 0, "private": 0, "bulk": 0, "loose": 0, "lines": 0, "quantity": 0, "pending": 0}
+    inbound = {"vehicles": 0, "pallets": 0, "shipments": 0, "pending": 0, "quantity": 0, "lines": 0, "types": [], "type_status": []}
+    outbound = {"tender": 0, "private": 0, "bulk": 0, "loose": 0, "lines": 0, "quantity": 0, "pending": 0, "order_types": []}
     capacity = {"wh_storage": 0, "occupied": 0, "available": 0}
     inventory = {"last_movement": 0}
-    type_map, temp_map = {}, {}
+    type_map = {}
+    type_label = {}
+    status_bucket = {}
+    order_map = {}
+    order_label = {}
     for company in companies or []:
         ib = company.get("inbound") or {}
         ob = company.get("outbound") or {}
@@ -2159,17 +2595,59 @@ def combine_dashboard(companies):
             capacity[key] += int(cap.get(key) or 0)
         inventory["last_movement"] += int(inv.get("last_movement") or 0)
         for item in ib.get("types") or []:
-            type_map[item["label"]] = type_map.get(item["label"], 0) + int(item.get("value") or 0)
-        for item in ib.get("temps") or []:
-            temp_map[item["label"]] = temp_map.get(item["label"], 0) + int(item.get("value") or 0)
-    inbound["types"] = [{"label": label, "value": value} for label, value in type_map.items()] or [
-        {"label": "Bulk", "value": 0}, {"label": "Loose", "value": 0}
-    ]
-    inbound["temps"] = [{"label": label, "value": value} for label, value in temp_map.items()] or [
-        {"label": "Cold", "value": 0}, {"label": "Frozen", "value": 0}, {"label": "Ambient", "value": 0}
-    ]
+            fold = str(item["label"]).casefold()
+            value = int(item.get("value") or 0)
+            if fold not in type_label or value > type_map.get(fold, 0):
+                type_label[fold] = item["label"]
+            type_map[fold] = type_map.get(fold, 0) + value
+        for item in ob.get("order_types") or []:
+            fold = str(item["label"]).casefold()
+            value = int(item.get("value") or 0)
+            if fold not in order_label or value > order_map.get(fold, 0):
+                order_label[fold] = item["label"]
+            order_map[fold] = order_map.get(fold, 0) + value
+        for row in ib.get("type_status") or []:
+            fold = str(row["label"]).casefold()
+            bucket = status_bucket.setdefault(fold, {})
+            for part in row.get("parts") or []:
+                slot = bucket.setdefault(part["label"], {"value": 0, "tone": part.get("tone") or "neutral"})
+                slot["value"] += int(part.get("value") or 0)
+                slot["tone"] = part.get("tone") or slot["tone"]
+    ranked = sorted(type_map.items(), key=lambda item: (-item[1], str(type_label.get(item[0], item[0])).lower()))
+    inbound["types"] = [{"label": type_label.get(fold, fold), "value": value} for fold, value in ranked]
+    type_status = []
+    legend_names = []
+    for fold, value in ranked:
+        parts = []
+        for status, slot in status_bucket.get(fold, {}).items():
+            if slot["value"]:
+                parts.append({"label": status, "value": slot["value"], "tone": slot["tone"]})
+        parts.sort(key=lambda part: (_status_rank(part["label"]), -part["value"]))
+        total = sum(part["value"] for part in parts) or value
+        type_status.append({"label": type_label.get(fold, fold), "total": total, "parts": parts})
+        for part in parts:
+            if part["label"] not in legend_names:
+                legend_names.append(part["label"])
+    legend_names.sort(key=_status_rank)
+    inbound["type_status"] = type_status
     type_max = max((item["value"] for item in inbound["types"]), default=1) or 1
-    temp_max = max((item["value"] for item in inbound["temps"]), default=1) or 1
+    status_legend = []
+    tone_of = {}
+    for row in type_status:
+        for part in row["parts"]:
+            tone_of[part["label"]] = part["tone"]
+    for name in legend_names:
+        status_legend.append({"label": name, "tone": tone_of.get(name, "neutral")})
+    ranked_orders = sorted(order_map.items(), key=lambda item: (-item[1], str(order_label.get(item[0], item[0])).lower()))
+    outbound["order_types"] = [{"label": order_label.get(fold, fold), "value": value} for fold, value in ranked_orders]
+    order_type_max = max((item["value"] for item in outbound["order_types"]), default=1) or 1
+    cap_parts = int(capacity["occupied"]) + int(capacity["available"])
+    occupied_pct = round(100 * int(capacity["occupied"]) / cap_parts) if cap_parts else 0
+    available_pct = max(100 - occupied_pct, 0) if cap_parts else 0
+    if int(capacity["available"]) and occupied_pct >= 100:
+        occupied_pct, available_pct = 99, 1
+    elif int(capacity["occupied"]) and available_pct >= 100:
+        occupied_pct, available_pct = 1, 99
     orders_total = outbound["tender"] + outbound["private"] or 1
     type_total = outbound["bulk"] + outbound["loose"] or 1
     return {
@@ -2178,7 +2656,10 @@ def combine_dashboard(companies):
         "capacity": capacity,
         "inventory": inventory,
         "type_max": type_max,
-        "temp_max": temp_max,
+        "order_type_max": order_type_max,
+        "occupied_pct": occupied_pct,
+        "available_pct": available_pct,
+        "status_legend": status_legend,
         "tender_pct": round(100 * outbound["tender"] / orders_total),
         "private_pct": round(100 * outbound["private"] / orders_total),
         "bulk_pct": round(100 * outbound["bulk"] / type_total),
@@ -2187,12 +2668,12 @@ def combine_dashboard(companies):
     }
 
 
-def _pages_from_sheets(sheets, warehouse="all", page=None, company="all"):
+def _pages_from_sheets(sheets, warehouse="all", page=None, company="all", inbound_overrides=None):
     builders = {
         "overview": lambda: _overview(sheets),
         "outbound": lambda: _outbound(sheets, warehouse=warehouse),
-        "inbound": lambda: _inbound(sheets),
-        "cities": lambda: _cities(sheets),
+        "inbound": lambda: _inbound(sheets, warehouse=warehouse, overrides=inbound_overrides),
+        "cities": lambda: _cities(sheets, warehouse=warehouse),
         "inventory": lambda: _inventory(sheets),
         "sla": lambda: _sla(sheets, company=company),
         "misses": lambda: _misses(sheets),
@@ -2248,7 +2729,7 @@ def clear_cache():
     _SHEET_CACHE.clear()
 
 
-def load_dashboard(company="all", warehouse="all", page="overview"):
+def load_dashboard(company="all", warehouse="all", page="overview", inbound_overrides=None, review_stamp=""):
     path = find_excel_path()
     if not path:
         return None, "sample"
@@ -2268,6 +2749,7 @@ def load_dashboard(company="all", warehouse="all", page="overview"):
             page_key,
             company if page_key == "sla" else "all",
             sla_stamp,
+            review_stamp if page_key == "inbound" else "",
         )
         pages = _PAGE_CACHE.get(cache_key)
         if pages is None:
@@ -2279,6 +2761,7 @@ def load_dashboard(company="all", warehouse="all", page="overview"):
                 warehouse=warehouse_key,
                 page=page_key,
                 company=company or "all",
+                inbound_overrides=inbound_overrides if page_key == "inbound" else None,
             )
             _PAGE_CACHE[cache_key] = pages
         else:

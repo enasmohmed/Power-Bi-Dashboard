@@ -3,127 +3,160 @@
 {% load humanize %}
 
 {% block content %}
-{% if has_data and page == 'overview' %}
-    <div class="kpi-overview">
-        {% for company in companies %}
-        <section class="kpi-section">
-            <div class="kpi-section-head">
-                <h5><span class="company-dot" style="background: {{ company.dot_color }};"></span>{{ company.name }} {{ company.subtitle }}</h5>
-                <div class="kpi-section-meta">{{ company.period_note }}</div>
+{% if has_data and page == 'overview' and ov %}
+    <div class="ov-page">
+        <div class="ov-head">
+            <div>
+                <h4>KPI Performance</h4>
+                <p>{{ ov.subtitle }} · 3PL Operations</p>
             </div>
-            <div class="row g-3">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card">
-                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#a16207" stroke-width="1.8">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <path d="M3.3 7 12 12l8.7-5"></path>
-                            <path d="M12 22V12"></path>
-                        </svg>
-                        <div class="card-body">
-                            <span class="kpi-label">Total Outbound</span>
-                            <p class="kpi-value">{{ company.total_outbound|intcomma }}</p>
-                            <span class="kpi-sub">Local: {{ company.local|intcomma }} — Remote: {{ company.remote|intcomma }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card ok">
-                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2">
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="m8 12 3 3 5-6"></path>
-                        </svg>
-                        <div class="card-body">
-                            <span class="kpi-label">Overall SLA</span>
-                            <p class="kpi-value ok">{{ company.overall_sla }}%</p>
-                            <span class="kpi-sub">↑ {{ company.sla_note }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card bad">
-                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2">
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="m9 9 6 6M15 9l-6 6"></path>
-                        </svg>
-                        <div class="card-body">
-                            <span class="kpi-label">Total Misses</span>
-                            <p class="kpi-value bad">{{ company.total_misses|intcomma }}</p>
-                            <span class="kpi-sub">{{ company.misses_note }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card kpi-card {% if company.inbound_kpi >= 90 %}ok{% else %}warn{% endif %}">
-                        <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="{% if company.inbound_kpi >= 90 %}#16a34a{% else %}#d97706{% endif %}" stroke-width="1.8">
-                            <path d="M3 21V8l9-5 9 5v13"></path>
-                            <path d="M9 21v-8h6v8"></path>
-                        </svg>
-                        <div class="card-body">
-                            <span class="kpi-label">Inbound KPI</span>
-                            <p class="kpi-value {% if company.inbound_kpi >= 90 %}ok{% else %}warn{% endif %}">{{ company.inbound_kpi }}%</p>
-                            <span class="kpi-sub">{{ company.inbound_note }}</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="ov-head-badges">
+                {% if ov.period %}<span class="ov-period">{{ ov.period }}</span>{% endif %}
+                <span class="ov-overall"><i></i>Overall: {{ ov.overall_label }}</span>
             </div>
-        </section>
-        {% endfor %}
+        </div>
 
-        <div class="kpi-summary">
-            <h6>Combined KPI Summary</h6>
-            <h5>KPI by Company</h5>
+        <div class="row g-3">
+            <div class="col-xl-3 col-md-6">
+                <article class="ov-score" style="--accent:#0f766e;--soft:#ccfbf1;">
+                    <span class="ov-score-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"></path><path d="M3.3 7.6 12 12.5l8.7-4.9"></path><path d="M12 12.5V21"></path></svg>
+                    </span>
+                    <span class="ov-score-label">Total Outbound Orders</span>
+                    <strong>{{ ov.total_outbound|intcomma }}</strong>
+                    <em>Local: {{ ov.local|intcomma }} · Remote: {{ ov.remote|intcomma }}</em>
+                </article>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <article class="ov-score" style="--accent:#15803d;--soft:#dcfce7;">
+                    <span class="ov-score-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 3 3 5-6"></path></svg>
+                    </span>
+                    <span class="ov-score-label">Overall SLA Achievement</span>
+                    <strong>{{ ov.overall_label }}</strong>
+                    <em><b>↑</b> {{ ov.sla_note }}</em>
+                </article>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <article class="ov-score" style="--accent:#e11d48;--soft:#ffe4e6;">
+                    <span class="ov-score-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
+                    </span>
+                    <span class="ov-score-label">Total SLA Misses</span>
+                    <strong>{{ ov.total_misses|intcomma }}</strong>
+                    <em>Local: {{ ov.misses_local|intcomma }} · Remote: {{ ov.misses_remote|intcomma }}</em>
+                </article>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <article class="ov-score" style="--accent:#7c3aed;--soft:#ede9fe;">
+                    <span class="ov-score-icon">
+                        <svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13"></path><path d="M9 21v-8h6v8"></path></svg>
+                    </span>
+                    <span class="ov-score-label">Inbound KPI</span>
+                    <strong>{{ ov.inbound_label }}</strong>
+                    <em>{{ ov.inbound_note }}</em>
+                </article>
+            </div>
+        </div>
+
+        <div class="ov-section-head">
+            <h5>KPI Summary by Warehouse</h5>
+            <span class="ov-sla-pill">{{ ov.sla_pill }}</span>
+        </div>
+
+        <section class="hc-card ov-table-card hc-accent-teal">
+            <div class="hc-card-head">
+                Monthly KPI Performance — {{ ov.subtitle }}
+                <small>Outbound SLA: on-time despatch and customer receiving date</small>
+            </div>
             <div class="table-responsive">
-                <table class="table kpi-table">
+                <table class="ov-table">
                     <thead>
                         <tr>
-                            <th>Company</th>
-                            <th>Period</th>
-                            <th>Orders</th>
-                            <th>Local SLA</th>
-                            <th>Remote SLA</th>
-                            <th>Inbound SLA</th>
-                            <th>Overall</th>
+                            <th>Warehouse</th>
+                            <th>Despatch Local<small>SLA {{ ov.hours.local }}h</small></th>
+                            <th>CRD Local<small>SLA {{ ov.hours.crd }}h</small></th>
+                            <th>Despatch Remote<small>SLA {{ ov.hours.remote }}h</small></th>
+                            <th>CRD Remote<small>SLA {{ ov.hours.crd }}h</small></th>
+                            <th>Inbound<small>{{ ov.hours.inbound }}h</small></th>
+                            <th>GRN Confirm<small>{{ ov.hours.grn }}h</small></th>
+                            <th>Monthly Avg</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for company in companies %}
+                        {% for row in ov.warehouses %}
                         <tr>
                             <td>
-                                <span class="company-dot" style="background: {{ company.dot_color }};"></span>
-                                {{ company.name }}
+                                <span class="ov-wh"><i style="background: {{ row.dot }};"></i>{{ row.name }}</span>
                             </td>
-                            <td>{{ company.period }}</td>
-                            <td>{{ company.total_outbound|intcomma }}</td>
-                            <td class="sla-cell">
-                                <div class="sla-row">
-                                    <div class="sla-bar"><span style="width: {{ company.local_sla }}%;"></span></div>
-                                    <span class="sla-pct">{{ company.local_sla }}%</span>
-                                </div>
-                            </td>
-                            <td class="sla-cell">
-                                <div class="sla-row">
-                                    <div class="sla-bar"><span style="width: {{ company.remote_sla }}%;"></span></div>
-                                    <span class="sla-pct">{{ company.remote_sla }}%</span>
-                                </div>
-                            </td>
-                            <td class="sla-cell">
-                                <div class="sla-row">
-                                    <div class="sla-bar">
-                                        <span class="{% if company.inbound_sla >= 90 %}{% elif company.inbound_sla >= 80 %}warn{% else %}bad{% endif %}"
-                                              style="width: {{ company.inbound_sla }}%;"></span>
-                                    </div>
-                                    <span class="sla-pct">{{ company.inbound_sla }}%</span>
-                                </div>
-                            </td>
+                            {% for cell in row.chips %}
                             <td>
-                                <span class="overall-pill {% if company.overall_sla >= 95 %}ok{% elif company.overall_sla >= 90 %}warn{% else %}warn{% endif %}">
-                                    {{ company.overall_sla }}%
+                                <span class="ov-chip tone-{{ cell.tone }}" title="{{ cell.tip }}">
+                                    {% if cell.icon == 'check' %}✓{% elif cell.icon == 'cross' %}✗{% else %}—{% endif %}
+                                    {{ cell.label }}
                                 </span>
                             </td>
+                            {% endfor %}
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="ov-empty">No warehouse rows in the file.</td></tr>
                         {% endfor %}
+                        {% if ov.warehouses %}
+                        <tr class="ov-total">
+                            <td><span class="ov-wh"><i style="background:#2563eb;"></i><b>Grand Total</b></span></td>
+                            {% for cell in ov.totals.chips %}
+                            <td>
+                                <span class="ov-chip tone-{{ cell.tone }}" title="{{ cell.tip }}">
+                                    {% if cell.icon == 'check' %}✓{% elif cell.icon == 'cross' %}✗{% else %}—{% endif %}
+                                    {{ cell.label }}
+                                </span>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <div class="row g-3 ov-charts">
+            <div class="col-lg-7">
+                <section class="hc-card hc-accent-blue">
+                    <div class="hc-card-head">Despatch SLA — Local vs Remote</div>
+                    <div class="ov-bars">
+                        {% for row in ov.warehouses %}
+                        <div class="ov-bar-col" title="{{ row.name }}">
+                            <div class="ov-bar-pair">
+                                <span class="ov-bar is-local" style="height: {{ row.despatch_local.bar }}%;" title="Local {{ row.despatch_local.label }}"></span>
+                                <span class="ov-bar is-remote" style="height: {{ row.despatch_remote.bar }}%;" title="Remote {{ row.despatch_remote.label }}"></span>
+                            </div>
+                            <em>{{ row.name }}</em>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="ov-legend">
+                        <span><i class="is-local"></i>Local despatch</span>
+                        <span><i class="is-remote"></i>Remote despatch</span>
+                    </div>
+                </section>
+            </div>
+            <div class="col-lg-5">
+                <section class="hc-card hc-accent-violet">
+                    <div class="hc-card-head">SLA Compliance Distribution</div>
+                    <div class="ov-donut-wrap">
+                        <div class="ov-donut" style="--p: {{ ov.hit_pct }};">
+                            <div class="ov-donut-hole">
+                                <strong>{{ ov.overall_label }}</strong>
+                                <span>Hit</span>
+                            </div>
+                        </div>
+                        <ul class="ov-donut-key">
+                            <li><i class="is-hit"></i>Hit <b>{{ ov.hit_orders|intcomma }}</b></li>
+                            <li><i class="is-miss"></i>Miss <b>{{ ov.miss_orders|intcomma }}</b></li>
+                            <li><i class="is-total"></i>Total <b>{{ ov.scored_orders|intcomma }}</b></li>
+                        </ul>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
@@ -204,9 +237,12 @@
                 <div class="kpi-summary-head">
                     <div>
                         <h6>Performance</h6>
-                        <h5>{{ company.table_title }}</h5>
+                        <h5>{{ company.table_title }}{% if selected_warehouse and selected_warehouse != 'all' %} · {{ selected_warehouse }}{% endif %}</h5>
                     </div>
-                    <span class="sla-note">{{ company.sla_note }}</span>
+                    <div class="kpi-summary-tools">
+                        {% include 'general/dashboard/pages/warehouse_filter.html' %}
+                        <span class="sla-note">{{ company.sla_note }}</span>
+                    </div>
                 </div>
 
                 {% if company.layout == 'warehouse' %}
@@ -289,6 +325,7 @@
                     <table class="table kpi-table">
                         <thead>
                             <tr>
+                                <th>Warehouse</th>
                                 <th>City</th>
                                 <th>Orders</th>
                                 <th>Hit</th>
@@ -300,6 +337,7 @@
                         <tbody>
                             {% for row in company.rows %}
                             <tr>
+                                <td>{{ row.warehouse|default:"—" }}</td>
                                 <td><span class="company-dot" style="background: {{ row.dot }};"></span>{{ row.name }}</td>
                                 <td>{{ row.orders|intcomma }}</td>
                                 <td>{{ row.hit|intcomma }}</td>
@@ -315,20 +353,68 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if row.status == 'Perfect' %}
-                                        <span class="status-pill perfect">✓ Perfect</span>
-                                    {% elif row.status == 'Watch' %}
-                                        <span class="status-pill watch">⚠ Watch</span>
-                                    {% else %}
-                                        <span class="status-pill hit">✓ Hit</span>
-                                    {% endif %}
+                                    <div class="status-stack status-stack-start">
+                                        {% if row.status == 'Perfect' %}
+                                            <span class="status-pill perfect">✓ Perfect</span>
+                                        {% elif row.status == 'Watch' %}
+                                            <span class="status-pill watch">⚠ Watch</span>
+                                        {% elif row.status == 'Miss' %}
+                                            <span class="status-pill late">✕ Miss</span>
+                                        {% else %}
+                                            <span class="status-pill hit">✓ Hit</span>
+                                        {% endif %}
+                                        {% if row.approved_reason %}
+                                            <span class="review-reason">{{ row.approved_reason }}</span>
+                                        {% endif %}
+                                        {% if row.review_key %}
+                                        <details class="review-edit">
+                                            <summary>Edit</summary>
+                                            <form method="post" action="{% url 'accounts:outbound_review' %}" class="review-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <input type="hidden" name="shipment_key" value="{{ row.review_key }}">
+                                                <input type="hidden" name="company" value="{{ company.key }}">
+                                                <input type="hidden" name="shipment" value="{{ row.name }}">
+                                                <input type="hidden" name="warehouse" value="{{ row.warehouse|default:'' }}">
+                                                <select name="result">
+                                                    <option value="hit" {% if row.edit_result == 'hit' %}selected{% endif %}>Hit</option>
+                                                    <option value="miss" {% if row.edit_result == 'miss' %}selected{% endif %}>Miss</option>
+                                                </select>
+                                                <textarea name="reason" rows="2" maxlength="500" required placeholder="Reason">{{ row.edit_reason }}</textarea>
+                                                <button type="submit">Save</button>
+                                            </form>
+                                        </details>
+                                        {% if row.review_pending %}
+                                            <span class="status-pill watch">Pending approval</span>
+                                            {% if can_approve_reviews %}
+                                            <p class="review-draft">{{ row.pending_reason }}</p>
+                                            <div class="review-actions">
+                                                <form method="post" action="{% url 'accounts:outbound_review_decide' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <input type="hidden" name="shipment_key" value="{{ row.review_key }}">
+                                                    <input type="hidden" name="decision" value="approve">
+                                                    <button type="submit" class="review-approve">Approve</button>
+                                                </form>
+                                                <form method="post" action="{% url 'accounts:outbound_review_decide' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                    <input type="hidden" name="shipment_key" value="{{ row.review_key }}">
+                                                    <input type="hidden" name="decision" value="reject">
+                                                    <button type="submit" class="review-reject">Reject</button>
+                                                </form>
+                                            </div>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td>Grand Total</td>
+                                <td colspan="2">Grand Total</td>
                                 <td>{{ company.totals.orders|intcomma }}</td>
                                 <td>{{ company.totals.hit|intcomma }}</td>
                                 <td>{{ company.totals.miss }}</td>
@@ -427,9 +513,12 @@
                 <div class="kpi-summary-head">
                     <div>
                         <h6>Performance</h6>
-                        <h5>{{ company.table_title }}</h5>
+                        <h5>{{ company.table_title }}{% if selected_warehouse and selected_warehouse != 'all' %} · {{ selected_warehouse }}{% endif %}</h5>
                     </div>
-                    <span class="sla-note">{{ company.sla_note }}</span>
+                    <div class="kpi-summary-tools">
+                        {% include 'general/dashboard/pages/warehouse_filter.html' %}
+                        <span class="sla-note">{{ company.sla_note }}</span>
+                    </div>
                 </div>
 
                 {% if company.layout == 'warehouse' %}
@@ -489,10 +578,12 @@
                         <thead>
                             <tr>
                                 <th>Shipment</th>
+                                <th>Warehouse</th>
                                 <th class="text-center-cell">Type</th>
                                 <th class="text-center-cell">Arrival</th>
                                 <th>Hours to Receive</th>
                                 <th class="text-end-cell">RCV %</th>
+                                <th>Hit / Miss</th>
                                 <th class="text-end-cell">Status</th>
                             </tr>
                         </thead>
@@ -500,6 +591,7 @@
                             {% for row in company.rows %}
                             <tr>
                                 <td>{{ row.shipment }}</td>
+                                <td>{{ row.warehouse|default:"—" }}</td>
                                 <td class="text-center-cell"><span class="type-badge">{{ row.type }}</span></td>
                                 <td class="text-center-cell">{{ row.arrival }}</td>
                                 <td class="hours-cell">
@@ -511,12 +603,67 @@
                                     </div>
                                 </td>
                                 <td class="text-end-cell">{{ row.rcv }}%</td>
-                                <td class="text-end-cell">
-                                    {% if row.status == 'On Time' %}
-                                        <span class="status-pill perfect">✓ On Time</span>
+                                <td class="hitmiss-cell">
+                                    {% if row.hit_miss == 'hit' %}
+                                        <span class="status-pill hit">Hit</span>
+                                    {% elif row.hit_miss == 'miss' %}
+                                        <span class="status-pill late">Miss</span>
                                     {% else %}
-                                        <span class="status-pill late">✕ Late</span>
+                                        <span class="muted-dash">—</span>
                                     {% endif %}
+                                    {% if row.shipment_key %}
+                                    <details class="review-edit">
+                                        <summary>Edit</summary>
+                                        <form method="post" action="{% url 'accounts:inbound_review' %}" class="review-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <input type="hidden" name="shipment_key" value="{{ row.shipment_key }}">
+                                            <input type="hidden" name="company" value="{{ company.key }}">
+                                            <input type="hidden" name="shipment" value="{{ row.shipment_full|default:row.shipment }}">
+                                            <input type="hidden" name="warehouse" value="{{ row.warehouse_code|default:'' }}">
+                                            <select name="result">
+                                                <option value="hit" {% if row.edit_result == 'hit' %}selected{% endif %}>Hit</option>
+                                                <option value="miss" {% if row.edit_result == 'miss' %}selected{% endif %}>Miss</option>
+                                            </select>
+                                            <textarea name="reason" rows="2" maxlength="500" required placeholder="Reason">{{ row.edit_reason }}</textarea>
+                                            <button type="submit">Save</button>
+                                        </form>
+                                    </details>
+                                    {% if row.review_pending %}
+                                        <span class="status-pill watch">Pending approval</span>
+                                        {% if can_approve_reviews %}
+                                        <p class="review-draft">{{ row.pending_reason }}</p>
+                                        <div class="review-actions">
+                                            <form method="post" action="{% url 'accounts:inbound_review_decide' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <input type="hidden" name="shipment_key" value="{{ row.shipment_key }}">
+                                                <input type="hidden" name="decision" value="approve">
+                                                <button type="submit" class="review-approve">Approve</button>
+                                            </form>
+                                            <form method="post" action="{% url 'accounts:inbound_review_decide' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <input type="hidden" name="shipment_key" value="{{ row.shipment_key }}">
+                                                <input type="hidden" name="decision" value="reject">
+                                                <button type="submit" class="review-reject">Reject</button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td class="text-end-cell">
+                                    <div class="status-stack">
+                                        {% if row.status == 'On Time' %}
+                                            <span class="status-pill perfect">✓ On Time</span>
+                                        {% else %}
+                                            <span class="status-pill late">✕ Late</span>
+                                        {% endif %}
+                                        {% if row.approved_reason %}
+                                            <span class="review-reason">{{ row.approved_reason }}</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -533,11 +680,15 @@
     <div class="kpi-overview">
         {% for company in companies %}
         <section class="kpi-section">
+            {% for group in company.groups %}
             <div class="kpi-section-head">
-                <h5>{{ company.section_title }}</h5>
+                <h5>{{ group.title }}{% if selected_warehouse and selected_warehouse != 'all' %} · {{ selected_warehouse }}{% endif %}</h5>
+                {% if forloop.first %}
+                {% include 'general/dashboard/pages/warehouse_filter.html' %}
+                {% endif %}
             </div>
-            <div class="row g-3">
-                {% for card in company.cards %}
+            <div class="row g-3{% if not forloop.last %} mb-3{% endif %}">
+                {% for card in group.cards %}
                 <div class="col-xl-3 col-md-6">
                     <div class="city-card {{ card.tone }}{% if card.hover %} has-hover{% endif %}">
                         <div class="city-card-head">
@@ -570,7 +721,7 @@
                             {{ card.orders|intcomma }} orders —
                             {% if card.misses == 1 %}1 miss{% else %}{{ card.misses }} misses{% endif %}
                         </div>
-                        {% if company.layout == 'warehouse' %}
+                        {% if group.layout == 'warehouse' %}
                         <div class="city-metrics">
                             <span>Despatch Local {{ card.local }}%</span>
                             <span>Remote {% if card.remote is None %}N/A{% else %}{{ card.remote }}%{% endif %}</span>
@@ -623,6 +774,7 @@
                 </div>
                 {% endfor %}
             </div>
+            {% endfor %}
         </section>
         {% endfor %}
     </div>
@@ -984,46 +1136,46 @@
 
         <div class="row g-3">
             <div class="col-12">
-                <section class="hc-card hc-card-fill">
+                <section class="hc-card hc-card-fill hc-accent-teal">
                     <div class="hc-card-head">Inbounds</div>
                     <div class="row g-4">
                         <div class="col-lg-5">
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#0f766e;--soft:#ccfbf1;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M3 13.5 2.25 12H7.5l-.6-1.5H2L1.25 9h7.8l-.6-1.5H1.11L.25 6H4a2 2 0 0 1 2-2h12v4h3l3 4v5h-2a3 3 0 0 1-3 3 3 3 0 0 1-3-3h-4a3 3 0 0 1-3 3 3 3 0 0 1-3-3H4v-3.5zm16 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M9 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"></path></svg>
                                 </span>
                                 <span>Number of vehicles daily</span>
                                 <b>{{ hc.inbound.vehicles|intcomma }}</b>
                             </div>
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#2563eb;--soft:#dbeafe;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4m10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4M5 7h11l3 5v6h-2m-10 0H7V9H5z"></path></svg>
                                 </span>
                                 <span>Number Of pallets</span>
                                 <b>{{ hc.inbound.pallets|intcomma }}</b>
                             </div>
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#15803d;--soft:#dcfce7;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M3 4a2 2 0 0 0-2 2v11h2a3 3 0 0 0 3 3 3 3 0 0 0 3-3h6a3 3 0 0 0 3 3 3 3 0 0 0 3-3h2v-5l-3-4h-3V4M8 6l4 4-4 4"></path></svg>
                                 </span>
                                 <span>Number of shipments</span>
                                 <b>{{ hc.inbound.shipments|intcomma }}</b>
                             </div>
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#d97706;--soft:#fef3c7;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 4.3 2.8 17.2A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.8L13.7 4.3a2 2 0 0 0-3.4 0z"></path></svg>
                                 </span>
                                 <span>Pending shipments</span>
                                 <b>{{ hc.inbound.pending|intcomma }}</b>
                             </div>
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#7c3aed;--soft:#ede9fe;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                                 </span>
                                 <span>Total quantity</span>
                                 <b>{{ hc.inbound.quantity|intcomma }}</b>
                             </div>
-                            <div class="hc-metric">
+                            <div class="hc-metric" style="--accent:#e11d48;--soft:#ffe4e6;">
                                 <span class="hc-metric-icon">
                                     <svg viewBox="0 0 24 24"><path d="M8 7h13M8 12h13M8 17h13M3 7h.01M3 12h.01M3 17h.01"></path></svg>
                                 </span>
@@ -1032,33 +1184,46 @@
                             </div>
                         </div>
                         <div class="col-lg-7">
-                            <div class="hc-charts">
+                            <div class="hc-charts hc-charts-types">
                                 <div class="hc-chart-pane">
                                     <h6>Shipment type</h6>
-                                    <div class="hc-bars">
+                                    <div class="hc-hbar-list">
                                         {% for bar in hc.inbound.types %}
-                                        <div class="hc-bar-col">
-                                            <span class="hc-bar-value">{{ bar.value|intcomma }}</span>
-                                            <div class="hc-bar-track">
-                                                <span class="hc-bar type-{{ forloop.counter }}" style="height: {% widthratio bar.value hc.type_max 100 %}%;"></span>
+                                        <div class="hc-hbar-row">
+                                            <span class="hc-hbar-name" title="{{ bar.label }}">{{ bar.label }}</span>
+                                            <div class="hc-hbar-track">
+                                                <span class="hc-hbar-fill hue-{{ forloop.counter }}" style="width: {% widthratio bar.value hc.type_max 100 %}%;"></span>
                                             </div>
-                                            <span class="hc-bar-label">{{ bar.label }}</span>
+                                            <b>{{ bar.value|intcomma }}</b>
                                         </div>
+                                        {% empty %}
+                                        <p class="hc-chart-empty">No shipment types in the file.</p>
                                         {% endfor %}
                                     </div>
                                 </div>
                                 <div class="hc-chart-split"></div>
                                 <div class="hc-chart-pane">
-                                    <h6>Shipment temperature</h6>
-                                    <div class="hc-bars">
-                                        {% for bar in hc.inbound.temps %}
-                                        <div class="hc-bar-col">
-                                            <span class="hc-bar-value">{{ bar.value|intcomma }}</span>
-                                            <div class="hc-bar-track">
-                                                <span class="hc-bar temp-{{ forloop.counter }}" style="height: {% widthratio bar.value hc.temp_max 100 %}%;"></span>
+                                    <h6>Status by shipment type</h6>
+                                    {% if hc.status_legend %}
+                                    <div class="hc-status-legend">
+                                        {% for item in hc.status_legend %}
+                                        <span><i class="tone-{{ item.tone }}"></i>{{ item.label }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="hc-hbar-list">
+                                        {% for row in hc.inbound.type_status %}
+                                        <div class="hc-hbar-row">
+                                            <span class="hc-hbar-name" title="{{ row.label }}">{{ row.label }}</span>
+                                            <div class="hc-stack-track" title="{% for part in row.parts %}{{ part.label }} {{ part.value }}{% if not forloop.last %} · {% endif %}{% endfor %}">
+                                                {% for part in row.parts %}
+                                                <span class="tone-{{ part.tone }}" style="width: {% widthratio part.value row.total 100 %}%;"></span>
+                                                {% endfor %}
                                             </div>
-                                            <span class="hc-bar-label">{{ bar.label }}</span>
+                                            <b>{{ row.total|intcomma }}</b>
                                         </div>
+                                        {% empty %}
+                                        <p class="hc-chart-empty">No status rows in the file.</p>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -1069,52 +1234,35 @@
             </div>
 
             <div class="col-xl-6">
-                <section class="hc-card hc-card-fill">
+                <section class="hc-card hc-card-fill hc-accent-blue">
                     <div class="hc-card-head">Outbound</div>
                     <div class="row g-3 align-items-center">
                         <div class="col-md-7">
-                            <div class="hc-donut-row">
-                                <div class="hc-donut-item">
-                                    <div class="hc-donut hc-donut-tender" style="--p: {{ hc.tender_pct }};">
-                                        <div class="hc-donut-inner">{{ hc.outbound.tender|intcomma }}</div>
-                                    </div>
-                                    <span>Tender</span>
-                                </div>
-                                <div class="hc-donut-item">
-                                    <div class="hc-donut hc-donut-private" style="--p: {{ hc.private_pct }};">
-                                        <div class="hc-donut-inner">{{ hc.outbound.private|intcomma }}</div>
-                                    </div>
-                                    <span>Private</span>
-                                </div>
-                            </div>
-                            <p class="hc-donut-caption">Number. of Orders</p>
-                            <hr>
-                            <div class="hc-donut-row">
-                                <div class="hc-donut-item">
-                                    <div class="hc-donut hc-donut-bulk" style="--p: {{ hc.bulk_pct }};">
-                                        <div class="hc-donut-inner">{{ hc.outbound.bulk|intcomma }}</div>
-                                    </div>
-                                    <span>Bulk</span>
-                                </div>
-                                <div class="hc-donut-item">
-                                    <div class="hc-donut hc-donut-loose" style="--p: {{ hc.loose_pct }};">
-                                        <div class="hc-donut-inner">{{ hc.outbound.loose|intcomma }}</div>
-                                    </div>
-                                    <span>Loose</span>
-                                </div>
-                            </div>
                             <p class="hc-donut-caption">Order type</p>
+                            <div class="hc-hbar-list">
+                                {% for bar in hc.outbound.order_types %}
+                                <div class="hc-hbar-row">
+                                    <span class="hc-hbar-name" title="{{ bar.label }}">{{ bar.label }}</span>
+                                    <div class="hc-hbar-track">
+                                        <span class="hc-hbar-fill hue-{{ forloop.counter }}" style="width: {% widthratio bar.value hc.order_type_max 100 %}%;"></span>
+                                    </div>
+                                    <b>{{ bar.value|intcomma }}</b>
+                                </div>
+                                {% empty %}
+                                <p class="hc-chart-empty">No order types in the file.</p>
+                                {% endfor %}
+                            </div>
                         </div>
                         <div class="col-md-5">
-                            <div class="hc-stat">
+                            <div class="hc-stat" style="--accent:#0f766e;--soft:#ccfbf1;">
                                 <h6>Number. of Lines</h6>
                                 <b>{{ hc.outbound.lines|intcomma }}</b>
                             </div>
-                            <div class="hc-stat">
+                            <div class="hc-stat" style="--accent:#2563eb;--soft:#dbeafe;">
                                 <h6>Total quantities</h6>
                                 <b>{{ hc.outbound.quantity|intcomma }}</b>
                             </div>
-                            <div class="hc-stat">
+                            <div class="hc-stat" style="--accent:#d97706;--soft:#fef3c7;">
                                 <h6>Pending Orders</h6>
                                 <b>{{ hc.outbound.pending|intcomma }}</b>
                             </div>
@@ -1125,18 +1273,35 @@
 
             <div class="col-xl-6">
                 <div class="hc-stack">
-                    <section class="hc-card hc-card-fill">
+                    <section class="hc-card hc-card-fill hc-accent-violet">
                         <div class="hc-card-head">Capacity</div>
-                        <div class="hc-capacity">
-                            <div><span>WH Storage</span><b>{{ hc.capacity.wh_storage|intcomma }}</b></div>
-                            <div><span>Occupied Location</span><b>{{ hc.capacity.occupied|intcomma }}</b></div>
-                            <div><span>Available Location</span><b>{{ hc.capacity.available|intcomma }}</b></div>
+                        <div class="hc-cap">
+                            <div class="hc-cap-donut" style="--p: {{ hc.occupied_pct }};">
+                                <div class="hc-cap-hole">
+                                    <strong>{{ hc.occupied_pct }}%</strong>
+                                    <span>Occupied</span>
+                                </div>
+                            </div>
+                            <div class="hc-cap-copy">
+                                <div class="hc-cap-bar" aria-hidden="true">
+                                    <span class="is-filled" style="width: {{ hc.occupied_pct }}%;"></span>
+                                    <span class="is-empty" style="width: {{ hc.available_pct }}%;"></span>
+                                </div>
+                                <div class="hc-cap-key">
+                                    <span><i class="is-filled"></i>Occupied Location <b>{{ hc.capacity.occupied|intcomma }}</b></span>
+                                    <span><i class="is-empty"></i>Available Location <b>{{ hc.capacity.available|intcomma }}</b></span>
+                                    <span><i class="is-storage"></i>WH Storage <b>{{ hc.capacity.wh_storage|intcomma }}</b></span>
+                                </div>
+                            </div>
                         </div>
                     </section>
-                    <section class="hc-card hc-card-compact">
+                    <section class="hc-card hc-card-compact hc-accent-amber">
                         <div class="hc-card-head">Inventory</div>
-                        <div class="hc-capacity hc-inventory">
-                            <div>
+                        <div class="hc-move">
+                            <span class="hc-move-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"></path><path d="M3.3 7.6 12 12.5l8.7-4.9"></path><path d="M12 12.5V21"></path></svg>
+                            </span>
+                            <div class="hc-move-copy">
                                 <span>Last movement</span>
                                 <b>{{ hc.inventory.last_movement|intcomma }}</b>
                             </div>

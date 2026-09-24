@@ -37,28 +37,14 @@
                             <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
                         </button>
                         <div class="kpi-select-menu">
-                            <a class="{% if selected_company == 'all' or not selected_company %}active{% endif %}" href="?company=all">All Companies</a>
+                            <a class="{% if selected_company == 'all' or not selected_company %}active{% endif %}" href="?company=all{% if selected_warehouse and selected_warehouse != 'all' %}&wh={{ selected_warehouse|urlencode }}{% endif %}">All Companies</a>
                             {% for company in filter_companies %}
-                            <a class="{% if selected_company == company.key %}active{% endif %}" href="?company={{ company.key }}">{{ company.name }}</a>
+                            <a class="{% if selected_company == company.key %}active{% endif %}" href="?company={{ company.key }}{% if selected_warehouse and selected_warehouse != 'all' %}&wh={{ selected_warehouse|urlencode }}{% endif %}">{{ company.name }}</a>
                             {% endfor %}
                         </div>
                     </div>
-                    {% if page == 'outbound' and filter_warehouses %}
-                    <div class="kpi-select" data-kpi-select>
-                        <button class="kpi-select-btn" type="button">
-                            <span>
-                                {% if selected_warehouse == 'all' or not selected_warehouse %}All Warehouses
-                                {% else %}{{ selected_warehouse }}{% endif %}
-                            </span>
-                            <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
-                        </button>
-                        <div class="kpi-select-menu">
-                            <a class="{% if selected_warehouse == 'all' or not selected_warehouse %}active{% endif %}" href="?company={{ selected_company|default:'all' }}">All Warehouses</a>
-                            {% for warehouse in filter_warehouses %}
-                            <a class="{% if selected_warehouse == warehouse %}active{% endif %}" href="?company={{ selected_company|default:'all' }}&wh={{ warehouse|urlencode }}">{{ warehouse }}</a>
-                            {% endfor %}
-                        </div>
-                    </div>
+                    {% if page == 'outbound' or page == 'inbound' or page == 'cities' %}
+                    {% include 'general/dashboard/pages/warehouse_filter.html' %}
                     {% endif %}
                     <span class="kpi-pill is-date">{{ year_range|default:"2025 - 2026" }}</span>
                     <span class="kpi-source {% if data_source == 'excel' %}live{% endif %}">

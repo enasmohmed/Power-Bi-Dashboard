@@ -1,4 +1,5 @@
 import calendar
+import copy
 
 from django.contrib import messages
 from django.contrib.auth import login, get_user_model, logout
@@ -10,6 +11,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy, reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView, TemplateView
@@ -21,9 +23,10 @@ from customer.models import CustomerInbound, CustomerReturns, CustomerExpiry, Cu
     CustomerInventory, CustomerPalletLocationAvailability, CustomerHSE, CustomerTransportationOutbound, \
     CustomerWHOutbound
 from .forms import CustomUserCreationForm, ProfileForm
-from .models import CustomUser
+from .models import CustomUser, InboundShipmentReview
 
 from .dummy_data import OVERVIEW, OUTBOUND, INBOUND, CITIES, INVENTORY, SLA, MISSES, DASHBOARD
+from . import inbound_reviews
 from . import kpi_excel
 from . import sla_settings
 
@@ -610,10 +613,16 @@ class DashboardPageView(LoginRequiredMixin, TemplateView):
             'misses': 'Misses',
         }
 
+        inbound_overrides = None
+        review_stamp = ""
+        if page == 'inbound':
+            inbound_overrides, review_stamp = inbound_reviews.approved_override_state()
         live_pages, source = kpi_excel.load_dashboard(
             company=self.request.GET.get('company', 'all'),
             warehouse=self.request.GET.get('wh', 'all'),
             page=page,
+            inbound_overrides=inbound_overrides,
+            review_stamp=review_stamp,
         )
         if source == 'excel' and live_pages:
             page_data = live_pages
@@ -682,9 +691,27 @@ class DashboardPageView(LoginRequiredMixin, TemplateView):
 
             context['has_data'] = bool(companies) or page in {'sla', 'inventory'}
             context['year_range'] = data.get('year_range', context['year_range'])
+            if page == 'cities':
+                for company in companies:
+                    if company.get('groups'):
+                        continue
+                    company['groups'] = [{
+                        'title': company.get('section_title') or company.get('name'),
+                        'layout': company.get('layout') or 'city',
+                        'cards': company.get('cards') or [],
+                    }]
+            if page in {'inbound', 'outbound'}:
+                companies = copy.deepcopy(companies)
+                if page == 'inbound':
+                    inbound_reviews.attach(companies)
+                else:
+                    inbound_reviews.attach_outbound(companies)
+                context['can_approve_reviews'] = inbound_reviews.can_approve(self.request.user)
             context['companies'] = companies
+            if page == 'overview':
+                context['ov'] = kpi_excel.combine_overview(companies)
             if page == 'dashboard':
-                combined_src = [c for c in companies if c.get('key') in ('iffco', 'aramco')] or companies
+                combined_src = companies
                 context['hc'] = kpi_excel.combine_dashboard(combined_src)
                 context['has_data'] = bool(combined_src)
             context['disclaimer'] = data.get('disclaimer', '')
@@ -744,6 +771,63 @@ class UploadKpiExcelView(LoginRequiredMixin, View):
         else:
             messages.success(request, 'Data_Power_Bi.xlsx uploaded. Dashboard now reads live Excel data.')
         return redirect(request.META.get('HTTP_REFERER') or reverse('accounts:overview'))
+
+
+def _safe_next(request, fallback="accounts:inbound"):
+    nxt = (request.POST.get("next") or "").strip()
+    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+        return nxt
+    referer = request.META.get("HTTP_REFERER") or ""
+    if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return referer
+    return reverse(fallback)
+
+
+class SubmitInboundReviewView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        result = (request.POST.get("result") or "").strip().lower()
+        reason = (request.POST.get("reason") or "").strip()
+        shipment_key = (request.POST.get("shipment_key") or "").strip()
+        if result not in {InboundShipmentReview.RESULT_HIT, InboundShipmentReview.RESULT_MISS}:
+            messages.error(request, "Choose Hit or Miss.")
+            return redirect(_safe_next(request))
+        if not reason:
+            messages.error(request, "Add a reason before saving.")
+            return redirect(_safe_next(request))
+        if not shipment_key or len(shipment_key) > 200:
+            messages.error(request, "This shipment cannot be updated.")
+            return redirect(_safe_next(request))
+        inbound_reviews.save_proposal(
+            request.user,
+            shipment_key=shipment_key,
+            company=(request.POST.get("company") or "").strip()[:64],
+            shipment=(request.POST.get("shipment") or "").strip()[:80],
+            warehouse=(request.POST.get("warehouse") or "").strip()[:80],
+            result=result,
+            reason=reason[:500],
+        )
+        messages.success(request, "Saved. The reason stays hidden until an admin or manager approves it.")
+        return redirect(_safe_next(request))
+
+
+class DecideInboundReviewView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        if not inbound_reviews.can_approve(request.user):
+            messages.error(request, "Only an admin or manager can approve this reason.")
+            return redirect(_safe_next(request))
+        decision = (request.POST.get("decision") or "").strip().lower()
+        shipment_key = (request.POST.get("shipment_key") or "").strip()
+        if decision not in {"approve", "reject"} or not shipment_key:
+            messages.error(request, "Choose approve or reject.")
+            return redirect(_safe_next(request))
+        review = inbound_reviews.decide(request.user, shipment_key, decision)
+        if review is None:
+            messages.error(request, "There is no pending reason to review.")
+        elif decision == "approve":
+            messages.success(request, "Approved. The reason now shows next to Status.")
+        else:
+            messages.success(request, "Rejected. Status stays on the last approved result.")
+        return redirect(_safe_next(request))
 
 
 class SaveSlaTargetsView(LoginRequiredMixin, View):

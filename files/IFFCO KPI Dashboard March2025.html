@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFFCO KPI Dashboard – March 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tamer-green: #006B3C;
+    --tamer-green-light: #00894E;
+    --iffco-red: #CC0000;
+    --iffco-black: #1A1A1A;
+    --bg: #F0F2F5;
+    --surface: #FFFFFF;
+    --surface2: #F7F8FA;
+    --border: #E2E6EA;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    --hit-green: #16A34A;
+    --hit-bg: #F0FDF4;
+    --miss-red: #DC2626;
+    --miss-bg: #FEF2F2;
+    --warn-orange: #D97706;
+    --warn-bg: #FFFBEB;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+  }
+
+  /* Tamer Logo SVG embedded */
+  .tamer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tamer-logo-box {
+    width: 36px;
+    height: 36px;
+    background: var(--tamer-green);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tamer-logo-text {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--iffco-black);
+    letter-spacing: -0.5px;
+  }
+
+  /* IFFCO logo */
+  .iffco-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .iffco-icon {
+    display: flex;
+    align-items: center;
+  }
+
+  .iffco-text {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--iffco-black);
+    letter-spacing: 1px;
+  }
+
+  .header-title {
+    margin-left: 8px;
+  }
+
+  .header-title h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .header-title p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .period-badge {
+    background: var(--tamer-green);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  .overall-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--hit-bg);
+    border: 1px solid #86EFAC;
+    border-radius: 20px;
+    padding: 6px 14px;
+  }
+
+  .overall-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--hit-green);
+    border-radius: 50%;
+  }
+
+  .overall-badge span {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--hit-green);
+  }
+
+  /* ─── TABS ─── */
+  .tabs {
+    background: var(--surface);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { color: var(--tamer-green); }
+
+  .tab-btn.active {
+    color: var(--tamer-green);
+    border-bottom-color: var(--tamer-green);
+    font-weight: 600;
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    padding: 24px 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── SECTION TITLE ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+
+  /* ─── SCORECARD GRID (top row) ─── */
+  .scorecard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .scorecard {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scorecard::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent, var(--tamer-green));
+  }
+
+  .scorecard.hit-card::before { background: var(--hit-green); }
+  .scorecard.miss-card::before { background: var(--miss-red); }
+  .scorecard.warn-card::before { background: var(--warn-orange); }
+  .scorecard.green-card::before { background: var(--tamer-green); }
+
+  .scorecard-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .scorecard-value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .scorecard-value.hit { color: var(--hit-green); }
+  .scorecard-value.miss { color: var(--miss-red); }
+  .scorecard-value.warn { color: var(--warn-orange); }
+  .scorecard-value.neutral { color: var(--iffco-black); }
+
+  .scorecard-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .scorecard-sub .delta {
+    font-weight: 600;
+    color: var(--hit-green);
+  }
+
+  .scorecard-icon {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  /* ─── KPI TABLE ─── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .card-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .sla-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    background: var(--surface2);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:not(:first-child) { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody tr.total-row {
+    background: #F0FDF4;
+    font-weight: 600;
+  }
+
+  tbody td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  tbody td:not(:first-child) { text-align: center; }
+
+  .city-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+  }
+
+  .city-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .kpi-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 68px;
+    justify-content: center;
+  }
+
+  .kpi-chip.hit {
+    background: var(--hit-bg);
+    color: var(--hit-green);
+    border: 1px solid #86EFAC;
+  }
+
+  .kpi-chip.miss {
+    background: var(--miss-bg);
+    color: var(--miss-red);
+    border: 1px solid #FECACA;
+  }
+
+  .kpi-chip.perfect {
+    background: var(--hit-bg);
+    color: var(--hit-green);
+    border: 1px solid #86EFAC;
+  }
+
+  .kpi-chip.warn {
+    background: var(--warn-bg);
+    color: var(--warn-orange);
+    border: 1px solid #FDE68A;
+  }
+
+  .pct-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pct-bar {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 50px;
+  }
+
+  .pct-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .pct-bar-fill.hit { background: var(--hit-green); }
+  .pct-bar-fill.miss { background: var(--miss-red); }
+  .pct-bar-fill.perfect { background: var(--tamer-green); }
+
+  .pct-text {
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 38px;
+    text-align: right;
+  }
+
+  /* ─── TWO-COL LAYOUT ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  /* ─── CITY PERFORMANCE CARDS ─── */
+  .city-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .city-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .city-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .city-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .city-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .city-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .city-status.green { background: var(--hit-bg); color: var(--hit-green); }
+  .city-status.red { background: var(--miss-bg); color: var(--miss-red); }
+  .city-status.orange { background: var(--warn-bg); color: var(--warn-orange); }
+
+  .city-avg {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .city-avg-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .city-kpi-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .city-kpi-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .city-kpi-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .city-kpi-val {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .city-kpi-val.hit { color: var(--hit-green); }
+  .city-kpi-val.miss { color: var(--miss-red); }
+  .city-kpi-val.na { color: var(--text-muted); }
+
+  /* ─── SLA REFERENCE ─── */
+  .sla-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .sla-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .sla-type {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .sla-type-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .sla-type-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .sla-type-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .sla-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sla-rule {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 3px solid var(--tamer-green);
+  }
+
+  .sla-rule-desc {
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .sla-rule-time {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--tamer-green);
+    background: var(--hit-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* ─── CHART (mini bar) ─── */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 60px;
+    padding: 8px 0;
+  }
+
+  .mini-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .mini-bar {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.5s ease;
+  }
+
+  .mini-bar-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* ─── MISS ANALYSIS ─── */
+  .miss-table td { font-size: 12px; }
+
+  /* ─── ORDER DETAIL TABLE ─── */
+  .order-table th, .order-table td {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .order-table td { text-align: left !important; }
+
+  .status-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .status-chip.shipped {
+    background: #DBEAFE;
+    color: #1D4ED8;
+  }
+
+  .status-chip.packed {
+    background: #FEF9C3;
+    color: #854D0E;
+  }
+
+  /* ─── INBOUND ─── */
+  .inbound-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .footer-logos {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.5;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1200px) {
+    .scorecard-grid { grid-template-columns: repeat(2, 1fr); }
+    .city-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .header { padding: 0 16px; }
+    .tabs { padding: 0 16px; overflow-x: auto; }
+    .scorecard-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .three-col { grid-template-columns: 1fr; }
+    .sla-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo-group">
+      <!-- Tamer Logo -->
+      <div class="tamer-logo">
+        <div class="tamer-logo-box">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="1" y="1" width="9" height="9" fill="white" opacity="0.3"/>
+            <path d="M2 18 L11 8 L20 18" stroke="white" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+            <circle cx="7" cy="6" r="2" fill="white"/>
+            <circle cx="13" cy="10" r="2" fill="white"/>
+          </svg>
+        </div>
+        <span class="tamer-logo-text">TAMER</span>
+      </div>
+
+      <div class="logo-divider"></div>
+
+      <!-- IFFCO Logo -->
+      <div class="iffco-logo">
+        <div class="iffco-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 3 L22 12 L14 8 L6 12 Z" fill="#CC0000"/>
+            <path d="M14 8 L22 12 L14 17 Z" fill="#990000"/>
+          </svg>
+        </div>
+        <span class="iffco-text">IFFCO</span>
+      </div>
+    </div>
+
+    <div class="header-title">
+      <h1>KPI Performance Dashboard</h1>
+      <p>3PL Operations · Kingdom of Saudi Arabia</p>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="period-badge">March 2025</div>
+    <div class="overall-badge">
+      <div class="overall-dot"></div>
+      <span>Overall: 97.8%</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TABS ═══ -->
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview</button>
+  <button class="tab-btn" onclick="switchTab('outbound')">🚚 Outbound</button>
+  <button class="tab-btn" onclick="switchTab('inbound')">📦 Inbound</button>
+  <button class="tab-btn" onclick="switchTab('cities')">🗺️ City Breakdown</button>
+  <button class="tab-btn" onclick="switchTab('sla')">📋 SLA Reference</button>
+  <button class="tab-btn" onclick="switchTab('misses')">⚠️ Miss Analysis</button>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: OVERVIEW                          -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-overview" class="tab-panel active">
+
+    <!-- Top Scorecards -->
+    <div class="scorecard-grid">
+      <div class="scorecard">
+        <div class="scorecard-icon" style="background:#F0FDF4">📦</div>
+        <div class="scorecard-label">Total Outbound Orders</div>
+        <div class="scorecard-value neutral">2,470</div>
+        <div class="scorecard-sub">Local: 1,798 &nbsp;·&nbsp; Remote: 672</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-icon" style="background:#F0FDF4">✅</div>
+        <div class="scorecard-label">Overall SLA Achievement</div>
+        <div class="scorecard-value hit">97.8%</div>
+        <div class="scorecard-sub"><span class="delta">↑ Strong</span> across all warehouses</div>
+      </div>
+      <div class="scorecard miss-card">
+        <div class="scorecard-icon" style="background:#FEF2F2">❌</div>
+        <div class="scorecard-label">Total SLA Misses</div>
+        <div class="scorecard-value miss">77</div>
+        <div class="scorecard-sub">Local: 62 &nbsp;·&nbsp; Remote: 15</div>
+      </div>
+      <div class="scorecard green-card">
+        <div class="scorecard-icon" style="background:#F0FDF4">🏭</div>
+        <div class="scorecard-label">Inbound KPI</div>
+        <div class="scorecard-value hit">100%</div>
+        <div class="scorecard-sub">All shipments within 24hrs</div>
+      </div>
+    </div>
+
+    <!-- KPI Summary Table -->
+    <div class="section-header">
+      <span class="section-title">KPI Summary by Warehouse</span>
+      <span class="sla-pill">Local: 48h Despatch · 72h CRD &nbsp;|&nbsp; Remote: 48h Despatch · 72h CRD</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Monthly KPI Performance — All Warehouses</div>
+          <div class="card-subtitle">Outbound SLA: On-Time Despatch & Customer Receiving Date</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Warehouse</th>
+            <th>Despatch Local<br><small style="font-weight:400;text-transform:none;letter-spacing:0">SLA: 48h</small></th>
+            <th>CRD Local<br><small style="font-weight:400;text-transform:none;letter-spacing:0">SLA: 72h</small></th>
+            <th>Despatch Remote<br><small style="font-weight:400;text-transform:none;letter-spacing:0">SLA: 48h</small></th>
+            <th>CRD Remote<br><small style="font-weight:400;text-transform:none;letter-spacing:0">SLA: 72h</small></th>
+            <th>Inbound<br><small style="font-weight:400;text-transform:none;letter-spacing:0">24h</small></th>
+            <th>GRN Confirm<br><small style="font-weight:400;text-transform:none;letter-spacing:0">24h</small></th>
+            <th>Monthly Avg</th>
+          </tr>
+        </thead>
+        <tbody id="kpi-table-body">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mini charts row -->
+    <div class="two-col">
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <div class="card-title">Despatch SLA — Local vs Remote Hit Rate</div>
+        </div>
+        <div style="padding:16px">
+          <div id="bar-chart" style="display:flex;gap:8px;align-items:flex-end;height:100px"></div>
+          <div style="display:flex;gap:16px;margin-top:10px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary)">
+              <div style="width:12px;height:12px;background:var(--tamer-green);border-radius:2px"></div>Local Despatch
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary)">
+              <div style="width:12px;height:12px;background:#60A5FA;border-radius:2px"></div>Remote Despatch
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">
+          <div class="card-title">SLA Compliance Distribution</div>
+        </div>
+        <div style="padding:16px">
+          <div id="donut-area" style="display:flex;align-items:center;gap:24px"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: OUTBOUND                          -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-outbound" class="tab-panel">
+    <div class="scorecard-grid">
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Local On-Time Despatch</div>
+        <div class="scorecard-value hit">96.6%</div>
+        <div class="scorecard-sub">1,736 Hit / 62 Miss · 1,798 orders</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Local Customer Receiving</div>
+        <div class="scorecard-value hit">96.4%</div>
+        <div class="scorecard-sub">1,733 Hit / 65 Miss · 1,798 orders</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Remote On-Time Despatch</div>
+        <div class="scorecard-value hit">98.1%</div>
+        <div class="scorecard-sub">659 Hit / 13 Miss · 672 orders</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Remote Customer Receiving</div>
+        <div class="scorecard-value hit">97.6%</div>
+        <div class="scorecard-sub">643 Hit / 15 Miss · 658 orders</div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:8px">
+      <span class="section-title">Outbound KPI by Warehouse — Detail</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Hit / Miss Breakdown per Warehouse</div>
+        <div class="card-subtitle">Local & Remote combined</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Warehouse</th>
+            <th>Local Hit</th>
+            <th>Local Miss</th>
+            <th>Local %</th>
+            <th>Remote Hit</th>
+            <th>Remote Miss</th>
+            <th>Remote %</th>
+            <th>Total Orders</th>
+          </tr>
+        </thead>
+        <tbody id="outbound-detail-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: INBOUND                           -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-inbound" class="tab-panel">
+    <div class="inbound-stats">
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Arrival vs System Receiving</div>
+        <div class="scorecard-value hit">100%</div>
+        <div class="scorecard-sub">All warehouses within 24h</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Arrival vs GRN Sharing</div>
+        <div class="scorecard-value hit">100%</div>
+        <div class="scorecard-sub">All GRN confirmations on time</div>
+      </div>
+      <div class="scorecard green-card">
+        <div class="scorecard-label">Inbound SLA</div>
+        <div class="scorecard-value hit">100%</div>
+        <div class="scorecard-sub">Target: 24 hours</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Inbound KPI — All Warehouses</div>
+        <div class="card-subtitle">System receiving & GRN confirmation within 24 hours of arrival</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Warehouse</th>
+            <th>Arrival vs System Receiving</th>
+            <th>Arrival vs GRN Sharing</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Abha</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Buraydah</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Jeddah</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Khobar</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Madinah</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Riyadh</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr>
+            <td><div class="city-cell"><div class="city-dot" style="background:#006B3C"></div>Tabuk</div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip hit">✓ On Track</span></td>
+          </tr>
+          <tr class="total-row">
+            <td><div class="city-cell"><div class="city-dot" style="background:#1D4ED8"></div><strong>Grand Total</strong></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+            <td><span class="kpi-chip perfect">✓ 100%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: CITIES                            -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-cities" class="tab-panel">
+    <div class="section-header">
+      <span class="section-title">Performance by City / Warehouse</span>
+    </div>
+    <div class="city-cards-grid" id="city-cards-grid"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: SLA REFERENCE                     -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-sla" class="tab-panel">
+    <div class="section-header">
+      <span class="section-title">SLA Agreement — IFFCO 3PL Operations</span>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
+        The following SLA criteria apply to all IFFCO orders managed by <strong>Tamer Logistics</strong> under the 3PL agreement for KSA operations. All timelines are measured from order submission.
+      </div>
+    </div>
+
+    <div class="sla-grid">
+      <div class="sla-card">
+        <div class="sla-type">
+          <div class="sla-type-icon" style="background:#EFF6FF">🚛</div>
+          <div>
+            <div class="sla-type-label">Outbound — Customer Delivery (Regional)</div>
+            <div class="sla-type-sub">Measured: Releasing vs Despatch / CRD</div>
+          </div>
+        </div>
+        <div class="sla-rules">
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📍 Inside City (Local) — Despatch</span>
+            <span class="sla-rule-time">48 Hours</span>
+          </div>
+          <div class="sla-rule">
+            <span class="sla-rule-desc">🌐 Outside City (Remote) — Despatch</span>
+            <span class="sla-rule-time">72 Hours</span>
+          </div>
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📦 Customer Receiving Date (CRD) — Local</span>
+            <span class="sla-rule-time">72 Hours</span>
+          </div>
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📦 Customer Receiving Date (CRD) — Remote</span>
+            <span class="sla-rule-time">72 Hours</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sla-card">
+        <div class="sla-type">
+          <div class="sla-type-icon" style="background:#F0FDF4">🏢</div>
+          <div>
+            <div class="sla-type-label">Outbound — Branch Transfers</div>
+            <div class="sla-type-sub">Measured: Releasing vs Shipment</div>
+          </div>
+        </div>
+        <div class="sla-rules">
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📋 Shipping from submission</span>
+            <span class="sla-rule-time">24 Hours</span>
+          </div>
+          <div class="sla-rule" style="border-left-color:var(--warn-orange)">
+            <span class="sla-rule-desc">⏰ Cut-off time for same-day picking</span>
+            <span class="sla-rule-time" style="background:var(--warn-bg);color:var(--warn-orange)">2:00 PM</span>
+          </div>
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📦 Dispatch (if before cut-off)</span>
+            <span class="sla-rule-time">Next Day AM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sla-card">
+        <div class="sla-type">
+          <div class="sla-type-icon" style="background:#FEF9C3">📥</div>
+          <div>
+            <div class="sla-type-label">Inbound — Receiving</div>
+            <div class="sla-type-sub">Measured: Arrival vs System Receiving</div>
+          </div>
+        </div>
+        <div class="sla-rules">
+          <div class="sla-rule">
+            <span class="sla-rule-desc">🖥️ System receiving after arrival</span>
+            <span class="sla-rule-time">24 Hours</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sla-card">
+        <div class="sla-type">
+          <div class="sla-type-icon" style="background:#FEF2F2">📝</div>
+          <div>
+            <div class="sla-type-label">Inbound — GRN Confirmation</div>
+            <div class="sla-type-sub">Measured: Arrival vs GRN Sharing Time</div>
+          </div>
+        </div>
+        <div class="sla-rules">
+          <div class="sla-rule">
+            <span class="sla-rule-desc">📄 GRN report sharing after arrival</span>
+            <span class="sla-rule-time">24 Hours</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievement summary -->
+    <div style="margin-top:16px">
+      <div class="section-header"><span class="section-title">March 2025 — SLA Achievement vs Target</span></div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>SLA Category</th>
+              <th>Target</th>
+              <th>March Achievement</th>
+              <th>Orders</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>On-Time Despatch — Local</td>
+              <td style="text-align:center"><span class="sla-pill">48h</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill hit" style="width:96.6%"></div></div><span class="pct-text" style="color:var(--hit-green)">96.6%</span></div></td>
+              <td style="text-align:center;font-size:12px">1,736 / 1,798</td>
+              <td><span class="kpi-chip hit">✓ Hit</span></td>
+            </tr>
+            <tr>
+              <td>Customer Receiving — Local</td>
+              <td style="text-align:center"><span class="sla-pill">72h</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill hit" style="width:96.4%"></div></div><span class="pct-text" style="color:var(--hit-green)">96.4%</span></div></td>
+              <td style="text-align:center;font-size:12px">1,733 / 1,798</td>
+              <td><span class="kpi-chip hit">✓ Hit</span></td>
+            </tr>
+            <tr>
+              <td>On-Time Despatch — Remote</td>
+              <td style="text-align:center"><span class="sla-pill">48h</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill hit" style="width:98.1%"></div></div><span class="pct-text" style="color:var(--hit-green)">98.1%</span></div></td>
+              <td style="text-align:center;font-size:12px">659 / 672</td>
+              <td><span class="kpi-chip hit">✓ Hit</span></td>
+            </tr>
+            <tr>
+              <td>Customer Receiving — Remote</td>
+              <td style="text-align:center"><span class="sla-pill">72h</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill hit" style="width:97.6%"></div></div><span class="pct-text" style="color:var(--hit-green)">97.6%</span></div></td>
+              <td style="text-align:center;font-size:12px">643 / 658</td>
+              <td><span class="kpi-chip hit">✓ Hit</span></td>
+            </tr>
+            <tr>
+              <td>Inbound System Receiving</td>
+              <td style="text-align:center"><span class="sla-pill">24h</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:100%"></div></div><span class="pct-text" style="color:var(--hit-green)">100%</span></div></td>
+              <td style="text-align:center;font-size:12px">All</td>
+              <td><span class="kpi-chip perfect">✓ Perfect</span></td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>Overall SLA Score</strong></td>
+              <td style="text-align:center"><span class="sla-pill">≥95%</span></td>
+              <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:97.8%"></div></div><span class="pct-text" style="color:var(--hit-green)"><strong>97.8%</strong></span></div></td>
+              <td style="text-align:center;font-size:12px">2,470 orders</td>
+              <td><span class="kpi-chip perfect">✓ Exceeds</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- TAB: MISS ANALYSIS                     -->
+  <!-- ══════════════════════════════════════ -->
+  <section id="tab-misses" class="tab-panel">
+    <div class="scorecard-grid">
+      <div class="scorecard miss-card">
+        <div class="scorecard-label">Total Misses (Despatch)</div>
+        <div class="scorecard-value miss">75</div>
+        <div class="scorecard-sub">Local: 62 · Remote: 13</div>
+      </div>
+      <div class="scorecard miss-card">
+        <div class="scorecard-label">Total Misses (CRD)</div>
+        <div class="scorecard-value miss">80</div>
+        <div class="scorecard-sub">Local: 65 · Remote: 15</div>
+      </div>
+      <div class="scorecard warn-card">
+        <div class="scorecard-label">Highest Miss — Buraydah</div>
+        <div class="scorecard-value warn">13.1%</div>
+        <div class="scorecard-sub">8 misses / 61 local orders</div>
+      </div>
+      <div class="scorecard hit-card">
+        <div class="scorecard-label">Perfect Warehouses</div>
+        <div class="scorecard-value hit">3</div>
+        <div class="scorecard-sub">Jeddah · Madinah · Inbound all</div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:8px">
+      <span class="section-title">Miss Breakdown by Warehouse</span>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Local Misses — Despatch SLA (48h)</div>
+        </div>
+        <table class="miss-table">
+          <thead>
+            <tr>
+              <th>Warehouse</th>
+              <th>Total Orders</th>
+              <th>Misses</th>
+              <th>Miss Rate</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#DC2626"></div>Buraydah</div></td>
+              <td style="text-align:center">61</td>
+              <td style="text-align:center;color:var(--miss-red);font-weight:700">8</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill miss" style="width:13.1%"></div></div><span class="pct-text" style="color:var(--miss-red)">13.1%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip miss">High</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#D97706"></div>Riyadh</div></td>
+              <td style="text-align:center">844</td>
+              <td style="text-align:center;color:var(--warn-orange);font-weight:700">41</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill miss" style="width:4.9%"></div></div><span class="pct-text" style="color:var(--warn-orange)">4.9%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip warn">Watch</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#D97706"></div>Khobar</div></td>
+              <td style="text-align:center">302</td>
+              <td style="text-align:center;color:var(--warn-orange);font-weight:700">9</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill miss" style="width:3.0%"></div></div><span class="pct-text" style="color:var(--warn-orange)">3.0%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip warn">Watch</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#D97706"></div>Abha</div></td>
+              <td style="text-align:center">68</td>
+              <td style="text-align:center;color:var(--warn-orange);font-weight:700">3</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill miss" style="width:4.4%"></div></div><span class="pct-text" style="color:var(--warn-orange)">4.4%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip warn">Watch</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#16A34A"></div>Tabuk</div></td>
+              <td style="text-align:center">45</td>
+              <td style="text-align:center;color:var(--hit-green);font-weight:700">1</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill miss" style="width:2.2%"></div></div><span class="pct-text" style="color:var(--hit-green)">2.2%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip hit">OK</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#16A34A"></div>Jeddah</div></td>
+              <td style="text-align:center">341</td>
+              <td style="text-align:center;color:var(--hit-green);font-weight:700">0</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:0%"></div></div><span class="pct-text" style="color:var(--hit-green)">0%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip perfect">Perfect</span></td>
+            </tr>
+            <tr>
+              <td><div class="city-cell"><div class="city-dot" style="background:#16A34A"></div>Madinah</div></td>
+              <td style="text-align:center">137</td>
+              <td style="text-align:center;color:var(--hit-green);font-weight:700">0</td>
+              <td style="text-align:center"><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill perfect" style="width:0%"></div></div><span class="pct-text" style="color:var(--hit-green)">0%</span></div></td>
+              <td style="text-align:center"><span class="kpi-chip perfect">Perfect</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Common Miss Reasons</div>
+        </div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--miss-bg);border-radius:8px;border-left:3px solid var(--miss-red)">
+            <span style="font-size:12px;color:var(--text-primary)">🗺️ Remote Area — long distance</span>
+            <span style="font-size:12px;font-weight:700;color:var(--miss-red)">Major Cause</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--warn-bg);border-radius:8px;border-left:3px solid var(--warn-orange)">
+            <span style="font-size:12px;color:var(--text-primary)">📦 Booking Orders — dispatched per schedule</span>
+            <span style="font-size:12px;font-weight:700;color:var(--warn-orange)">Accepted</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--warn-bg);border-radius:8px;border-left:3px solid var(--warn-orange)">
+            <span style="font-size:12px;color:var(--text-primary)">🚛 Awaited FTL — full truckload consolidation</span>
+            <span style="font-size:12px;font-weight:700;color:var(--warn-orange)">Accepted</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--warn-bg);border-radius:8px;border-left:3px solid var(--warn-orange)">
+            <span style="font-size:12px;color:var(--text-primary)">⏰ After cut-off — submitted post 2pm</span>
+            <span style="font-size:12px;font-weight:700;color:var(--warn-orange)">Note</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#EFF6FF;border-radius:8px;border-left:3px solid #3B82F6">
+            <span style="font-size:12px;color:var(--text-primary)">🎉 Eid Holidays — sales confirmation exception</span>
+            <span style="font-size:12px;font-weight:700;color:#1D4ED8">Exception</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-text">IFFCO KPI Dashboard · March 2025 · Managed by Tamer Logistics · KSA Operations</div>
+  <div class="footer-logos">
+    <span>TAMER</span>
+    <span style="color:var(--border)">×</span>
+    <span>IFFCO</span>
+  </div>
+</footer>
+
+<script>
+  // ─── DATA ───
+  const kpiData = [
+    { city: 'Abha',    dispLocal: 0.9559, crdLocal: 0.9559, dispRemote: 1.0000, crdRemote: 1.0000, inbound: 1, grn: 1, color: '#D97706' },
+    { city: 'Buraydah',dispLocal: 0.8689, crdLocal: 0.8689, dispRemote: 0.8750, crdRemote: 0.8750, inbound: 1, grn: 1, color: '#DC2626' },
+    { city: 'Jeddah',  dispLocal: 1.0000, crdLocal: 1.0000, dispRemote: 1.0000, crdRemote: 1.0000, inbound: 1, grn: 1, color: '#16A34A' },
+    { city: 'Khobar',  dispLocal: 0.9702, crdLocal: 0.9669, dispRemote: 0.9659, crdRemote: 0.9567, inbound: 1, grn: 1, color: '#D97706' },
+    { city: 'Madinah', dispLocal: 1.0000, crdLocal: 1.0000, dispRemote: 1.0000, crdRemote: 1.0000, inbound: 1, grn: 1, color: '#16A34A' },
+    { city: 'Riyadh',  dispLocal: 0.9514, crdLocal: 0.9491, dispRemote: null,   crdRemote: null,   inbound: 1, grn: 1, color: '#D97706' },
+    { city: 'Tabuk',   dispLocal: 0.9778, crdLocal: 0.9778, dispRemote: 1.0000, crdRemote: 1.0000, inbound: 1, grn: 1, color: '#16A34A' },
+  ];
+
+  const localOrders = { Abha:68, Buraydah:61, Jeddah:341, Khobar:302, Madinah:137, Riyadh:844, Tabuk:45 };
+  const remoteOrders = { Abha:92, Buraydah:16, Jeddah:239, Khobar:323, Madinah:1, Tabuk:1 };
+
+  function fmt(v) {
+    if (v === null || v === undefined) return '—';
+    return (v * 100).toFixed(1) + '%';
+  }
+
+  function getClass(v) {
+    if (v === null) return 'miss';
+    if (v >= 0.99) return 'perfect';
+    if (v >= 0.90) return 'hit';
+    return 'miss';
+  }
+
+  function chipHtml(v) {
+    if (v === null) return '<span class="kpi-chip miss">N/A</span>';
+    const cls = getClass(v);
+    const icon = cls === 'perfect' ? '✓' : cls === 'hit' ? '✓' : '✗';
+    return `<span class="kpi-chip ${cls}">${icon} ${fmt(v)}</span>`;
+  }
+
+  function barHtml(v, cls) {
+    if (v === null) return '<span style="color:var(--text-muted);font-size:12px">N/A</span>';
+    const pct = (v * 100).toFixed(1);
+    const barCls = getClass(v);
+    return `<div class="pct-bar-wrap">
+      <div class="pct-bar"><div class="pct-bar-fill ${barCls}" style="width:${pct}%"></div></div>
+      <span class="pct-text" style="color:var(--${barCls === 'perfect' || barCls === 'hit' ? 'hit-green' : 'miss-red'})">${pct}%</span>
+    </div>`;
+  }
+
+  // ─── KPI TABLE ───
+  const tbody = document.getElementById('kpi-table-body');
+  kpiData.forEach(d => {
+    const avg = [d.dispLocal, d.crdLocal, d.dispRemote, d.crdRemote, d.inbound, d.grn]
+      .filter(v => v !== null).reduce((a,b) => a+b, 0) /
+      [d.dispLocal, d.crdLocal, d.dispRemote, d.crdRemote, d.inbound, d.grn].filter(v => v !== null).length;
+
+    tbody.innerHTML += `<tr>
+      <td><div class="city-cell"><div class="city-dot" style="background:${d.color}"></div>${d.city}</div></td>
+      <td>${chipHtml(d.dispLocal)}</td>
+      <td>${chipHtml(d.crdLocal)}</td>
+      <td>${chipHtml(d.dispRemote)}</td>
+      <td>${chipHtml(d.crdRemote)}</td>
+      <td>${chipHtml(d.inbound)}</td>
+      <td>${chipHtml(d.grn)}</td>
+      <td><strong style="color:${avg>=0.97?'var(--hit-green)':avg>=0.9?'var(--warn-orange)':'var(--miss-red)'}">${(avg*100).toFixed(1)}%</strong></td>
+    </tr>`;
+  });
+
+  // Total row
+  tbody.innerHTML += `<tr class="total-row">
+    <td><div class="city-cell"><div class="city-dot" style="background:#1D4ED8"></div><strong>Grand Total</strong></div></td>
+    <td>${chipHtml(0.9655)}</td>
+    <td>${chipHtml(0.9638)}</td>
+    <td>${chipHtml(0.9807)}</td>
+    <td>${chipHtml(0.9762)}</td>
+    <td>${chipHtml(1.0)}</td>
+    <td>${chipHtml(1.0)}</td>
+    <td><strong style="color:var(--hit-green)">97.8%</strong></td>
+  </tr>`;
+
+  // ─── OUTBOUND DETAIL ───
+  const outboundData = [
+    { city: 'Abha',    lHit:65, lMiss:3,  lTotal:68,  rHit:92,  rMiss:0,  rTotal:92,  color:'#D97706' },
+    { city: 'Buraydah',lHit:53, lMiss:8,  lTotal:61,  rHit:14,  rMiss:2,  rTotal:16,  color:'#DC2626' },
+    { city: 'Jeddah',  lHit:341,lMiss:0,  lTotal:341, rHit:239, rMiss:0,  rTotal:239, color:'#16A34A' },
+    { city: 'Khobar',  lHit:293,lMiss:9,  lTotal:302, rHit:312, rMiss:11, rTotal:323, color:'#D97706' },
+    { city: 'Madinah', lHit:137,lMiss:0,  lTotal:137, rHit:1,   rMiss:0,  rTotal:1,   color:'#16A34A' },
+    { city: 'Riyadh',  lHit:803,lMiss:41, lTotal:844, rHit:0,   rMiss:0,  rTotal:0,   color:'#D97706' },
+    { city: 'Tabuk',   lHit:44, lMiss:1,  lTotal:45,  rHit:1,   rMiss:0,  rTotal:1,   color:'#16A34A' },
+  ];
+
+  const obody = document.getElementById('outbound-detail-body');
+  let totalLH=0,totalLM=0,totalLT=0,totalRH=0,totalRM=0,totalRT=0;
+  outboundData.forEach(d => {
+    totalLH+=d.lHit; totalLM+=d.lMiss; totalLT+=d.lTotal;
+    totalRH+=d.rHit; totalRM+=d.rMiss; totalRT+=d.rTotal;
+    const lPct = d.lTotal > 0 ? d.lHit/d.lTotal : null;
+    const rPct = d.rTotal > 0 ? d.rHit/d.rTotal : null;
+    obody.innerHTML += `<tr>
+      <td><div class="city-cell"><div class="city-dot" style="background:${d.color}"></div>${d.city}</div></td>
+      <td style="text-align:center;color:var(--hit-green);font-weight:600">${d.lHit}</td>
+      <td style="text-align:center;color:${d.lMiss>0?'var(--miss-red)':'var(--hit-green)'};font-weight:600">${d.lMiss || '—'}</td>
+      <td>${d.lTotal > 0 ? barHtml(lPct) : '<span style="color:var(--text-muted);font-size:12px">—</span>'}</td>
+      <td style="text-align:center;color:var(--hit-green);font-weight:600">${d.rHit || '—'}</td>
+      <td style="text-align:center;color:${d.rMiss>0?'var(--miss-red)':'var(--hit-green)'};font-weight:600">${d.rMiss || '—'}</td>
+      <td>${d.rTotal > 0 ? barHtml(rPct) : '<span style="color:var(--text-muted);font-size:12px">N/A</span>'}</td>
+      <td style="text-align:center;font-weight:700">${d.lTotal + d.rTotal}</td>
+    </tr>`;
+  });
+  obody.innerHTML += `<tr class="total-row">
+    <td><strong>Grand Total</strong></td>
+    <td style="text-align:center;color:var(--hit-green);font-weight:700">${totalLH}</td>
+    <td style="text-align:center;color:var(--miss-red);font-weight:700">${totalLM}</td>
+    <td>${barHtml(totalLH/totalLT)}</td>
+    <td style="text-align:center;color:var(--hit-green);font-weight:700">${totalRH}</td>
+    <td style="text-align:center;color:var(--miss-red);font-weight:700">${totalRM}</td>
+    <td>${barHtml(totalRH/totalRT)}</td>
+    <td style="text-align:center;font-weight:700">${totalLT+totalRT}</td>
+  </tr>`;
+
+  // ─── CITY CARDS ───
+  const cityAvgs = {
+    Abha:    { avg:0.9853, dl:0.9559, cl:0.9559, dr:1.0,    cr:1.0,    orders:68+92,  miss:3  },
+    Buraydah:{ avg:0.9146, dl:0.8689, cl:0.8689, dr:0.875,  cr:0.875,  orders:61+16,  miss:10 },
+    Jeddah:  { avg:1.0000, dl:1.0000, cl:1.0000, dr:1.0000, cr:1.0000, orders:341+239,miss:0  },
+    Khobar:  { avg:0.9766, dl:0.9702, cl:0.9669, dr:0.9659, cr:0.9567, orders:302+323,miss:20 },
+    Madinah: { avg:1.0000, dl:1.0000, cl:1.0000, dr:1.0000, cr:1.0000, orders:137+1,  miss:0  },
+    Riyadh:  { avg:0.9751, dl:0.9514, cl:0.9491, dr:null,   cr:null,   orders:844,    miss:41 },
+    Tabuk:   { avg:0.9926, dl:0.9778, cl:0.9778, dr:1.0000, cr:1.0000, orders:45+1,   miss:1  },
+  };
+
+  const cityColors = { Abha:'#D97706', Buraydah:'#DC2626', Jeddah:'#16A34A', Khobar:'#D97706', Madinah:'#16A34A', Riyadh:'#D97706', Tabuk:'#16A34A' };
+
+  const cityGrid = document.getElementById('city-cards-grid');
+  Object.entries(cityAvgs).forEach(([city, d]) => {
+    const avgPct = (d.avg * 100).toFixed(1);
+    const statusCls = d.avg >= 0.99 ? 'green' : d.avg >= 0.92 ? 'orange' : 'red';
+    const statusLbl = d.avg >= 0.99 ? 'Excellent' : d.avg >= 0.92 ? 'Good' : 'Needs Attn';
+
+    cityGrid.innerHTML += `
+    <div class="city-card" style="border-top:3px solid ${cityColors[city]}">
+      <div class="city-card-header">
+        <div class="city-name">${city}</div>
+        <div class="city-status ${statusCls}">${statusLbl}</div>
+      </div>
+      <div class="city-avg">${avgPct}%</div>
+      <div class="city-avg-label">${d.orders} orders · ${d.miss} miss${d.miss !== 1 ? 'es' : ''}</div>
+      <div class="city-kpi-list">
+        <div class="city-kpi-row">
+          <span class="city-kpi-label">Despatch Local</span>
+          <span class="city-kpi-val ${getClass(d.dl)}">${fmt(d.dl)}</span>
+        </div>
+        <div class="city-kpi-row">
+          <span class="city-kpi-label">CRD Local</span>
+          <span class="city-kpi-val ${getClass(d.cl)}">${fmt(d.cl)}</span>
+        </div>
+        <div class="city-kpi-row">
+          <span class="city-kpi-label">Despatch Remote</span>
+          <span class="city-kpi-val ${d.dr !== null ? getClass(d.dr) : 'na'}">${fmt(d.dr)}</span>
+        </div>
+        <div class="city-kpi-row">
+          <span class="city-kpi-label">CRD Remote</span>
+          <span class="city-kpi-val ${d.cr !== null ? getClass(d.cr) : 'na'}">${fmt(d.cr)}</span>
+        </div>
+        <div class="city-kpi-row">
+          <span class="city-kpi-label">Inbound</span>
+          <span class="city-kpi-val hit">100%</span>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // ─── BAR CHART ───
+  const barChart = document.getElementById('bar-chart');
+  const barData = [
+    { city:'Abha',    local:95.6, remote:100 },
+    { city:'BUR',     local:86.9, remote:87.5 },
+    { city:'JED',     local:100,  remote:100 },
+    { city:'KHO',     local:97.0, remote:96.6 },
+    { city:'MAD',     local:100,  remote:100 },
+    { city:'RYD',     local:95.1, remote:null },
+    { city:'TAB',     local:97.8, remote:100 },
+  ];
+
+  const maxH = 80;
+  barData.forEach(b => {
+    const lH = (b.local / 100) * maxH;
+    const rH = b.remote ? (b.remote / 100) * maxH : 0;
+    barChart.innerHTML += `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
+      <div style="display:flex;align-items:flex-end;gap:2px;height:${maxH}px">
+        <div style="width:12px;height:${lH}px;background:var(--tamer-green);border-radius:2px 2px 0 0" title="Local: ${b.local}%"></div>
+        <div style="width:12px;height:${rH}px;background:#60A5FA;border-radius:2px 2px 0 0" title="Remote: ${b.remote ?? 'N/A'}%"></div>
+      </div>
+      <span style="font-size:9px;color:var(--text-muted)">${b.city}</span>
+    </div>`;
+  });
+
+  // ─── DONUT ───
+  const donutArea = document.getElementById('donut-area');
+  const total = 2470, hit = 2416, miss = 54;
+  donutArea.innerHTML = `
+  <svg width="100" height="100" viewBox="0 0 42 42">
+    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#E5E7EB" stroke-width="5"/>
+    <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--tamer-green)" stroke-width="5"
+      stroke-dasharray="${(hit/total*100).toFixed(1)} ${(miss/total*100).toFixed(1)}"
+      stroke-dashoffset="25" style="transform:rotate(-90deg);transform-origin:center"/>
+    <text x="21" y="24" text-anchor="middle" font-size="8" font-weight="800" fill="#1A1A1A">97.8%</text>
+  </svg>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:12px;height:12px;background:var(--tamer-green);border-radius:2px"></div>
+      <span style="font-size:12px;color:var(--text-secondary)">Hit — <strong style="color:var(--hit-green)">${hit.toLocaleString()}</strong> orders</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:12px;height:12px;background:var(--miss-red);border-radius:2px"></div>
+      <span style="font-size:12px;color:var(--text-secondary)">Miss — <strong style="color:var(--miss-red)">${miss}</strong> orders</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:12px;height:12px;background:#E5E7EB;border-radius:2px"></div>
+      <span style="font-size:12px;color:var(--text-secondary)">Total — <strong>${total.toLocaleString()}</strong> orders</span>
+    </div>
+  </div>`;
+
+  // ─── TAB SWITCH ───
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
