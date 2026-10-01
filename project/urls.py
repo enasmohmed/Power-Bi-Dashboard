@@ -29,6 +29,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('productivity/', include('dashboard.urls')),
+    path('operations/', include('Operations_app.operations.urls')),
 ]
 
 if settings.DEBUG:

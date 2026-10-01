@@ -1,0 +1,37 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:operations_warehouseaccountoverview_changelist' %}">Warehouse and Account Overview</a>
+  &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p>Upload an Excel file (e.g. <strong>Warehouse.xlsx</strong>) containing the <strong>Da-tamer</strong> sheet (table data) and optionally the <strong>Capacity-volume</strong> sheet (for capacity chart). If you don't specify a sheet name, Da-tamer will be used if present, otherwise Sheet1. Existing data for the chosen date will be replaced.</p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-row">
+    <label for="id_sheet_name">Sheet name (optional, default Da-tamer or Sheet1):</label>
+    <input type="text" name="sheet_name" id="id_sheet_name" value="" placeholder="Leave empty for auto-detect" maxlength="100" style="width: 280px;">
+  </div>
+  <div class="form-row" style="margin-top: 12px;">
+    <label for="id_effective_date">Data date (today / yesterday / any past date):</label>
+    <input type="date" name="effective_date" id="id_effective_date" value="{{ default_effective_date|default_if_none:'' }}">
+    <p class="help">All rows will be saved with this date in created_at; you can then filter by this date in the admin list.</p>
+  </div>
+  <div class="form-row" style="margin-top: 12px;">
+    <label for="id_excel_file">Excel file:</label>
+    <input type="file" name="excel_file" id="id_excel_file" accept=".xlsx,.xls" required>
+  </div>
+  <div class="submit-row" style="margin-top: 16px;">
+    <input type="submit" value="Import" class="default">
+    <a href="{% url 'admin:operations_warehouseaccountoverview_changelist' %}" class="button default">Cancel</a>
+  </div>
+</form>
+{% endblock %}

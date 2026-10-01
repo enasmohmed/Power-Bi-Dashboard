@@ -20,12 +20,12 @@
 <div class="kpi-shell">
     <header class="kpi-app-header">
         <div class="kpi-app-header-inner">
-            <a class="kpi-brand" href="{% url 'accounts:overview' %}{{ company_qs }}">
+            <a class="kpi-brand" href="{% url 'accounts:dashboard' %}{{ company_qs }}">
                 <img class="kpi-brand-logo" src="{% static 'assets/images/tamer_logistics_logo.png' %}" alt="TAMER Logistics">
                 <span class="kpi-brand-sub">Logistics — 3PL KPI Dashboard</span>
             </a>
             <div class="kpi-header-actions">
-                <div class="kpi-filters" {% if page == 'users' or page == 'productivity' %}hidden{% endif %}>
+                <div class="kpi-filters" {% if page == 'users' or page == 'productivity' or page == 'operations' %}hidden{% endif %}>
                     <div class="kpi-select" data-kpi-select>
                         <button class="kpi-select-btn" type="button">
                             <span>
@@ -73,7 +73,7 @@
             </div>
         </div>
         <nav class="kpi-tabs" aria-label="Dashboard pages">
-            <a class="kpi-tab {% if page == 'dashboard' %}active{% endif %}" href="{% url 'accounts:dashboard' %}{{ company_qs }}">
+            <a class="kpi-tab {% if page == 'dashboard' or page == 'operations' %}active{% endif %}" href="{% url 'accounts:dashboard' %}{{ company_qs }}">
                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
                 Dashboard
             </a>
@@ -128,6 +128,14 @@
 
     <main class="kpi-main">
         <div class="kpi-container">
+            {% if page == 'dashboard' or page == 'operations' %}
+            <div class="kpi-subtabs-bar">
+                <nav class="kpi-subtabs" aria-label="Dashboard sections">
+                    <a class="{% if page == 'dashboard' %}active{% endif %}" href="{% url 'accounts:dashboard' %}{{ company_qs }}">Dashboard</a>
+                    <a class="{% if page == 'operations' %}active{% endif %}" href="{% url 'operations:overview' %}">Operations overview</a>
+                </nav>
+            </div>
+            {% endif %}
             {% if messages %}
             <div class="kpi-messages">
                 {% for message in messages %}

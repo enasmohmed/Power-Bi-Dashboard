@@ -1,0 +1,79 @@
+.ops-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 4px;
+}
+
+.ops-upload label {
+    margin: 0;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.ops-upload input[type="date"] {
+    height: 34px;
+    border: 1px solid #1b7a45;
+    border-radius: 8px;
+    padding: 0 8px;
+    color: #111827;
+    background: #fff;
+}
+
+.ops-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: #1b5e32;
+    color: #fff !important;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ops-upload-btn input {
+    display: none;
+}
+
+.warehouse-overview-tab {
+    color: var(--kpi-text, #111827);
+}
+
+.warehouse-overview-tab > .d-flex h4,
+.warehouse-overview-tab #warehouse-capacity-util-section > h4 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #111827;
+}
+
+.warehouse-kpi-card {
+    border-radius: 0;
+}
+
+.warehouse-kpi-card-col:first-child .warehouse-kpi-card {
+    border-radius: 16px 0 0 16px;
+}
+
+.warehouse-kpi-card-col:last-child .warehouse-kpi-card {
+    border-radius: 0 16px 16px 0;
+}
+
+.wh-capacity-card {
+    border-radius: 18px;
+}
+
+#warehouse-data-table-section {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+    .warehouse-kpi-card-col:first-child .warehouse-kpi-card,
+    .warehouse-kpi-card-col:last-child .warehouse-kpi-card,
+    .warehouse-kpi-card {
+        border-radius: 16px;
+    }
+}

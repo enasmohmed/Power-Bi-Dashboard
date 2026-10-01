@@ -2270,6 +2270,134 @@
       padding-top: 0.15rem;
     }
 
+    .perf-trend {
+      --trend-accent: #1b7a45;
+      margin-top: 1.35rem;
+      margin-bottom: 0;
+      background:
+        radial-gradient(900px 160px at 100% -20%, color-mix(in srgb, var(--trend-accent) 18%, transparent), transparent 70%),
+        #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(16, 24, 40, 0.05);
+      padding: 1.05rem 1.15rem 1.05rem;
+    }
+
+    .perf-trend-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-bottom: 0.85rem;
+      margin-bottom: 0.85rem;
+      border-bottom: 1px solid #eef2f0;
+    }
+
+    .perf-trend-kicker {
+      display: block;
+      margin: 0 0 0.2rem;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--trend-accent);
+    }
+
+    .perf-trend-blurb {
+      margin: 0.2rem 0 0;
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .perf-trend-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 4px;
+      background: #f3f4f6;
+      border-radius: 12px;
+    }
+
+    .perf-trend-pills button {
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      border-radius: 9px;
+      padding: 0.42rem 0.72rem;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .perf-trend-pills button.active {
+      background: #fff;
+      color: var(--trend-accent);
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+    }
+
+    .perf-trend-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .perf-trend-stat {
+      background: #fff;
+      border: 1px solid #e8eeea;
+      border-radius: 12px;
+      padding: 0.65rem 0.8rem 0.7rem;
+    }
+
+    .perf-trend-stat span {
+      display: block;
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .perf-trend-stat strong {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 1.2rem;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: #111827;
+    }
+
+    .perf-trend-stat em {
+      display: block;
+      margin-top: 0.1rem;
+      font-style: normal;
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+
+    .perf-trend-stage {
+      position: relative;
+      height: 300px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f7fbf8 0%, #ffffff 72%);
+      border: 1px solid #eef2f0;
+      padding: 0.45rem 0.35rem 0.15rem;
+    }
+
+    .perf-trend-gap {
+      height: 64px;
+      margin: 0 -1.2rem;
+      background: #f4f6f8;
+    }
+
+    @media (max-width: 720px) {
+      .perf-trend-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .perf-kpi-card h4,
     .perf-kpi-card .dash-metric-label {
       margin: 0 0 0.35rem;
@@ -3319,6 +3447,10 @@
       }
     }
 
+    .dt-trend {
+      --trend-accent: #1b5e32;
+    }
+
     .dt-legend-meta {
       margin-left: auto;
       font-weight: 600;
@@ -4358,12 +4490,20 @@
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22l-5.66-5.66a8 8 0 1 1 11.32 0L12 22z"/></svg>
                     {% elif c.key == "daily_avg" %}
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h11v9H3V6zm12 2h2.4L19 12v3h-4v-3zm-1 9a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+                    {% elif c.key == "avg_orders" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5h16v2H4V5zm0 4h10v2H4V9zm0 4h16v2H4v-2zm2 4h6v2H6v-2z"/></svg>
                     {% elif c.key == "orders" %}
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4V4zm0 5h10v2H4V9zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/></svg>
                     {% elif c.key == "days_missed" %}
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                     {% elif c.key == "shift_cmp" %}
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 22a1 1 0 0 1-1-1v-4H2l8-9 5 5.5V9h2v4.5L21 20h-3v1a1 1 0 0 1-2 0v-1H6v1a1 1 0 0 1-1 1z"/></svg>
+                    {% elif c.key == "overtime" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                    {% elif c.key == "orders_received" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4V4zm0 5h16v2H4V9zm0 5h10v2H4v-2z"/></svg>
+                    {% elif c.key == "replenishment" %}
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h13l-1.5 9h-10L3 7zm14 0h4l-2 9h-3.2L17 7zM7 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm8 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
                     {% elif c.key == "mip" %}
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18h12v2H6v-2zm11-7h1l2 4H5l2-4h1V7a5 5 0 0 1 10 0v4z"/></svg>
                     {% else %}
@@ -4377,8 +4517,47 @@
             </div>
 
             {% if picker_performance.has_data %}
+            <section class="perf-trend" id="perf-daily-trend-section" aria-label="Daily trend">
+              <header class="perf-trend-head">
+                <div>
+                  <span class="perf-trend-kicker">Operating days</span>
+                  <h3 class="perf-kpi-title">Daily trend</h3>
+                  <p class="perf-trend-blurb" id="perf-trend-blurb">Lines picked on each operating day</p>
+                </div>
+                <div class="perf-trend-pills" id="perf-trend-pills" role="group" aria-label="Trend metric">
+                  <button type="button" class="active" data-metric="lines">Total lines</button>
+                  <button type="button" data-metric="orders">Total orders</button>
+                  <button type="button" data-metric="target">Target %</button>
+                  <button type="button" data-metric="pickers">Active pickers</button>
+                </div>
+              </header>
+              <div class="perf-trend-stats" aria-label="Trend summary">
+                <div class="perf-trend-stat">
+                  <span>Latest day</span>
+                  <strong id="perf-trend-latest">—</strong>
+                  <em id="perf-trend-latest-date"></em>
+                </div>
+                <div class="perf-trend-stat">
+                  <span>Average</span>
+                  <strong id="perf-trend-avg">—</strong>
+                  <em>Across the visible days</em>
+                </div>
+                <div class="perf-trend-stat">
+                  <span>Peak</span>
+                  <strong id="perf-trend-peak">—</strong>
+                  <em id="perf-trend-peak-date"></em>
+                </div>
+              </div>
+              <div class="perf-trend-stage">
+                <canvas id="perf-daily-trend" aria-label="Daily trend chart"></canvas>
+              </div>
+            </section>
+            {% endif %}
+
+            {% if picker_performance.has_data %}
             {{ picker_performance.client_lines|json_script:"perf-client-lines" }}
             {{ picker_performance.filter_meta|json_script:"perf-filter-meta" }}
+            <div class="perf-trend-gap" aria-hidden="true"></div>
             <div class="perf-table-wrap perf-picker-table-scroll">
               <table class="perf-table" id="perf-picker-table">
                 <thead>
@@ -4620,6 +4799,42 @@
                   <span class="perf-picker-count" id="dt-picker-count">{{ picker_performance.picker_count }} pickers</span>
                 </div>
                 <div class="perf-kpi-grid dt-kpi-grid" id="dt-summary-cards" aria-label="Daily tracker summary"></div>
+                <section class="perf-trend dt-trend" id="dt-daily-trend-section" aria-label="Daily trend">
+                  <header class="perf-trend-head">
+                    <div>
+                      <span class="perf-trend-kicker">Operating days</span>
+                      <h3 class="perf-kpi-title">Daily trend</h3>
+                      <p class="perf-trend-blurb" id="dt-trend-blurb">Lines picked on each operating day</p>
+                    </div>
+                    <div class="perf-trend-pills" id="dt-trend-pills" role="group" aria-label="Trend metric">
+                      <button type="button" class="active" data-metric="lines">Total lines</button>
+                      <button type="button" data-metric="orders">Total orders</button>
+                      <button type="button" data-metric="target">Target %</button>
+                      <button type="button" data-metric="pickers">Active pickers</button>
+                    </div>
+                  </header>
+                  <div class="perf-trend-stats" aria-label="Trend summary">
+                    <div class="perf-trend-stat">
+                      <span>Latest day</span>
+                      <strong id="dt-trend-latest">—</strong>
+                      <em id="dt-trend-latest-date"></em>
+                    </div>
+                    <div class="perf-trend-stat">
+                      <span>Average</span>
+                      <strong id="dt-trend-avg">—</strong>
+                      <em>Across the visible days</em>
+                    </div>
+                    <div class="perf-trend-stat">
+                      <span>Peak</span>
+                      <strong id="dt-trend-peak">—</strong>
+                      <em id="dt-trend-peak-date"></em>
+                    </div>
+                  </div>
+                  <div class="perf-trend-stage">
+                    <canvas id="dt-daily-trend" aria-label="Daily trend chart"></canvas>
+                  </div>
+                </section>
+                <div class="perf-trend-gap" aria-hidden="true"></div>
               </div>
 
               <div class="dt-table-wrap" role="region" aria-label="Daily lines heatmap">
@@ -4654,7 +4869,7 @@
     var WB_API_URL = "{% url 'dashboard:workbook_api' %}";
     var WB_EDIT_URL = "{% url 'dashboard:workbook_edit' %}";
     (function () {
-      var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab-wrap [role="tab"]'));
       var panels = Array.prototype.slice.call(document.querySelectorAll('[role="tabpanel"]'));
 
       function tabPanelId(tab) {
@@ -5172,10 +5387,27 @@
         setCard('target_rate', targetPct.toFixed(1) + '%', 'Picker-days at ≥100% target (' + met + '/' + pickerDays + ')');
         setCard('top', top ? top.picker_name : '—', top ? ('Avg ' + top.lines_per_day + ' lines / day') : 'No pickers match');
         setCard('lowest', lowest ? lowest.picker_name : '—', lowest ? ('Avg ' + lowest.lines_per_day + ' lines / day') : 'No pickers match');
+        var orderCount = Object.keys(ordersSet).length;
+        var avgOrders = operatingDays ? Math.round(orderCount / operatingDays) : 0;
+        var repl = lines.filter(function (ln) { return !ln.ip; }).length;
+        var replPct = lines.length ? (repl / lines.length * 100) : 0;
+        var otKnown = lines.filter(function (ln) { return ln.ot === 0 || ln.ot === 1; });
+        var otValue = '—';
+        var otSub = 'Re-upload the picking Excel to calculate lines after shift end';
+        if (otKnown.length) {
+          var otN = otKnown.filter(function (ln) { return ln.ot === 1; }).length;
+          var otPct = lines.length ? (otN / lines.length * 100) : 0;
+          otValue = otPct.toFixed(1) + '%';
+          otSub = fmtInt(otN) + ' lines after shift end';
+        }
         setCard('daily_avg', dailyAvg.toFixed(1), 'Total lines ÷ operating days');
-        setCard('orders', fmtInt(Object.keys(ordersSet).length), 'Distinct Transfer Order Number');
+        setCard('avg_orders', fmtInt(avgOrders), 'Completed orders ÷ operating days');
+        setCard('orders', fmtInt(orderCount), 'Distinct Transfer Order Number');
         setCard('days_missed', String(missed), 'Picker-days below 100% target (of ' + pickerDays + ')');
         setCard('shift_cmp', fmtInt(s1) + ' · ' + fmtInt(s2) + ' · ' + fmtInt(s3), 'S1 (06–15) · S2 (15–00) · S3 (00–06) lines');
+        setCard('overtime', otValue, otSub);
+        setCard('orders_received', '—', 'Not available for this account');
+        setCard('replenishment', fmtInt(repl), replPct.toFixed(1) + '% of all lines');
         setCard(
           'mip',
           mip ? mip.picker_name : '—',
@@ -5193,6 +5425,7 @@
         }
         renderTable(rows);
         updateSummaryCards(filtered, rows);
+        renderDailyTrend(filtered);
         if (shiftDetailSection) {
           if (isFilterActive()) {
             shiftDetailSection.removeAttribute('hidden');
@@ -5228,6 +5461,248 @@
           });
         });
       }
+
+      var trendPills = document.querySelectorAll('#perf-trend-pills button');
+      var trendCanvas = document.getElementById('perf-daily-trend');
+      var trendSection = document.getElementById('perf-daily-trend-section');
+      var trendChart = null;
+      var lastTrendLines = [];
+      var trendMetric = 'lines';
+      var trendPalette = {
+        lines: ['#1b7a45', 'rgba(27, 122, 69, 0.42)', 'rgba(27, 122, 69, 0.02)'],
+        orders: ['#7c3aed', 'rgba(124, 58, 237, 0.34)', 'rgba(124, 58, 237, 0.02)'],
+        target: ['#0f766e', 'rgba(15, 118, 110, 0.34)', 'rgba(15, 118, 110, 0.02)'],
+        pickers: ['#ea580c', 'rgba(234, 88, 12, 0.34)', 'rgba(234, 88, 12, 0.02)']
+      };
+      var trendBlurbs = {
+        lines: 'Lines picked on each operating day',
+        orders: 'Distinct orders confirmed each day',
+        target: 'Share of picker-days that hit the daily target',
+        pickers: 'Pickers with at least one confirmed line'
+      };
+
+      function buildDailyTrend(lines) {
+        var byDate = {};
+        lines.forEach(function (ln) {
+          if (!ln.d) return;
+          if (!byDate[ln.d]) byDate[ln.d] = { lines: 0, orders: {}, pickers: {}, days: {} };
+          var bucket = byDate[ln.d];
+          bucket.lines += 1;
+          if (ln.dn) bucket.orders[ln.dn] = true;
+          if (ln.p) bucket.pickers[ln.p] = true;
+          var pk = ln.p + '\u0001' + ln.d;
+          if (!bucket.days[pk]) bucket.days[pk] = { n: 0, pick: 0 };
+          bucket.days[pk].n += 1;
+          if (ln.ip) bucket.days[pk].pick += 1;
+        });
+        return Object.keys(byDate).sort().map(function (d) {
+          var b = byDate[d];
+          var met = 0;
+          var total = 0;
+          Object.keys(b.days).forEach(function (k) {
+            var day = b.days[k];
+            var tgt = mixedTarget(day.pick, day.n - day.pick, day.n);
+            total += 1;
+            if (tgt > 0 && (day.n / tgt * 100) >= 100) met += 1;
+          });
+          return {
+            date: d,
+            lines: b.lines,
+            orders: Object.keys(b.orders).length,
+            pickers: Object.keys(b.pickers).length,
+            target: total ? (met / total * 100) : 0
+          };
+        });
+      }
+
+      function fmtTrendValue(n, isPct, precise) {
+        if (n == null || isNaN(n)) return '—';
+        if (isPct) return Number(n).toFixed(1) + '%';
+        if (precise) return Number(n).toLocaleString('en-US', { maximumFractionDigits: 1 });
+        return fmtInt(Math.round(n));
+      }
+
+      function paintTrendStats(series, values, isPct) {
+        var latestEl = document.getElementById('perf-trend-latest');
+        var latestDateEl = document.getElementById('perf-trend-latest-date');
+        var avgEl = document.getElementById('perf-trend-avg');
+        var peakEl = document.getElementById('perf-trend-peak');
+        var peakDateEl = document.getElementById('perf-trend-peak-date');
+        var blurbEl = document.getElementById('perf-trend-blurb');
+        if (blurbEl) blurbEl.textContent = trendBlurbs[trendMetric] || '';
+        if (!values.length) {
+          if (latestEl) latestEl.textContent = '—';
+          if (avgEl) avgEl.textContent = '—';
+          if (peakEl) peakEl.textContent = '—';
+          if (latestDateEl) latestDateEl.textContent = '';
+          if (peakDateEl) peakDateEl.textContent = '';
+          return;
+        }
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        var avg = sum / values.length;
+        var peak = values[0];
+        var peakAt = 0;
+        values.forEach(function (v, i) {
+          if (v > peak) { peak = v; peakAt = i; }
+        });
+        var last = series[series.length - 1];
+        if (latestEl) latestEl.textContent = fmtTrendValue(values[values.length - 1], isPct, false);
+        if (latestDateEl) latestDateEl.textContent = last.date;
+        if (avgEl) avgEl.textContent = fmtTrendValue(avg, isPct, !isPct);
+        if (peakEl) peakEl.textContent = fmtTrendValue(peak, isPct, false);
+        if (peakDateEl) peakDateEl.textContent = series[peakAt].date;
+      }
+
+      function renderDailyTrend(lines) {
+        lastTrendLines = lines || [];
+        if (!trendCanvas || typeof Chart === 'undefined') return;
+        var metric = trendMetric || 'lines';
+        var series = buildDailyTrend(lastTrendLines);
+        var colors = trendPalette[metric] || trendPalette.lines;
+        var values = series.map(function (row) { return row[metric]; });
+        var labels = series.map(function (row) { return row.date; });
+        var isPct = metric === 'target';
+        var metricLabel = trendBlurbs[metric] ? ({
+          lines: 'Total lines',
+          orders: 'Total orders',
+          target: 'Target achievement',
+          pickers: 'Active pickers'
+        }[metric]) : 'Total lines';
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        var avg = values.length ? (sum / values.length) : 0;
+        if (trendSection) trendSection.style.setProperty('--trend-accent', colors[0]);
+        paintTrendStats(series, values, isPct);
+
+        function areaFill(context) {
+          var chart = context.chart;
+          var area = chart.chartArea;
+          if (!area) return colors[1];
+          var g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+          g.addColorStop(0, colors[1]);
+          g.addColorStop(1, colors[2]);
+          return g;
+        }
+
+        var lastIndex = values.length - 1;
+        var dataset = {
+          label: metricLabel,
+          data: values,
+          borderColor: colors[0],
+          backgroundColor: areaFill,
+          fill: true,
+          tension: 0.42,
+          borderWidth: 2.75,
+          pointRadius: function (ctx) {
+            if (ctx.dataIndex === lastIndex) return 5;
+            return values.length > 40 ? 0 : 2.5;
+          },
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: colors[0],
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: colors[0],
+          pointHoverBorderWidth: 2
+        };
+        var averageLine = {
+          label: 'Average',
+          data: values.map(function () { return avg; }),
+          borderColor: 'rgba(17, 24, 39, 0.28)',
+          borderDash: [5, 5],
+          borderWidth: 1.25,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0
+        };
+
+        function tickLabel(v) {
+          return isPct ? v + '%' : fmtInt(v);
+        }
+        function tipLabel(ctx) {
+          var n = ctx.parsed.y;
+          if (ctx.datasetIndex !== 0) return 'Average: ' + fmtTrendValue(n, isPct, !isPct);
+          if (isPct) return ctx.dataset.label + ': ' + Number(n).toFixed(1) + '%';
+          return ctx.dataset.label + ': ' + fmtInt(n);
+        }
+
+        var chartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#111827',
+              titleColor: '#fff',
+              bodyColor: '#e5e7eb',
+              padding: 12,
+              cornerRadius: 10,
+              displayColors: false,
+              callbacks: { label: tipLabel }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: {
+                color: '#6b7280',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 8,
+                font: { size: 11 }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: isPct ? 100 : undefined,
+              grid: { color: 'rgba(17, 24, 39, 0.06)' },
+              border: { display: false },
+              ticks: {
+                color: '#6b7280',
+                font: { size: 11 },
+                padding: 8,
+                maxTicksLimit: 6,
+                callback: tickLabel
+              }
+            }
+          }
+        };
+
+        if (trendChart) {
+          trendChart.data.labels = labels;
+          trendChart.data.datasets = [dataset, averageLine];
+          trendChart.options.scales.y.suggestedMax = isPct ? 100 : undefined;
+          trendChart.options.scales.y.ticks.callback = tickLabel;
+          trendChart.options.plugins.tooltip.callbacks.label = tipLabel;
+          trendChart.update();
+          return;
+        }
+
+        trendChart = new Chart(trendCanvas, {
+          type: 'line',
+          data: { labels: labels, datasets: [dataset, averageLine] },
+          options: chartOptions
+        });
+      }
+
+      trendPills.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          trendPills.forEach(function (b) {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+          trendMetric = btn.getAttribute('data-metric') || 'lines';
+          if (trendChart) {
+            trendChart.destroy();
+            trendChart = null;
+          }
+          renderDailyTrend(lastTrendLines);
+        });
+      });
 
       tbody.querySelectorAll('.perf-sparkline').forEach(function (svg) {
         var raw = svg.getAttribute('data-spark') || '';
@@ -5705,34 +6180,10 @@
       function renderSummary(model) {
         var s = model.summary;
         var cards = [
-          {
-            key: 'total_lines',
-            accent: 'violet',
-            label: 'Total Lines',
-            value: fmtNum(s.totalLines),
-            sub: 'Across ' + s.operatingDays + ' operating day' + (s.operatingDays === 1 ? '' : 's')
-          },
-          {
-            key: 'target_rate',
-            accent: 'emerald',
-            label: 'Target Achievement',
-            value: s.targetAchievementPct.toFixed(1) + '%',
-            sub: 'Days at ≥100% target'
-          },
-          {
-            key: 'picker_days',
-            accent: 'blue',
-            label: 'Picker-Days Logged',
-            value: fmtNum(s.pickerDaysLogged),
-            sub: s.pickerCount + ' picker' + (s.pickerCount === 1 ? '' : 's') + ' active'
-          },
-          {
-            key: 'daily_avg',
-            accent: 'orange',
-            label: 'Daily Avg Lines',
-            value: s.dailyAvg.toFixed(1),
-            sub: 'Total ÷ operating days'
-          }
+          { key: 'total_lines', accent: 'violet', label: 'Total Lines', value: fmtNum(s.totalLines), sub: 'Across ' + s.operatingDays + ' operating day' + (s.operatingDays === 1 ? '' : 's') },
+          { key: 'target_rate', accent: 'emerald', label: 'Target Achievement', value: s.targetAchievementPct.toFixed(1) + '%', sub: 'Days at ≥100% target' },
+          { key: 'picker_days', accent: 'blue', label: 'Picker-Days Logged', value: fmtNum(s.pickerDaysLogged), sub: s.pickerCount + ' picker' + (s.pickerCount === 1 ? '' : 's') + ' active' },
+          { key: 'daily_avg', accent: 'orange', label: 'Daily Avg Lines', value: s.dailyAvg.toFixed(1), sub: 'Total ÷ operating days' }
         ];
         elCards.innerHTML = '';
         cards.forEach(function (c) {
@@ -5949,6 +6400,230 @@
         }
       }
 
+      var dtTrendPills = document.querySelectorAll('#dt-trend-pills button');
+      var dtTrendCanvas = document.getElementById('dt-daily-trend');
+      var dtTrendSection = document.getElementById('dt-daily-trend-section');
+      var dtTrendChart = null;
+      var dtTrendMetric = 'lines';
+      var dtLastTrendLines = [];
+      var dtTrendColor = ['#1b7a45', 'rgba(27, 122, 69, 0.42)', 'rgba(27, 122, 69, 0.02)'];
+      var dtTrendBlurbs = {
+        lines: 'Lines picked on each operating day',
+        orders: 'Distinct orders confirmed each day',
+        target: 'Share of picker-days that hit the daily target',
+        pickers: 'Pickers with at least one confirmed line'
+      };
+      var dtTrendLabels = {
+        lines: 'Total lines',
+        orders: 'Total orders',
+        target: 'Target achievement',
+        pickers: 'Active pickers'
+      };
+
+      function linesForTrend(lines, model) {
+        if (!activeTarget) return lines;
+        var keep = {};
+        model.dailyRows.forEach(function (d) { keep[d.picker + '\u0001' + d.date] = 1; });
+        return lines.filter(function (ln) { return keep[ln.p + '\u0001' + ln.d]; });
+      }
+
+      function dtFmtTrend(n, isPct, precise) {
+        if (n == null || isNaN(n)) return '—';
+        if (isPct) return Number(n).toFixed(1) + '%';
+        if (precise) return Number(n).toLocaleString('en-US', { maximumFractionDigits: 1 });
+        return fmtNum(Math.round(n));
+      }
+
+      function buildDtDailyTrend(lines) {
+        var byDate = {};
+        lines.forEach(function (ln) {
+          if (!ln.d) return;
+          if (!byDate[ln.d]) byDate[ln.d] = { lines: 0, orders: {}, pickers: {}, days: {} };
+          var bucket = byDate[ln.d];
+          bucket.lines += 1;
+          if (ln.dn) bucket.orders[ln.dn] = true;
+          if (ln.p) bucket.pickers[ln.p] = true;
+          var pk = ln.p + '\u0001' + ln.d;
+          if (!bucket.days[pk]) bucket.days[pk] = { n: 0, pick: 0 };
+          bucket.days[pk].n += 1;
+          if (ln.ip) bucket.days[pk].pick += 1;
+        });
+        return Object.keys(byDate).sort().map(function (d) {
+          var b = byDate[d];
+          var met = 0;
+          var total = 0;
+          Object.keys(b.days).forEach(function (k) {
+            var day = b.days[k];
+            var tgt = mixedTarget(day.pick, day.n - day.pick, day.n);
+            total += 1;
+            if (tgt > 0 && (day.n / tgt * 100) >= 100) met += 1;
+          });
+          return {
+            date: d,
+            lines: b.lines,
+            orders: Object.keys(b.orders).length,
+            pickers: Object.keys(b.pickers).length,
+            target: total ? (met / total * 100) : 0
+          };
+        });
+      }
+
+      function paintDtTrendStats(series, values, isPct) {
+        var latestEl = document.getElementById('dt-trend-latest');
+        var latestDateEl = document.getElementById('dt-trend-latest-date');
+        var avgEl = document.getElementById('dt-trend-avg');
+        var peakEl = document.getElementById('dt-trend-peak');
+        var peakDateEl = document.getElementById('dt-trend-peak-date');
+        var blurbEl = document.getElementById('dt-trend-blurb');
+        if (blurbEl) blurbEl.textContent = dtTrendBlurbs[dtTrendMetric] || '';
+        if (!values.length) {
+          if (latestEl) latestEl.textContent = '—';
+          if (avgEl) avgEl.textContent = '—';
+          if (peakEl) peakEl.textContent = '—';
+          if (latestDateEl) latestDateEl.textContent = '';
+          if (peakDateEl) peakDateEl.textContent = '';
+          return;
+        }
+        var avg = values.reduce(function (a, b) { return a + b; }, 0) / values.length;
+        var peak = values[0];
+        var peakAt = 0;
+        values.forEach(function (v, i) { if (v > peak) { peak = v; peakAt = i; } });
+        if (latestEl) latestEl.textContent = dtFmtTrend(values[values.length - 1], isPct, false);
+        if (latestDateEl) latestDateEl.textContent = series[series.length - 1].date;
+        if (avgEl) avgEl.textContent = dtFmtTrend(avg, isPct, !isPct);
+        if (peakEl) peakEl.textContent = dtFmtTrend(peak, isPct, false);
+        if (peakDateEl) peakDateEl.textContent = series[peakAt].date;
+      }
+
+      function renderDtTrend(lines) {
+        dtLastTrendLines = lines || [];
+        if (!dtTrendCanvas || typeof Chart === 'undefined') return;
+        var series = buildDtDailyTrend(dtLastTrendLines);
+        var values = series.map(function (row) { return row[dtTrendMetric]; });
+        var labels = series.map(function (row) { return row.date; });
+        var isPct = dtTrendMetric === 'target';
+        var colors = dtTrendColor;
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        var avg = values.length ? (sum / values.length) : 0;
+        if (dtTrendSection) dtTrendSection.style.setProperty('--trend-accent', '#1b5e32');
+        paintDtTrendStats(series, values, isPct);
+
+        function areaFill(context) {
+          var chart = context.chart;
+          var area = chart.chartArea;
+          if (!area) return colors[1];
+          var g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+          g.addColorStop(0, colors[1]);
+          g.addColorStop(1, colors[2]);
+          return g;
+        }
+
+        var lastIndex = values.length - 1;
+        var dataset = {
+          label: dtTrendLabels[dtTrendMetric] || 'Total lines',
+          data: values,
+          borderColor: colors[0],
+          backgroundColor: areaFill,
+          fill: true,
+          tension: 0.42,
+          borderWidth: 2.75,
+          pointRadius: function (ctx) {
+            if (ctx.dataIndex === lastIndex) return 5;
+            return values.length > 40 ? 0 : 2.5;
+          },
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: colors[0],
+          pointBorderWidth: 2
+        };
+        var averageLine = {
+          label: 'Average',
+          data: values.map(function () { return avg; }),
+          borderColor: 'rgba(27, 94, 50, 0.35)',
+          borderDash: [5, 5],
+          borderWidth: 1.25,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0
+        };
+        function tickLabel(v) { return isPct ? v + '%' : fmtNum(v); }
+        function tipLabel(ctx) {
+          var n = ctx.parsed.y;
+          if (ctx.datasetIndex !== 0) return 'Average: ' + dtFmtTrend(n, isPct, !isPct);
+          if (isPct) return ctx.dataset.label + ': ' + Number(n).toFixed(1) + '%';
+          return ctx.dataset.label + ': ' + fmtNum(n);
+        }
+        if (dtTrendChart) {
+          dtTrendChart.data.labels = labels;
+          dtTrendChart.data.datasets = [dataset, averageLine];
+          dtTrendChart.options.scales.y.suggestedMax = isPct ? 100 : undefined;
+          dtTrendChart.options.scales.y.ticks.callback = tickLabel;
+          dtTrendChart.options.plugins.tooltip.callbacks.label = tipLabel;
+          dtTrendChart.update();
+          return;
+        }
+        dtTrendChart = new Chart(dtTrendCanvas, {
+          type: 'line',
+          data: { labels: labels, datasets: [dataset, averageLine] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#111827',
+                titleColor: '#fff',
+                bodyColor: '#e5e7eb',
+                padding: 12,
+                cornerRadius: 10,
+                displayColors: false,
+                callbacks: { label: tipLabel }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                border: { display: false },
+                ticks: { color: '#6b7280', maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 } }
+              },
+              y: {
+                beginAtZero: true,
+                suggestedMax: isPct ? 100 : undefined,
+                grid: { color: 'rgba(27, 94, 50, 0.08)' },
+                border: { display: false },
+                ticks: { color: '#6b7280', font: { size: 11 }, padding: 8, maxTicksLimit: 6, callback: tickLabel }
+              }
+            }
+          }
+        });
+      }
+
+      dtTrendPills.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dtTrendPills.forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          dtTrendMetric = btn.getAttribute('data-metric') || 'lines';
+          if (dtTrendChart) {
+            dtTrendChart.destroy();
+            dtTrendChart = null;
+          }
+          renderDtTrend(dtLastTrendLines);
+        });
+      });
+
+      var dtTab = document.getElementById('tab-3');
+      if (dtTab) {
+        dtTab.addEventListener('click', function () {
+          window.requestAnimationFrame(function () {
+            if (dtTrendChart) dtTrendChart.resize();
+          });
+        });
+      }
+
       function render() {
         if (!allLines.length) {
           setVisibility(false);
@@ -5964,7 +6639,9 @@
         if (countEl) {
           countEl.textContent = model.summary.pickerCount + ' picker' + (model.summary.pickerCount === 1 ? '' : 's');
         }
+        var trendLines = linesForTrend(filtered, model);
         renderSummary(model);
+        renderDtTrend(trendLines);
         renderTable(model);
       }
 

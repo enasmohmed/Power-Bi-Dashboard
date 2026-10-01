@@ -1,0 +1,28 @@
+{% extends "base-kpi.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'assets/css/operations-overview.css' %}">
+{% endblock %}
+
+{% block content %}
+{% include "components/ui-kits/tab-bootstrap/components/warehouse-overview-tab.html" %}
+<script>
+(function () {
+  function go() {
+    var params = new URLSearchParams(window.location.search);
+    var wh = document.getElementById("warehouse-wh-filter");
+    var acc = document.getElementById("warehouse-account-filter");
+    var day = document.getElementById("warehouse-day-filter");
+    if (wh && wh.value) params.set("wh", wh.value); else params.delete("wh");
+    if (acc && acc.value) params.set("acc", acc.value); else params.delete("acc");
+    if (day && day.value) params.set("day", day.value); else params.delete("day");
+    window.location.search = params.toString();
+  }
+  ["warehouse-wh-filter", "warehouse-account-filter", "warehouse-day-filter"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("change", go);
+  });
+})();
+</script>
+{% endblock %}

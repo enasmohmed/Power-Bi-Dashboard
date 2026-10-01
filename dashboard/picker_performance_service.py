@@ -341,6 +341,22 @@ def mixed_target(pick_count: int, other_count: int, total_lines: int) -> int:
     return round((pick_count * 200 + other_count * 150) / total_lines)
 
 
+def line_after_shift_end(create_dt: datetime | None, conf_dt: datetime | None) -> bool | None:
+    """True when confirmation is after the shift window that creation time falls in."""
+    if create_dt is None or conf_dt is None or conf_dt < create_dt:
+        return None
+    start_hour = create_dt.hour + create_dt.minute / 60 + create_dt.second / 3600
+    start = classify_shift_from_hour(start_hour)
+    if start == SHIFT_S1:
+        end = datetime.combine(create_dt.date(), time(15, 0))
+    elif start == SHIFT_S2:
+        end = datetime.combine(create_dt.date() + timedelta(days=1), time(0, 0))
+    else:
+        end_day = create_dt.date() if start_hour < 6 else create_dt.date() + timedelta(days=1)
+        end = datetime.combine(end_day, time(6, 0))
+    return conf_dt > end
+
+
 def _half_split_delta(daily_values: list[float]) -> tuple[float | None, str]:
     """Compare avg of second half vs first half of chronologically ordered daily values."""
     n = len(daily_values)
@@ -541,6 +557,7 @@ def parse_sap_sheet(
                 "pick_duration_min": pick_duration_min,
                 "delivery_number": delivery,
                 "lines": 1,
+                "is_overtime": line_after_shift_end(create_dt, conf_dt),
             }
         )
 
@@ -573,6 +590,11 @@ def serialize_lines_for_client(lines: list[dict[str, Any]]) -> list[dict[str, An
                 "dn": ln.get("delivery_number", "") or "",
                 "ty": ln.get("picker_type", "") or "",
                 "b": ln.get("business", "") or "",
+                "ot": (
+                    None
+                    if ln.get("is_overtime") is None
+                    else (1 if ln.get("is_overtime") else 0)
+                ),
             }
         )
     return out
@@ -814,6 +836,20 @@ def build_performance_context(
 
     # --- Total distinct transfer orders ---
     total_orders = len({ln.get("delivery_number") for ln in lines if ln.get("delivery_number")})
+    avg_orders = round(total_orders / operating_days) if operating_days else 0
+
+    repl_n = sum(1 for ln in lines if not ln.get("is_pick"))
+    repl_pct = (repl_n / total_lines * 100) if total_lines else 0.0
+
+    ot_known = [ln for ln in lines if ln.get("is_overtime") is not None]
+    if ot_known:
+        ot_n = sum(1 for ln in ot_known if ln.get("is_overtime"))
+        ot_pct = (ot_n / total_lines * 100) if total_lines else 0.0
+        overtime_value = f"{ot_pct:.1f}%"
+        overtime_sub = f"{ot_n:,} lines after shift end"
+    else:
+        overtime_value = "—"
+        overtime_sub = "Re-upload the picking Excel to calculate lines after shift end"
 
     # --- Picker-days where daily target not met (<100%) ---
     days_target_missed_total = len(daily_rows) - target_achievement_days
@@ -868,9 +904,16 @@ def build_performance_context(
         {
             "key": "daily_avg",
             "title_en": "Daily Avg Lines",
-            "value": f"{daily_avg:.1f}",
+            "value": f"{daily_avg:,.1f}",
             "sub": "Total lines ÷ operating days",
             "accent": "sky",
+        },
+        {
+            "key": "avg_orders",
+            "title_en": "Avg Orders/Day",
+            "value": f"{avg_orders:,}",
+            "sub": "Completed orders ÷ operating days",
+            "accent": "teal",
         },
         {
             "key": "orders",
@@ -892,6 +935,27 @@ def build_performance_context(
             "value": shift_main,
             "sub": shift_sub,
             "accent": "blue",
+        },
+        {
+            "key": "overtime",
+            "title_en": "Overtime %",
+            "value": overtime_value,
+            "sub": overtime_sub,
+            "accent": "rose",
+        },
+        {
+            "key": "orders_received",
+            "title_en": "Orders Received",
+            "value": "—",
+            "sub": "Not available for this account",
+            "accent": "emerald",
+        },
+        {
+            "key": "replenishment",
+            "title_en": "Replenishment",
+            "value": f"{repl_n:,}",
+            "sub": f"{repl_pct:.1f}% of all lines",
+            "accent": "violet",
         },
         {
             "key": "mip",
@@ -959,6 +1023,7 @@ def import_picker_shifts_from_excel(
             shift_band=normalize_shift_code(r["shift_band"]),
             pick_duration_min=r.get("pick_duration_min"),
             delivery_number=r.get("delivery_number", ""),
+            is_overtime=r.get("is_overtime"),
         )
         for r in rows
     ]
@@ -984,6 +1049,7 @@ def lines_from_db_rows(records: Any) -> list[dict[str, Any]]:
                 "pick_duration_min": getattr(r, "pick_duration_min", None),
                 "delivery_number": getattr(r, "delivery_number", "") or "",
                 "lines": getattr(r, "lines", 1) or 1,
+                "is_overtime": getattr(r, "is_overtime", None),
             }
         )
     return out
@@ -1002,9 +1068,13 @@ def _empty_cards() -> list[dict[str, Any]]:
         ("top", "Top Performer"),
         ("lowest", "Lowest Performer"),
         ("daily_avg", "Daily Avg Lines"),
+        ("avg_orders", "Avg Orders/Day"),
         ("orders", "Total Orders"),
         ("days_missed", "Days Target Not Met"),
         ("shift_cmp", "Shift 1 · 2 · 3"),
+        ("overtime", "Overtime %"),
+        ("orders_received", "Orders Received"),
+        ("replenishment", "Replenishment"),
         ("mip", "Most Improved"),
     ]
     return [

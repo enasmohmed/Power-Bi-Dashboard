@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
 
     'dashboard',
+    'Operations_app.operations',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -81,7 +82,10 @@ STATICFILES_DIRS = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'Operations_app' / 'templates',
+        ],
         # 'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -175,4 +179,4 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 50000
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/accounts/dashboard/"

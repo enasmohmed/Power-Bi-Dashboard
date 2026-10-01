@@ -686,6 +686,12 @@ class PickerShiftRecord(models.Model):
         help_text="Company name from the Excel Business column.",
         db_index=True,
     )
+    is_overtime = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name="After shift end",
+        help_text="True when confirmation time is after the shift window that creation time falls in.",
+    )
 
     class Meta:
         ordering = ("work_date", "picker_name", "id")

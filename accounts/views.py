@@ -61,7 +61,7 @@ class CustomLoginView(AuthLoginView):
 
         if user.is_superuser or user.groups.filter(name='Admin').exists():
             print("Redirecting to admin dashboard")
-            return redirect(reverse('accounts:overview'))
+            return redirect(reverse('accounts:dashboard'))
         elif user.role == 'customer' and user.groups.filter(name='Customer').exists():
             print("Redirecting to customer dashboard")
             return redirect('accounts:customer_dashboard')
@@ -71,7 +71,7 @@ class CustomLoginView(AuthLoginView):
         elif user.role == 'employee' and user.groups.filter(name='Employee').exists():
             self.request.session['dashboard_choice'] = 'admin_dashboard'
             self.request.session['dashboard_type'] = 'Admin Dashboard'
-            return redirect('accounts:overview')
+            return redirect('accounts:dashboard')
         else:
             print("Redirecting to home page")
             return redirect('/')
@@ -95,6 +95,8 @@ class RegisterView(View):
     template_name = 'accounts/new/sign-up.html'
 
     def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('accounts:dashboard')
         form = self.form_class()
         return render(request, self.template_name, {'form': form})
 
@@ -241,11 +243,11 @@ def redirect_to_dashboard(request):
 
     if user.is_superuser or user.role == 'admin':
         request.session['dashboard_type'] = 'Admin Dashboard'
-        return redirect('accounts:overview')
+        return redirect('accounts:dashboard')
     elif user.role == 'employee':
         if dashboard_choice == 'admin_dashboard':
             request.session['dashboard_type'] = 'Admin Dashboard'
-            return redirect('accounts:overview')
+            return redirect('accounts:dashboard')
         elif dashboard_choice == 'customer_dashboard':
             request.session['dashboard_type'] = 'Customer Dashboard'
             return redirect('accounts:customer_dashboard')
@@ -563,7 +565,7 @@ class ChooseDashboardView(View):
     def get(self, request, *args, **kwargs):
         request.session['dashboard_choice'] = 'admin_dashboard'
         request.session['dashboard_type'] = 'Admin Dashboard'
-        return redirect('accounts:overview')
+        return redirect('accounts:dashboard')
 
     # def get(self, request, *args, **kwargs):
     #     context = self.get_context_data(**kwargs)
@@ -575,12 +577,12 @@ class ChooseDashboardView(View):
             if request.user.is_superuser or request.user.groups.filter(name='Admin').exists():
                 request.session['dashboard_choice'] = 'admin_dashboard'
                 request.session['dashboard_type'] = 'Admin Dashboard'
-                return redirect('accounts:overview')
+                return redirect('accounts:dashboard')
 
             elif request.user.groups.filter(name='Employee').exists():
                 request.session['dashboard_choice'] = 'admin_dashboard'
                 request.session['dashboard_type'] = 'Admin Dashboard'
-                return redirect('accounts:overview')
+                return redirect('accounts:dashboard')
 
         elif choice == 'customer_dashboard':
             request.session['dashboard_choice'] = 'customer_dashboard'
